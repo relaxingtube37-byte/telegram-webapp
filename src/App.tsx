@@ -5,7 +5,7 @@ import { ReferralModal } from './components/ReferralModal';
 import type { Prediction, StatsOverviewData, ReferralSite } from './types';
 import { Trophy, RefreshCw, Flame, History, Key } from 'lucide-react';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || 'http://localhost:8080/api/webapp';
+const API_BASE = ((import.meta as any).env?.VITE_API_BASE || 'https://telegram-backend-2yck.onrender.com/api/webapp').replace(/\/+$/, '');
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
