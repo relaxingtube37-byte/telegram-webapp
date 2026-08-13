@@ -42,3 +42,22 @@ export interface ReferralSite {
   name: string;
   base_url: string;
 }
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp?: {
+        ready: () => void;
+        expand: () => void;
+        openLink?: (url: string) => void;
+        initDataUnsafe?: {
+          user?: {
+            id?: number;
+            first_name?: string;
+            username?: string;
+          };
+        };
+      };
+    };
+  }
+}

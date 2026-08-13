@@ -161,6 +161,7 @@ declare global {
       WebApp?: {
         ready: () => void;
         expand: () => void;
+        openLink?: (url: string) => void;
         initDataUnsafe?: {
           user?: {
             id?: number;

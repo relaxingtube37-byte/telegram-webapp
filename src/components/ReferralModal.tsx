@@ -26,24 +26,37 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ sites, telegramId,
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.2rem' }}>
           {sites.length > 0 ? (
             sites.map(site => {
-              const trackingUrl = site.base_url.includes('?')
-                ? `${site.base_url}&subid=${telegramId}`
-                : `${site.base_url}?subid=${telegramId}`;
+              const tid = telegramId || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+              const is1win = site.name.toLowerCase().includes('1win') || site.base_url.includes('1w') || site.base_url.includes('r1w');
+              const paramName = is1win ? 'sub1' : 'subid';
+
+              let trackingUrl = site.base_url;
+              if (tid) {
+                const sep = trackingUrl.includes('?') ? '&' : '?';
+                trackingUrl = `${trackingUrl}${sep}${paramName}=${tid}`;
+              }
+
+              const handleOpen = (e: React.MouseEvent) => {
+                e.preventDefault();
+                if (window.Telegram?.WebApp?.openLink) {
+                  window.Telegram.WebApp.openLink(trackingUrl);
+                } else {
+                  window.open(trackingUrl, '_blank', 'noopener,noreferrer');
+                }
+              };
 
               return (
-                <a
+                <button
                   key={site.id}
-                  href={trackingUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={handleOpen}
                   className="btn-primary"
-                  style={{ textDecoration: 'none', justifyContent: 'space-between', padding: '0.8rem 1rem' }}
+                  style={{ width: '100%', border: 'none', cursor: 'pointer', textDecoration: 'none', justifyContent: 'space-between', padding: '0.8rem 1rem' }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <CheckCircle2 size={16} /> Register on {site.name}
                   </span>
                   <ExternalLink size={16} />
-                </a>
+                </button>
               );
             })
           ) : (
