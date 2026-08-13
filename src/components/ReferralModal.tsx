@@ -26,17 +26,19 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ sites, telegramId,
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.2rem' }}>
           {sites.length > 0 ? (
             sites.map(site => {
-              const tid = telegramId || window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-              const is1win = site.name.toLowerCase().includes('1win') || site.base_url.includes('1w') || site.base_url.includes('r1w');
-              const paramName = is1win ? 'sub1' : 'subid';
+              const tid = telegramId || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 0;
+              
+              // Build tracking URLs
+              const backendBase = 'https://telegram-backend-2yck.onrender.com';
+              const trackingUrl = tid ? `${backendBase}/go/${site.id}/${tid}` : site.base_url;
 
-              let trackingUrl = site.base_url;
-              if (tid) {
-                const sep = trackingUrl.includes('?') ? '&' : '?';
-                trackingUrl = `${trackingUrl}${sep}${paramName}=${tid}`;
+              let appTrackingUrl = site.app_url || '';
+              if (appTrackingUrl && tid) {
+                const sep = appTrackingUrl.includes('?') ? '&' : '?';
+                appTrackingUrl = `${appTrackingUrl}${sep}subid=${tid}&sub1=${tid}`;
               }
 
-              const handleOpen = (e: React.MouseEvent) => {
+              const handleOpenWeb = (e: React.MouseEvent) => {
                 e.preventDefault();
                 if (window.Telegram?.WebApp?.openLink) {
                   window.Telegram.WebApp.openLink(trackingUrl);
@@ -45,18 +47,38 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ sites, telegramId,
                 }
               };
 
+              const handleOpenApp = (e: React.MouseEvent) => {
+                e.preventDefault();
+                if (window.Telegram?.WebApp?.openLink) {
+                  window.Telegram.WebApp.openLink(appTrackingUrl);
+                } else {
+                  window.open(appTrackingUrl, '_blank', 'noopener,noreferrer');
+                }
+              };
+
               return (
-                <button
-                  key={site.id}
-                  onClick={handleOpen}
-                  className="btn-primary"
-                  style={{ width: '100%', border: 'none', cursor: 'pointer', textDecoration: 'none', justifyContent: 'space-between', padding: '0.8rem 1rem' }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <CheckCircle2 size={16} /> Register on {site.name}
-                  </span>
-                  <ExternalLink size={16} />
-                </button>
+                <div key={site.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <button
+                    onClick={handleOpenWeb}
+                    className="btn-primary"
+                    style={{ width: '100%', border: 'none', cursor: 'pointer', textDecoration: 'none', justifyContent: 'space-between', padding: '0.75rem 1rem' }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <CheckCircle2 size={16} /> Register on {site.name} (Web)
+                    </span>
+                    <ExternalLink size={16} />
+                  </button>
+
+                  {site.app_url && site.app_url.trim().length > 0 && (
+                    <button
+                      onClick={handleOpenApp}
+                      style={{ width: '100%', background: '#27272a', border: '1px solid #38bdf8', color: '#38bdf8', borderRadius: 8, padding: '0.55rem 1rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}
+                    >
+                      <span>📱 Download {site.name} Android App (APK)</span>
+                      <ExternalLink size={14} />
+                    </button>
+                  )}
+                </div>
               );
             })
           ) : (

@@ -41,6 +41,8 @@ export interface ReferralSite {
   id: number;
   name: string;
   base_url: string;
+  app_url?: string;
+  verify_mode?: string;
 }
 
 declare global {
