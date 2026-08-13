@@ -28,7 +28,9 @@ export function App() {
         const u = tg.initDataUnsafe.user;
         setTelegramUser(u);
         if (u.id) {
-          fetch(`${API_BASE}/user/${u.id}`)
+          const fn = encodeURIComponent(u.first_name || '');
+          const un = encodeURIComponent(u.username || '');
+          fetch(`${API_BASE}/user/${u.id}?first_name=${fn}&username=${un}`)
             .then(r => r.json())
             .then(res => {
               if (res?.verified) setIsVerified(true);
