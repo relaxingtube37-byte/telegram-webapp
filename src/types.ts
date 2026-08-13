@@ -23,7 +23,7 @@ export interface Prediction {
   alt_bet_rationale?: string;
   alt_bet_risk?: string;
   ai_summary?: string;
-  status: 'UPCOMING' | 'LIVE' | 'WON' | 'LOST' | 'VOID';
+  status: 'UPCOMING' | 'LIVE' | 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED';
   result_score?: string;
   published_at: string;
 }

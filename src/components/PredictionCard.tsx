@@ -18,6 +18,10 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
     <span className="badge badge-won"><CheckCircle size={12} /> WON ({prediction.result_score || '2:1'})</span>
   ) : prediction.status === 'LOST' ? (
     <span className="badge badge-lost"><XCircle size={12} /> LOST</span>
+  ) : prediction.status === 'INTERRUPTED' ? (
+    <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>⏸ INTERRUPTED</span>
+  ) : prediction.status === 'VOID' ? (
+    <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>🔄 VOID</span>
   ) : prediction.status === 'LIVE' ? (
     <span className="badge badge-live">● LIVE</span>
   ) : (
