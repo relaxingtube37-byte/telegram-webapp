@@ -16,6 +16,7 @@ export function App() {
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [telegramUser, setTelegramUser] = useState<{ id?: number; first_name?: string; username?: string } | null>(null);
   const [isVerified, setIsVerified] = useState(false);
+  const [accessMode, setAccessMode] = useState<'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED'>('REGISTRATION_REQUIRED');
 
   useEffect(() => {
     // Initialize Telegram WebApp SDK if running inside Telegram
@@ -29,11 +30,19 @@ export function App() {
         if (u.id) {
           fetch(`${API_BASE}/user/${u.id}`)
             .then(r => r.json())
-            .then(res => { if (res?.verified) setIsVerified(true); })
+            .then(res => {
+              if (res?.verified) setIsVerified(true);
+              if (res?.access_mode) setAccessMode(res.access_mode);
+            })
             .catch(() => {});
         }
       }
     }
+
+    fetch(`${API_BASE}/config`)
+      .then(r => r.json())
+      .then(res => { if (res?.access_mode) setAccessMode(res.access_mode); })
+      .catch(() => {});
 
     loadData();
   }, []);
@@ -92,9 +101,9 @@ export function App() {
 
         <button
           onClick={() => setShowReferralModal(true)}
-          style={{ background: isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(251, 191, 36, 0.15)', border: `1px solid ${isVerified ? '#22c55e' : '#fbbf24'}`, color: isVerified ? '#22c55e' : '#fbbf24', padding: '0.6rem 0.8rem', borderRadius: 10, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+          style={{ background: accessMode === 'FREE' ? 'rgba(34, 197, 94, 0.15)' : isVerified ? 'rgba(34, 197, 94, 0.15)' : 'rgba(251, 191, 36, 0.15)', border: `1px solid ${accessMode === 'FREE' || isVerified ? '#22c55e' : '#fbbf24'}`, color: accessMode === 'FREE' || isVerified ? '#22c55e' : '#fbbf24', padding: '0.6rem 0.8rem', borderRadius: 10, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
         >
-          <Key size={14} /> {isVerified ? 'VIP ✓' : 'UNLOCK'}
+          <Key size={14} /> {accessMode === 'FREE' ? 'FREE 🔓' : isVerified ? 'VIP ✓' : 'UNLOCK'}
         </button>
       </div>
 
@@ -110,7 +119,7 @@ export function App() {
             <PredictionCard
               key={p.id}
               prediction={p}
-              isLocked={!isVerified && idx > 0}
+              isLocked={accessMode === 'FREE' ? false : (!isVerified && idx > 0)}
               onUnlockClick={() => setShowReferralModal(true)}
             />
           ))
