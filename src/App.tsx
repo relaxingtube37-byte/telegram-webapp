@@ -3,8 +3,8 @@ import { Header } from './components/Header';
 import { CompactMatchRow } from './components/CompactMatchRow';
 import { ReferralModal } from './components/ReferralModal';
 import type { Prediction, StatsOverviewData, ReferralSite } from './types';
-import { Trophy, RefreshCw, Flame, History, Key, Search, LayoutList, SlidersHorizontal } from 'lucide-react';
-import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji } from './utils/formatters';
+import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles } from 'lucide-react';
+import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter } from './utils/formatters';
 
 const API_BASE = ((import.meta as any).env?.VITE_API_BASE || 'https://telegram-backend-2yck.onrender.com/api/webapp').replace(/\/+$/, '');
 
@@ -21,6 +21,7 @@ export function App() {
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'week'>('all');
   const [filterChip, setFilterChip] = useState<'all' | 'value_bets' | 'high_prob' | 'clay' | 'hard'>('all');
   const [selectedTimezone, setSelectedTimezone] = useState<string>(getInitialTimezone());
 
@@ -106,7 +107,15 @@ export function App() {
         }
       }
 
-      // 2. Chip Filter Match
+      // 2. Date Filter Match (Today / Tomorrow / Week)
+      if (dateFilter !== 'all') {
+        const dStr = p.match_date || p.published_at;
+        if (!matchMatchesDateFilter(dStr, dateFilter, selectedTimezone)) {
+          return false;
+        }
+      }
+
+      // 3. Chip Filter Match
       if (filterChip === 'value_bets') {
         if (!p.best_bet_selection) return false;
       } else if (filterChip === 'high_prob') {
@@ -119,7 +128,7 @@ export function App() {
 
       return true;
     });
-  }, [activeTab, activePredictions, historyPredictions, searchQuery, filterChip]);
+  }, [activeTab, activePredictions, historyPredictions, searchQuery, dateFilter, filterChip, selectedTimezone]);
 
   // Group by Tournament
   const groupedByTournament = useMemo(() => {
@@ -137,24 +146,51 @@ export function App() {
   return (
     <div className="webapp-container">
       {/* Header with Stats & Timezone */}
-      <Header stats={stats} telegramUser={telegramUser}
+      <Header
+        stats={stats}
+        telegramUser={telegramUser}
         selectedTimezone={selectedTimezone}
         onTimezoneChange={handleTimezoneChange}
       />
 
-      {/* Search Input Bar */}
-      <div className="search-bar-container">
-        <Search size={16} color="var(--text-secondary)" className="search-icon" />
-        <input
-          type="text"
-          placeholder="Search player, tournament or bet..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
-        />
-        {searchQuery && (
-          <button onClick={() => setSearchQuery('')} className="search-clear-btn">✕</button>
-        )}
+      {/* Search Input & Date Filters Row */}
+      <div className="search-date-combined-row">
+        {/* Search Bar (Half width) */}
+        <div className="search-bar-wrapper">
+          <Search size={14} color="var(--text-secondary)" className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search player..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="search-clear-btn">✕</button>
+          )}
+        </div>
+
+        {/* Date Filter Buttons (Today / Tomorrow / Week) */}
+        <div className="date-filter-group">
+          <button
+            className={`date-filter-btn ${dateFilter === 'today' ? 'active' : ''}`}
+            onClick={() => setDateFilter(prev => prev === 'today' ? 'all' : 'today')}
+          >
+            Today
+          </button>
+          <button
+            className={`date-filter-btn ${dateFilter === 'tomorrow' ? 'active' : ''}`}
+            onClick={() => setDateFilter(prev => prev === 'tomorrow' ? 'all' : 'tomorrow')}
+          >
+            Tomorrow
+          </button>
+          <button
+            className={`date-filter-btn ${dateFilter === 'week' ? 'active' : ''}`}
+            onClick={() => setDateFilter(prev => prev === 'week' ? 'all' : 'week')}
+          >
+            Week
+          </button>
+        </div>
       </div>
 
       {/* Filter Chips Bar */}
@@ -262,17 +298,19 @@ export function App() {
         <div className="glass empty-state-box">
           <Flame size={44} className="empty-icon" />
           <h3 className="empty-title">
-            {searchQuery ? 'No matching matches found' : activeTab === 'active' ? 'No Active Predictions Right Now' : 'No Settled History Yet'}
+            {searchQuery || dateFilter !== 'all' ? 'No matching matches found' : activeTab === 'active' ? 'No Active Predictions Right Now' : 'No Settled History Yet'}
           </h3>
           <p className="empty-desc">
-            {searchQuery ? 'Try adjusting your search terms or filters.' : 'Check back soon! New high-EV predictions are posted regularly.'}
+            {searchQuery || dateFilter !== 'all' ? 'Try changing your date filter or search terms.' : 'Check back soon! New high-EV predictions are posted regularly.'}
           </p>
         </div>
       )}
 
       {/* Referral Partner Registration Modal */}
       {showReferralModal && (
-        <ReferralModal sites={referralSites} telegramId={telegramUser?.id || undefined}
+        <ReferralModal
+          sites={referralSites}
+          telegramId={telegramUser?.id}
           onClose={() => setShowReferralModal(false)}
           onVerified={() => {
             setIsVerified(true);

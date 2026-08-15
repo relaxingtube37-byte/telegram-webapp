@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Flame, Shield, CheckCircle, XCircle, Clock, Lock, Key, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Flame, Shield, CheckCircle, XCircle, Clock, Lock, Key, Sparkles, Calendar } from 'lucide-react';
 import type { Prediction } from '../types';
-import { formatMatchTime, getSurfaceEmoji } from '../utils/formatters';
+import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji } from '../utils/formatters';
 
 interface CompactMatchRowProps {
   prediction: Prediction;
@@ -29,7 +29,9 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
     setExpanded(prev => !prev);
   };
 
-  const matchTimeStr = formatMatchTime(prediction.match_date || prediction.published_at, selectedTimezone);
+  const rawDateStr = prediction.match_date || prediction.published_at;
+  const matchTimeStr = formatMatchTime(rawDateStr, selectedTimezone);
+  const matchDateLabel = getCompactDateLabel(rawDateStr, selectedTimezone);
 
   const isHomeWinner = prediction.predicted_winner === prediction.home_name;
   const isAwayWinner = prediction.predicted_winner === prediction.away_name;
@@ -50,8 +52,13 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
     <div className={`compact-match-row glass ${expanded ? 'expanded' : ''}`}>
       {/* Clickable Summary Row */}
       <div className="compact-row-header" onClick={handleToggle}>
-        {/* Time / Status Column */}
+        {/* Date + Time / Status Column */}
         <div className="compact-time-col">
+          {matchDateLabel && (
+            <div className="compact-date-tiny">
+              {matchDateLabel}
+            </div>
+          )}
           {statusBadge}
         </div>
 

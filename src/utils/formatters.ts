@@ -46,6 +46,77 @@ export const formatMatchDate = (dateStr?: string, timeZone: string = 'UTC'): str
   }
 };
 
+export const getCompactDateLabel = (dateStr?: string, timeZone: string = 'UTC'): string => {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+
+    const tz = timeZone === 'local' ? undefined : (timeZone || 'UTC');
+    
+    // Format date string for match and today in selected timezone
+    const now = new Date();
+    const matchDateStr = d.toLocaleDateString('en-CA', { timeZone: tz }); // YYYY-MM-DD
+    const todayDateStr = now.toLocaleDateString('en-CA', { timeZone: tz });
+
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowDateStr = tomorrow.toLocaleDateString('en-CA', { timeZone: tz });
+
+    if (matchDateStr === todayDateStr) {
+      return 'Today';
+    }
+    if (matchDateStr === tomorrowDateStr) {
+      return 'Tomorrow';
+    }
+
+    return d.toLocaleDateString('en-US', {
+      timeZone: tz,
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return '';
+  }
+};
+
+export const matchMatchesDateFilter = (
+  dateStr?: string,
+  filter: 'all' | 'today' | 'tomorrow' | 'week' = 'all',
+  timeZone: string = 'UTC'
+): boolean => {
+  if (filter === 'all' || !dateStr) return true;
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return true;
+
+    const tz = timeZone === 'local' ? undefined : (timeZone || 'UTC');
+    const now = new Date();
+    
+    const matchDateStr = d.toLocaleDateString('en-CA', { timeZone: tz });
+    const todayDateStr = now.toLocaleDateString('en-CA', { timeZone: tz });
+
+    if (filter === 'today') {
+      return matchDateStr === todayDateStr;
+    }
+
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowDateStr = tomorrow.toLocaleDateString('en-CA', { timeZone: tz });
+
+    if (filter === 'tomorrow') {
+      return matchDateStr === tomorrowDateStr;
+    }
+
+    if (filter === 'week') {
+      const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      return d >= now && d <= oneWeekLater;
+    }
+
+    return true;
+  } catch {
+    return true;
+  }
+};
+
 export const getSurfaceEmoji = (surface?: string): string => {
   if (!surface) return '🟦';
   const s = surface.toLowerCase();
