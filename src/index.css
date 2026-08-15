@@ -21,18 +21,25 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html, body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
-  padding-bottom: 2rem;
-  overflow-x: hidden;
+  padding-bottom: 2.5rem;
 }
 
 .webapp-container {
+  width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 0.8rem 0.85rem 4rem 0.85rem;
+  padding: 0.75rem 0.8rem 4rem 0.8rem;
+  box-sizing: border-box;
 }
 
 .glass {
@@ -45,8 +52,10 @@ body {
 
 /* Header Styles */
 .header-container {
-  padding: 0.9rem;
-  margin-bottom: 0.9rem;
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-top-row {
@@ -54,13 +63,14 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .header-user-badge {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
+  min-width: 0;
 }
 
 .header-logo-icon {
@@ -72,6 +82,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
+  flex-shrink: 0;
 }
 
 .header-title {
@@ -80,11 +91,15 @@ body {
   background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  white-space: nowrap;
 }
 
 .header-subtitle {
   font-size: 0.7rem;
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-user-highlight {
@@ -98,18 +113,20 @@ body {
   gap: 0.25rem;
   background: rgba(15, 23, 42, 0.8);
   border: 1px solid var(--border);
-  padding: 0.2rem 0.5rem;
+  padding: 0.2rem 0.45rem;
   border-radius: 20px;
+  flex-shrink: 0;
 }
 
 .timezone-select {
   background: transparent;
   border: none;
   color: var(--accent-cyan);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   outline: none;
   cursor: pointer;
+  max-width: 125px;
 }
 
 .timezone-select option {
@@ -158,19 +175,20 @@ body {
 .search-date-combined-row {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.4rem;
   margin-bottom: 0.65rem;
+  width: 100%;
 }
 
 .search-bar-wrapper {
   position: relative;
-  flex: 1.1;
+  flex: 1;
   min-width: 0;
 }
 
 .search-icon {
   position: absolute;
-  left: 0.7rem;
+  left: 0.65rem;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -181,11 +199,12 @@ body {
   background: rgba(18, 26, 44, 0.85);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 0.55rem 1.6rem 0.55rem 2rem;
+  padding: 0.52rem 1.5rem 0.52rem 1.9rem;
   color: white;
   font-size: 0.78rem;
   outline: none;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -195,7 +214,7 @@ body {
 
 .search-clear-btn {
   position: absolute;
-  right: 0.6rem;
+  right: 0.55rem;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -207,10 +226,10 @@ body {
 
 .date-filter-group {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.2rem;
   flex-shrink: 0;
   background: rgba(18, 26, 44, 0.85);
-  padding: 0.2rem;
+  padding: 0.18rem;
   border-radius: 10px;
   border: 1px solid var(--border);
 }
@@ -219,9 +238,9 @@ body {
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  padding: 0.38rem 0.55rem;
+  padding: 0.35rem 0.5rem;
   border-radius: 7px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -238,9 +257,10 @@ body {
   display: flex;
   gap: 0.35rem;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.45rem;
   margin-bottom: 0.55rem;
   scrollbar-width: none;
+  width: 100%;
 }
 
 .filter-chips-scroll::-webkit-scrollbar {
@@ -252,12 +272,13 @@ body {
   background: rgba(18, 26, 44, 0.7);
   border: 1px solid var(--border);
   color: var(--text-secondary);
-  padding: 0.3rem 0.65rem;
+  padding: 0.28rem 0.6rem;
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .filter-chip.active {
@@ -271,8 +292,9 @@ body {
 .nav-controls-row {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  margin-bottom: 0.9rem;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+  width: 100%;
 }
 
 .nav-tabs {
@@ -288,7 +310,7 @@ body {
 .nav-tab {
   flex: 1;
   text-align: center;
-  padding: 0.45rem 0.5rem;
+  padding: 0.45rem 0.4rem;
   border-radius: 7px;
   font-size: 0.75rem;
   font-weight: 700;
@@ -297,6 +319,7 @@ body {
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-tab.active {
@@ -308,23 +331,26 @@ body {
   background: rgba(18, 26, 44, 0.9);
   border: 1px solid var(--border);
   color: white;
-  padding: 0.5rem;
+  padding: 0.48rem;
   border-radius: 9px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .btn-vip-badge {
-  padding: 0.5rem 0.65rem;
+  padding: 0.48rem 0.6rem;
   border-radius: 9px;
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .vip-active {
@@ -341,16 +367,18 @@ body {
 
 /* Tournament Group */
 .tournament-group {
-  margin-bottom: 1.1rem;
+  margin-bottom: 1rem;
+  width: 100%;
 }
 
 .tournament-group-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.35rem 0.4rem 0.45rem 0.4rem;
+  padding: 0.35rem 0.35rem 0.4rem 0.35rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   margin-bottom: 0.45rem;
+  width: 100%;
 }
 
 .tourn-title-left {
@@ -360,15 +388,21 @@ body {
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-secondary);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .tourn-name {
   color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tourn-surf {
   opacity: 0.6;
   font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .tourn-count {
@@ -378,6 +412,7 @@ body {
   padding: 0.05rem 0.4rem;
   border-radius: 10px;
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 /* Compact Match Row */
@@ -386,6 +421,8 @@ body {
   border-radius: 11px;
   transition: all 0.2s ease;
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .compact-match-row:hover {
@@ -396,12 +433,14 @@ body {
   display: flex;
   align-items: center;
   padding: 0.65rem 0.75rem;
-  gap: 0.55rem;
+  gap: 0.5rem;
   cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .compact-time-col {
-  width: 54px;
+  width: 52px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -411,21 +450,23 @@ body {
 }
 
 .compact-date-tiny {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 800;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .status-tag {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.15rem 0.35rem;
+  padding: 0.15rem 0.3rem;
   border-radius: 5px;
   text-align: center;
   width: 100%;
+  white-space: nowrap;
 }
 
 .status-tag-time {
@@ -464,6 +505,7 @@ body {
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+  overflow: hidden;
 }
 
 .compact-player-line {
@@ -472,6 +514,8 @@ body {
   gap: 0.35rem;
   font-size: 0.82rem;
   color: #cbd5e1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .compact-player-line.predicted-winner {
@@ -483,6 +527,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .player-odds-pill {
@@ -492,32 +537,41 @@ body {
   background: rgba(56, 189, 248, 0.1);
   padding: 0.05rem 0.25rem;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .winner-dot {
   font-size: 0.7rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .compact-actions-col {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-shrink: 0;
+  max-width: 44%;
 }
 
 .compact-bet-pill {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.2rem;
   background: rgba(249, 115, 22, 0.12);
   border: 1px solid rgba(249, 115, 22, 0.35);
   color: #fb923c;
-  padding: 0.2rem 0.45rem;
+  padding: 0.2rem 0.4rem;
   border-radius: 6px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  max-width: 105px;
+  max-width: 115px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-bet-pill span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -527,31 +581,49 @@ body {
   background: rgba(34, 197, 94, 0.12);
   color: var(--accent-green);
   border: 1px solid rgba(34, 197, 94, 0.25);
-  padding: 0.18rem 0.4rem;
+  padding: 0.18rem 0.35rem;
   border-radius: 5px;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
+  flex-shrink: 0;
 }
 
 .compact-chevron {
   color: var(--text-secondary);
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 /* Compact Details Drawer */
 .compact-details-drawer {
-  padding: 0.75rem 0.9rem 0.9rem 0.9rem;
+  padding: 0.75rem 0.85rem 0.85rem 0.85rem;
   border-top: 1px solid var(--border);
   background: rgba(10, 15, 29, 0.65);
   animation: fadeIn 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.details-prediction-card,
+.details-bet-card,
+.details-alt-card,
+.details-factors-box,
+.details-summary-box,
+.locked-box {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .details-prediction-card {
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
   border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: 9px;
-  padding: 0.65rem 0.85rem;
+  padding: 0.65rem 0.8rem;
   margin-bottom: 0.55rem;
 }
 
@@ -560,6 +632,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.25rem;
+  gap: 0.4rem;
 }
 
 .details-label {
@@ -573,15 +646,19 @@ body {
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--accent-green);
+  flex-shrink: 0;
 }
 
 .details-card-winner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1rem;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: white;
+  word-break: break-word;
 }
 
 .details-score-badge {
@@ -590,13 +667,14 @@ body {
   background: rgba(251, 191, 36, 0.15);
   padding: 0.12rem 0.4rem;
   border-radius: 5px;
+  flex-shrink: 0;
 }
 
 .details-bet-card {
   background: rgba(34, 197, 94, 0.08);
   border: 1px solid rgba(34, 197, 94, 0.25);
   border-radius: 9px;
-  padding: 0.65rem 0.85rem;
+  padding: 0.65rem 0.8rem;
   margin-bottom: 0.55rem;
 }
 
@@ -604,8 +682,9 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
   font-size: 0.72rem;
+  gap: 0.4rem;
 }
 
 .ev-badge {
@@ -615,26 +694,33 @@ body {
   color: var(--accent-green);
   padding: 0.05rem 0.3rem;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .details-bet-selection {
   font-weight: 800;
   font-size: 0.88rem;
   color: white;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .details-bet-market {
   font-size: 0.7rem;
   color: var(--accent-cyan);
   margin-top: 2px;
+  word-break: break-word;
 }
 
 .details-bet-rationale {
   font-size: 0.72rem;
   color: #cbd5e1;
   font-style: italic;
-  margin-top: 3px;
+  margin-top: 4px;
   line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .details-alt-card {
@@ -650,19 +736,26 @@ body {
   font-weight: 700;
   color: var(--accent-cyan);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.25rem;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .details-alt-market {
   font-size: 0.68rem;
   color: var(--accent-amber);
+  word-break: break-word;
 }
 
 .details-alt-desc {
   font-size: 0.7rem;
   color: #cbd5e1;
   margin-top: 2px;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .details-factors-box {
@@ -686,6 +779,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  word-break: break-word;
 }
 
 .factors-list li::before {
@@ -707,6 +801,8 @@ body {
   font-size: 0.72rem;
   color: #94a3b8;
   line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* Locked Box */
