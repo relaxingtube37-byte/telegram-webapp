@@ -7,8 +7,10 @@ export interface Prediction {
   round_name?: string;
   home_name: string;
   away_name: string;
-  home_odds?: string;
-  away_odds?: string;
+  home_country?: string;
+  away_country?: string;
+  home_odds?: string | number;
+  away_odds?: string | number;
   predicted_winner: string;
   predicted_score?: string;
   win_probability?: number;
@@ -25,6 +27,7 @@ export interface Prediction {
   ai_summary?: string;
   status: 'UPCOMING' | 'LIVE' | 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED';
   result_score?: string;
+  match_date?: string;
   published_at: string;
 }
 
@@ -52,6 +55,11 @@ declare global {
         ready: () => void;
         expand: () => void;
         openLink?: (url: string) => void;
+        HapticFeedback?: {
+          impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
+          notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
+          selectionChanged: () => void;
+        };
         initDataUnsafe?: {
           user?: {
             id?: number;
