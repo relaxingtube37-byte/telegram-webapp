@@ -125,3 +125,34 @@ export const getSurfaceEmoji = (surface?: string): string => {
   if (s.includes('indoor')) return '🏢';
   return '🟦';
 };
+
+export const getMatchGender = (tournamentName?: string, roundName?: string, matchTitle?: string): 'men' | 'women' | 'unknown' => {
+  const combined = `${tournamentName || ''} ${roundName || ''} ${matchTitle || ''}`.toLowerCase();
+
+  if (
+    combined.includes('wta') ||
+    combined.includes('women') ||
+    combined.includes('w15') ||
+    combined.includes('w25') ||
+    combined.includes('w35') ||
+    combined.includes('w50') ||
+    combined.includes('w75') ||
+    combined.includes('w100') ||
+    combined.includes('billie jean king')
+  ) {
+    return 'women';
+  }
+
+  if (
+    combined.includes('atp') ||
+    combined.includes('men') ||
+    combined.includes('m15') ||
+    combined.includes('m25') ||
+    combined.includes('challenger') ||
+    combined.includes('davis cup')
+  ) {
+    return 'men';
+  }
+
+  return 'men'; // Default to men/general if not explicitly WTA
+};

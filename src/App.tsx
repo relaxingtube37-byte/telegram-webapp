@@ -4,7 +4,7 @@ import { CompactMatchRow } from './components/CompactMatchRow';
 import { ReferralModal } from './components/ReferralModal';
 import type { Prediction, StatsOverviewData, ReferralSite } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles } from 'lucide-react';
-import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter } from './utils/formatters';
+import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender } from './utils/formatters';
 
 const API_BASE = ((import.meta as any).env?.VITE_API_BASE || 'https://telegram-backend-2yck.onrender.com/api/webapp').replace(/\/+$/, '');
 
@@ -22,6 +22,7 @@ export function App() {
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'week'>('all');
+  const [genderFilter, setGenderFilter] = useState<'all' | 'men' | 'women'>('all');
   const [filterChip, setFilterChip] = useState<'all' | 'value_bets' | 'high_prob' | 'clay' | 'hard'>('all');
   const [selectedTimezone, setSelectedTimezone] = useState<string>(getInitialTimezone());
 
@@ -115,7 +116,14 @@ export function App() {
         }
       }
 
-      // 3. Chip Filter Match
+      // 3. Gender Filter Match (All / Men / Women)
+      if (genderFilter !== 'all') {
+        const g = getMatchGender(p.tournament_name, p.round_name, p.match_title);
+        if (genderFilter === 'men' && g === 'women') return false;
+        if (genderFilter === 'women' && g === 'men') return false;
+      }
+
+      // 4. Chip Filter Match
       if (filterChip === 'value_bets') {
         if (!p.best_bet_selection) return false;
       } else if (filterChip === 'high_prob') {
@@ -128,7 +136,7 @@ export function App() {
 
       return true;
     });
-  }, [activeTab, activePredictions, historyPredictions, searchQuery, dateFilter, filterChip, selectedTimezone]);
+  }, [activeTab, activePredictions, historyPredictions, searchQuery, dateFilter, genderFilter, filterChip, selectedTimezone]);
 
   // Group by Tournament
   const groupedByTournament = useMemo(() => {
@@ -193,35 +201,57 @@ export function App() {
         </div>
       </div>
 
-      {/* Filter Chips Bar */}
+      {/* 3 Side-by-Side Category Buttons (All / Men / Women) */}
+      <div className="gender-filter-row">
+        <button
+          className={`gender-filter-btn ${genderFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setGenderFilter('all')}
+        >
+          🎾 All Matches
+        </button>
+        <button
+          className={`gender-filter-btn ${genderFilter === 'men' ? 'active' : ''}`}
+          onClick={() => setGenderFilter('men')}
+        >
+          👨 Men (ATP)
+        </button>
+        <button
+          className={`gender-filter-btn ${genderFilter === 'women' ? 'active' : ''}`}
+          onClick={() => setGenderFilter('women')}
+        >
+          👩 Women (WTA)
+        </button>
+      </div>
+
+      {/* Secondary Filter Chips */}
       <div className="filter-chips-scroll">
         <button
           className={`filter-chip ${filterChip === 'all' ? 'active' : ''}`}
           onClick={() => setFilterChip('all')}
         >
-          All Matches
+          All Odds
         </button>
         <button
           className={`filter-chip ${filterChip === 'value_bets' ? 'active' : ''}`}
-          onClick={() => setFilterChip('value_bets')}
+          onClick={() => setFilterChip(prev => prev === 'value_bets' ? 'all' : 'value_bets')}
         >
           🔥 Value Bets (EV+)
         </button>
         <button
           className={`filter-chip ${filterChip === 'high_prob' ? 'active' : ''}`}
-          onClick={() => setFilterChip('high_prob')}
+          onClick={() => setFilterChip(prev => prev === 'high_prob' ? 'all' : 'high_prob')}
         >
           🎯 70%+ Win Prob
         </button>
         <button
           className={`filter-chip ${filterChip === 'hard' ? 'active' : ''}`}
-          onClick={() => setFilterChip('hard')}
+          onClick={() => setFilterChip(prev => prev === 'hard' ? 'all' : 'hard')}
         >
           🟦 Hard
         </button>
         <button
           className={`filter-chip ${filterChip === 'clay' ? 'active' : ''}`}
-          onClick={() => setFilterChip('clay')}
+          onClick={() => setFilterChip(prev => prev === 'clay' ? 'all' : 'clay')}
         >
           🧱 Clay
         </button>
