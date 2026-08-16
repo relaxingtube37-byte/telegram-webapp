@@ -235,73 +235,83 @@ export const getTournamentPriority = (tournamentName?: string): number => {
     combined.includes('us open') ||
     combined.includes('atp finals') ||
     combined.includes('wta finals') ||
-    combined.includes('grand slam')
+    combined.includes('grand slam') ||
+    combined.includes('olympic')
   ) {
     return 1;
   }
 
   // Tier 2: Masters 1000 & WTA 1000 (Priority 2)
   if (
-    combined.includes('1000') ||
+    /\b1000\b/.test(combined) ||
     combined.includes('indian wells') ||
-    combined.includes('miami') ||
+    combined.includes('miami open') ||
     combined.includes('monte carlo') ||
     combined.includes('monte-carlo') ||
-    combined.includes('madrid') ||
-    combined.includes('rome') ||
+    combined.includes('madrid open') ||
     combined.includes('italian open') ||
     combined.includes('cincinnati') ||
-    combined.includes('shanghai') ||
+    combined.includes('shanghai masters') ||
     combined.includes('paris masters') ||
-    combined.includes('wuhan') ||
+    combined.includes('wuhan open') ||
     combined.includes('canadian open') ||
-    combined.includes('montreal') ||
-    combined.includes('toronto')
+    combined.includes('national bank open')
   ) {
     return 2;
   }
 
   // Tier 3: ATP 500 & WTA 500 (Priority 3)
   if (
-    combined.includes('500') ||
+    /\b500\b/.test(combined) ||
     combined.includes('barcelona open') ||
-    combined.includes('halle') ||
-    combined.includes("queen's") ||
+    /\bhalle\b/.test(combined) ||
+    combined.includes("queen's club") ||
     combined.includes('rotterdam') ||
-    combined.includes('dubai') ||
-    combined.includes('beijing') ||
-    combined.includes('tokyo') ||
-    combined.includes('vienna') ||
-    combined.includes('basel')
+    combined.includes('rio open') ||
+    combined.includes('acapulco') ||
+    combined.includes('beijing open') ||
+    combined.includes('japan open') ||
+    combined.includes('vienna open') ||
+    combined.includes('swiss indoors')
   ) {
     return 3;
   }
 
-  // Tier 4: ATP 250 & WTA 250 (Priority 4)
-  if (combined.includes('250') || combined.includes('atp') || combined.includes('wta')) {
-    return 4;
-  }
-
-  // Tier 5: Challenger / WTA 125 (Priority 5)
-  if (combined.includes('challenger') || combined.includes('125')) {
+  // Tier 5: Challenger & WTA 125 (Priority 5) - Checked before general ATP/WTA text
+  if (
+    combined.includes('challenger') ||
+    /\b125(?:k)?\b/.test(combined) ||
+    combined.includes('wta 125')
+  ) {
     return 5;
   }
 
-  // Tier 6: ITF World Tennis Tour (Priority 6)
+  // Tier 6: ITF World Tennis Tour & Futures (Priority 6)
   if (
-    combined.includes('itf') ||
-    combined.includes('m15') ||
-    combined.includes('m25') ||
-    combined.includes('w15') ||
-    combined.includes('w25') ||
-    combined.includes('w35') ||
-    combined.includes('w50') ||
-    combined.includes('w75') ||
-    combined.includes('w100')
+    /\bitf\b/.test(combined) ||
+    /\bm15\b/.test(combined) ||
+    /\bm25\b/.test(combined) ||
+    /\bw15\b/.test(combined) ||
+    /\bw25\b/.test(combined) ||
+    /\bw35\b/.test(combined) ||
+    /\bw50\b/.test(combined) ||
+    /\bw75\b/.test(combined) ||
+    /\bw100\b/.test(combined)
   ) {
     return 6;
   }
 
-  // Tier 7: Others
+  // Tier 4: ATP 250 & WTA 250 / Main Tour (Priority 4)
+  if (
+    /\b250\b/.test(combined) ||
+    /\batp\b/.test(combined) ||
+    /\bwta\b/.test(combined) ||
+    combined.includes('doha') ||
+    combined.includes('dubai')
+  ) {
+    return 4;
+  }
+
+  // Tier 7: Others / Exhibition / UTR
   return 7;
 };
