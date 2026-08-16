@@ -92,17 +92,17 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           </div>
 
           {/* Home Player */}
-          <div className={`compact-player-line ${isHomeWinner ? 'predicted-winner' : ''}`}>
+          <div className="compact-player-line">
             <span className="player-name-text">{formatPlayerDisplayName(prediction.home_name)}</span>
             {prediction.home_odds && <span className="player-odds-pill">{prediction.home_odds}</span>}
-            {isHomeWinner && <span className="winner-dot" title="Predicted Winner">🎯</span>}
+            {isHomeWinner && <span className="winner-prob-tiny">{winProb}%</span>}
           </div>
 
           {/* Away Player */}
-          <div className={`compact-player-line ${isAwayWinner ? 'predicted-winner' : ''}`}>
+          <div className="compact-player-line">
             <span className="player-name-text">{formatPlayerDisplayName(prediction.away_name)}</span>
             {prediction.away_odds && <span className="player-odds-pill">{prediction.away_odds}</span>}
-            {isAwayWinner && <span className="winner-dot" title="Predicted Winner">🎯</span>}
+            {isAwayWinner && <span className="winner-prob-tiny">{winProb}%</span>}
           </div>
         </div>
 

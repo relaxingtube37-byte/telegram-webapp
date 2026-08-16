@@ -372,6 +372,9 @@ body {
 }
 
 .tournament-group-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -512,15 +515,23 @@ body {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.82rem;
-  color: #cbd5e1;
+  font-size: 0.84rem;
+  color: #f1f5f9;
+  font-weight: 600;
   min-width: 0;
   overflow: hidden;
 }
 
-.compact-player-line.predicted-winner {
-  color: white;
+.winner-prob-tiny {
+  font-size: 0.65rem;
   font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  line-height: 1.1;
+  flex-shrink: 0;
 }
 
 .player-name-text {

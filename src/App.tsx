@@ -3,7 +3,7 @@ import { Header } from './components/Header';
 import { CompactMatchRow } from './components/CompactMatchRow';
 import { ReferralModal } from './components/ReferralModal';
 import type { Prediction, StatsOverviewData, ReferralSite } from './types';
-import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles } from 'lucide-react';
+import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority } from './utils/formatters';
 
 const API_BASE = ((import.meta as any).env?.VITE_API_BASE || 'https://telegram-backend-2yck.onrender.com/api/webapp').replace(/\/+$/, '');
@@ -18,6 +18,17 @@ export function App() {
   const [telegramUser, setTelegramUser] = useState<{ id?: number; first_name?: string; username?: string } | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [accessMode, setAccessMode] = useState<'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED'>('REGISTRATION_REQUIRED');
+  const [collapsedTournaments, setCollapsedTournaments] = useState<Record<string, boolean>>({});
+
+  const toggleTournament = (tournName: string) => {
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.selectionChanged();
+    }
+    setCollapsedTournaments(prev => ({
+      ...prev,
+      [tournName]: !prev[tournName]
+    }));
+  };
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -326,32 +337,50 @@ export function App() {
           <div className="loading-text">Loading AI Predictions & Value Bets...</div>
         </div>
       ) : Object.keys(groupedByTournament).length > 0 ? (
-        Object.entries(groupedByTournament).map(([tournName, tournData]) => (
-          <div key={tournName} className="tournament-group">
-            {/* Tournament Header */}
-            <div className="tournament-group-header">
-              <div className="tourn-title-left">
-                <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
-                <span className="tourn-name">{tournName}</span>
-                {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
+        Object.entries(groupedByTournament).map(([tournName, tournData]) => {
+          const isCollapsed = !!collapsedTournaments[tournName];
+          return (
+            <div key={tournName} className="tournament-group">
+              {/* Tournament Header (Collapsible Accordion) */}
+              <div 
+                className="tournament-group-header"
+                onClick={() => toggleTournament(tournName)}
+                role="button"
+                tabIndex={0}
+                aria-expanded={!isCollapsed}
+              >
+                <div className="tourn-title-left">
+                  <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
+                  <span className="tourn-name">{tournName}</span>
+                  {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span className="tourn-count">{tournData.items.length}</span>
+                  {isCollapsed ? (
+                    <ChevronDown size={15} color="var(--text-secondary)" />
+                  ) : (
+                    <ChevronUp size={15} color="#38bdf8" />
+                  )}
+                </div>
               </div>
-              <span className="tourn-count">{tournData.items.length}</span>
-            </div>
 
-            {/* Match Rows */}
-            <div className="tournament-matches-list">
-              {tournData.items.map((p, idx) => (
-                <CompactMatchRow
-                  key={p.id}
-                  prediction={p}
-                  selectedTimezone={selectedTimezone}
-                  isLocked={accessMode === 'FREE' ? false : (!isVerified && idx > 0)}
-                  onUnlockClick={() => setShowReferralModal(true)}
-                />
-              ))}
+              {/* Match Rows (Shown when not collapsed) */}
+              {!isCollapsed && (
+                <div className="tournament-matches-list">
+                  {tournData.items.map((p, idx) => (
+                    <CompactMatchRow
+                      key={p.id}
+                      prediction={p}
+                      selectedTimezone={selectedTimezone}
+                      isLocked={accessMode === 'FREE' ? false : (!isVerified && idx > 0)}
+                      onUnlockClick={() => setShowReferralModal(true)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        ))
+          );
+        })
       ) : (
         <div className="glass empty-state-box">
           <Flame size={44} className="empty-icon" />
