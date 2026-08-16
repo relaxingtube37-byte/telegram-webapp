@@ -16,6 +16,7 @@ export interface Prediction {
   win_probability?: number;
   confidence?: string;
   key_factors?: string[];
+  devils_advocate_risk?: string;
   best_bet_market?: string;
   best_bet_selection?: string;
   best_bet_rationale?: string;

@@ -952,3 +952,46 @@ body {
   color: var(--accent-cyan);
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
 }
+
+/* ── Tourn & Surface Tag ── */
+.compact-tourn-tag {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+/* ── Winner Title Text ── */
+.winner-title-text {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+/* ── Details Risk Box ── */
+.details-risk-box {
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  border-left: 3px solid #f43f5e;
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.risk-title {
+  color: #f43f5e;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.risk-desc {
+  color: #fecdd3;
+  line-height: 1.35;
+}

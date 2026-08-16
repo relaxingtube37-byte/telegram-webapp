@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Flame, Shield, CheckCircle, XCircle, Clock, Lock, Key, Sparkles, Calendar } from 'lucide-react';
 import type { Prediction } from '../types';
+import { ChevronDown, ChevronUp, Trophy, Flame, Shield, AlertTriangle, Key, Lock, CheckCircle2, Sparkles } from 'lucide-react';
 import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji } from '../utils/formatters';
 
 interface CompactMatchRowProps {
@@ -50,7 +50,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
   return (
     <div className={`compact-match-row glass ${expanded ? 'expanded' : ''}`}>
-      {/* Clickable Summary Row */}
+      {/* Clickable Card Header */}
       <div className="compact-row-header" onClick={handleToggle}>
         {/* Date + Time / Status Column */}
         <div className="compact-time-col">
@@ -64,6 +64,13 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
         {/* Players & Odds Column */}
         <div className="compact-players-col">
+          {/* Tournament & Surface Tag */}
+          <div className="compact-tourn-tag">
+            <span>{getSurfaceEmoji(prediction.surface)} {prediction.surface || 'Hard'}</span>
+            {prediction.tournament_name && <span> · {prediction.tournament_name}</span>}
+            {prediction.round_name && <span className="text-secondary"> ({prediction.round_name})</span>}
+          </div>
+
           {/* Home Player */}
           <div className={`compact-player-line ${isHomeWinner ? 'predicted-winner' : ''}`}>
             <span className="player-name-text">{prediction.home_name}</span>
@@ -114,21 +121,21 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             </div>
           ) : (
             <div className="details-content">
-              {/* Predicted Winner & Score Card */}
+              {/* 🏆 Predicted Winner & Score Card */}
               <div className="details-prediction-card">
                 <div className="details-card-top">
-                  <span className="details-label">AI FINAL VERDICT</span>
+                  <span className="details-label">AI MATCH WINNER VERDICT</span>
                   <span className="details-prob">{prediction.win_probability || 65}% Confidence</span>
                 </div>
                 <div className="details-card-winner">
-                  <span>🏆 {prediction.predicted_winner}</span>
+                  <span className="winner-title-text">🏆 {prediction.predicted_winner}</span>
                   {prediction.predicted_score && (
-                    <span className="details-score-badge">{prediction.predicted_score}</span>
+                    <span className="details-score-badge">Score: {prediction.predicted_score}</span>
                   )}
                 </div>
               </div>
 
-              {/* Recommended Value Bet */}
+              {/* 🔥 Recommended Value Bet */}
               {prediction.best_bet_selection && (
                 <div className="details-bet-card">
                   <div className="details-bet-header">
@@ -138,18 +145,18 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                     )}
                   </div>
                   <div className="details-bet-selection">{prediction.best_bet_selection}</div>
-                  <div className="details-bet-market">Market: {prediction.best_bet_market || 'Match Winner'}</div>
+                  <div className="details-bet-market">Market Category: <strong>{prediction.best_bet_market || 'Match Winner'}</strong></div>
                   {prediction.best_bet_rationale && (
                     <div className="details-bet-rationale">"{prediction.best_bet_rationale}"</div>
                   )}
                 </div>
               )}
 
-              {/* Option / Safe Bet */}
+              {/* 🛡️ Alternative Option / Safe Bet */}
               {prediction.alt_bet_selection && (
                 <div className="details-alt-card">
                   <div className="details-alt-title">
-                    <Shield size={13} /> Alternative Option: {prediction.alt_bet_selection}
+                    <Shield size={13} color="#38bdf8" /> Secondary Hedge: <strong>{prediction.alt_bet_selection}</strong>
                   </div>
                   <div className="details-alt-market">Market: {prediction.alt_bet_market}</div>
                   {prediction.alt_bet_rationale && (
@@ -158,23 +165,34 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 </div>
               )}
 
-              {/* AI Key Factors */}
+              {/* ⚡ 3 Key Drivers */}
               {prediction.key_factors && prediction.key_factors.length > 0 && (
                 <div className="details-factors-box">
-                  <div className="factors-title">⚡ Key Match Drivers:</div>
+                  <div className="factors-title">
+                    <Sparkles size={13} color="#fbbf24" /> Key Match Analytics:
+                  </div>
                   <ul className="factors-list">
-                    {prediction.key_factors.map((factor, fIdx) => (
-                      <li key={fIdx}>{factor}</li>
+                    {prediction.key_factors.map((f, i) => (
+                      <li key={i}>{f}</li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {/* AI Summary */}
+              {/* ⚠️ Devil's Advocate / Contrarian Risk */}
+              {prediction.devils_advocate_risk && (
+                <div className="details-risk-box">
+                  <div className="risk-title">
+                    <AlertTriangle size={13} color="#f43f5e" /> Upset Risk & Counter-Scenario:
+                  </div>
+                  <div className="risk-desc">{prediction.devils_advocate_risk}</div>
+                </div>
+              )}
+
+              {/* 📝 AI Summary Preview */}
               {prediction.ai_summary && (
                 <div className="details-summary-box">
-                  <Sparkles size={14} color="var(--accent-cyan)" />
-                  <div className="details-summary-text">{prediction.ai_summary}</div>
+                  <p className="details-summary-text">{prediction.ai_summary}</p>
                 </div>
               )}
             </div>
