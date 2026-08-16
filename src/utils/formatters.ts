@@ -156,3 +156,69 @@ export const getMatchGender = (tournamentName?: string, roundName?: string, matc
 
   return 'men'; // Default to men/general if not explicitly WTA
 };
+
+export const formatPlayerDisplayName = (name?: string): string => {
+  if (!name) return '';
+  const trimmed = name.trim();
+  if (!trimmed.includes(' ')) return trimmed;
+
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0];
+
+  // If format is like "Alcaraz C.", convert to "C. Alcaraz"
+  if (parts[parts.length - 1].length <= 2 && parts[parts.length - 1].endsWith('.')) {
+    const initial = parts.pop();
+    return `${initial} ${parts.join(' ')}`;
+  }
+
+  // Standard: "Carlos Alcaraz" -> "C. Alcaraz", "Juan Manuel Cerundolo" -> "J. M. Cerundolo"
+  const lastName = parts[parts.length - 1];
+  const firstInitials = parts.slice(0, -1).map(p => `${p[0].toUpperCase()}.`).join(' ');
+  return `${firstInitials} ${lastName}`;
+};
+
+export const formatOptionPillText = (
+  selection?: string,
+  market?: string,
+  homeName?: string,
+  awayName?: string
+): string => {
+  if (!selection) return market || 'Best Pick';
+  const sel = selection.trim();
+
+  // 1. Total Sets (e.g. "Over 2.5 Sets", "Under 2.5 Sets")
+  if (/Over\s+2\.5\s*Sets?/i.test(sel)) return 'Over 2.5 Sets';
+  if (/Under\s+2\.5\s*Sets?/i.test(sel)) return 'Under 2.5 Sets';
+
+  // 2. Set Handicap (e.g. "Alcaraz +1.5 Sets", "+1.5 Sets", "-1.5 Sets")
+  const handicapMatch = sel.match(/([+-]\d+\.?\d*)\s*Sets?/i);
+  if (handicapMatch) return `${handicapMatch[1]} Sets`;
+
+  // 3. Total Games (e.g. "Over 22.5 Games", "Over 21.5", "Under 20.5 Games")
+  const overGamesMatch = sel.match(/Over\s+(\d+\.?\d*)/i);
+  if (overGamesMatch) return `Over ${overGamesMatch[1]} Games`;
+
+  const underGamesMatch = sel.match(/Under\s+(\d+\.?\d*)/i);
+  if (underGamesMatch) return `Under ${underGamesMatch[1]} Games`;
+
+  // 4. Correct Score (e.g. "2:0", "2:1", "0:2", "1:2")
+  if (/^\d+:\d+$/.test(sel)) return `Score ${sel}`;
+
+  // 5. If selection is the player's name (Match Winner / Moneyline)
+  if (
+    (homeName && sel.toLowerCase().includes(homeName.toLowerCase())) ||
+    (awayName && sel.toLowerCase().includes(awayName.toLowerCase())) ||
+    (market && market.toLowerCase().includes('winner')) ||
+    (market && market.toLowerCase().includes('moneyline'))
+  ) {
+    return 'Match Winner';
+  }
+
+  // Fallback: If player name is prefixed to something like "Player +1.5", strip player name
+  let cleaned = sel;
+  if (homeName) cleaned = cleaned.replace(new RegExp(homeName, 'gi'), '').trim();
+  if (awayName) cleaned = cleaned.replace(new RegExp(awayName, 'gi'), '').trim();
+  if (cleaned.length > 2) return cleaned;
+
+  return market || sel;
+};

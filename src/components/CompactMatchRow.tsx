@@ -5,7 +5,7 @@ import {
   AlertTriangle, Key, Lock, Sparkles,
   CheckCircle2, XCircle, Clock
 } from 'lucide-react';
-import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji } from '../utils/formatters';
+import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, formatOptionPillText } from '../utils/formatters';
 
 interface CompactMatchRowProps {
   prediction: Prediction;
@@ -93,25 +93,25 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
           {/* Home Player */}
           <div className={`compact-player-line ${isHomeWinner ? 'predicted-winner' : ''}`}>
-            <span className="player-name-text">{prediction.home_name}</span>
+            <span className="player-name-text">{formatPlayerDisplayName(prediction.home_name)}</span>
             {prediction.home_odds && <span className="player-odds-pill">{prediction.home_odds}</span>}
             {isHomeWinner && <span className="winner-dot" title="Predicted Winner">🎯</span>}
           </div>
 
           {/* Away Player */}
           <div className={`compact-player-line ${isAwayWinner ? 'predicted-winner' : ''}`}>
-            <span className="player-name-text">{prediction.away_name}</span>
+            <span className="player-name-text">{formatPlayerDisplayName(prediction.away_name)}</span>
             {prediction.away_odds && <span className="player-odds-pill">{prediction.away_odds}</span>}
             {isAwayWinner && <span className="winner-dot" title="Predicted Winner">🎯</span>}
           </div>
         </div>
 
-        {/* Value Bet Pill / Win Prob & Chevron (Affordance Indicator) */}
+        {/* Value Bet Pill (Only option/market, not player name) */}
         <div className="compact-actions-col">
           {prediction.best_bet_selection ? (
-            <div className="compact-bet-pill" title={prediction.best_bet_market}>
+            <div className="compact-bet-pill" title={`${prediction.best_bet_market || ''}: ${prediction.best_bet_selection}`}>
               <Flame size={12} color="#f97316" className="pulse-icon" />
-              <span>{prediction.best_bet_selection}</span>
+              <span>{formatOptionPillText(prediction.best_bet_selection, prediction.best_bet_market, prediction.home_name, prediction.away_name)}</span>
             </div>
           ) : (
             <div className="compact-prob-badge">
