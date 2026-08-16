@@ -7,6 +7,17 @@ import {
 } from 'lucide-react';
 import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji } from '../utils/formatters';
 
+
+const getPlayerAvatarUrl = (img?: string, id?: number, name?: string) => {
+  if (img && (img.startsWith('data:image') || img.startsWith('http://') || img.startsWith('https://'))) {
+    return img;
+  }
+  if (id) {
+    return `https://telegram-backend-2yck.onrender.com/api/images/player/${id}?name=${encodeURIComponent(name || '')}`;
+  }
+  return null;
+};
+
 interface CompactMatchRowProps {
   prediction: Prediction;
   selectedTimezone: string;
@@ -39,6 +50,12 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
   const isHomeWinner = prediction.predicted_winner === prediction.home_name;
   const isAwayWinner = prediction.predicted_winner === prediction.away_name;
+
+  const homeAvatarUrl = getPlayerAvatarUrl(prediction.home_image, prediction.home_id, prediction.home_name);
+  const awayAvatarUrl = getPlayerAvatarUrl(prediction.away_image, prediction.away_id, prediction.away_name);
+
+  const homeInitials = (prediction.home_name || '').split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  const awayInitials = (prediction.away_name || '').split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 
   const winProb = prediction.win_probability || 65;
 
@@ -94,18 +111,21 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           {/* Home Player */}
           <div className={`compact-player-line ${isHomeWinner ? 'predicted-winner' : ''}`}>
             <div className="player-avatar-wrapper">
-              {prediction.home_image || prediction.home_id ? (
+              {homeAvatarUrl && (
                 <img
-                  src={prediction.home_image || `https://api.sofascore.app/api/v1/player/${prediction.home_id}/image`}
+                  src={homeAvatarUrl}
                   alt={prediction.home_name}
                   className="player-avatar-img"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = 'none';
+                    const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-              ) : (
-                <span className="player-avatar-fallback">🎾</span>
               )}
+              <span className="player-avatar-fallback" style={{ display: homeAvatarUrl ? 'none' : 'flex' }}>
+                {homeInitials || '🎾'}
+              </span>
             </div>
             <span className="player-name-text">{prediction.home_name}</span>
             {prediction.home_odds && <span className="player-odds-pill">{prediction.home_odds}</span>}
@@ -115,18 +135,21 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           {/* Away Player */}
           <div className={`compact-player-line ${isAwayWinner ? 'predicted-winner' : ''}`}>
             <div className="player-avatar-wrapper">
-              {prediction.away_image || prediction.away_id ? (
+              {awayAvatarUrl && (
                 <img
-                  src={prediction.away_image || `https://api.sofascore.app/api/v1/player/${prediction.away_id}/image`}
+                  src={awayAvatarUrl}
                   alt={prediction.away_name}
                   className="player-avatar-img"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = 'none';
+                    const fallback = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-              ) : (
-                <span className="player-avatar-fallback">🎾</span>
               )}
+              <span className="player-avatar-fallback" style={{ display: awayAvatarUrl ? 'none' : 'flex' }}>
+                {awayInitials || '🎾'}
+              </span>
             </div>
             <span className="player-name-text">{prediction.away_name}</span>
             {prediction.away_odds && <span className="player-odds-pill">{prediction.away_odds}</span>}
