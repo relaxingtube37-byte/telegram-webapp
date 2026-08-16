@@ -7,6 +7,10 @@ export interface Prediction {
   round_name?: string;
   home_name: string;
   away_name: string;
+  home_id?: number;
+  away_id?: number;
+  home_image?: string;
+  away_image?: string;
   home_country?: string;
   away_country?: string;
   home_odds?: string | number;

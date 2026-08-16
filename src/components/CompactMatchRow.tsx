@@ -93,6 +93,20 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
           {/* Home Player */}
           <div className={`compact-player-line ${isHomeWinner ? 'predicted-winner' : ''}`}>
+            <div className="player-avatar-wrapper">
+              {prediction.home_image || prediction.home_id ? (
+                <img
+                  src={prediction.home_image || `https://api.sofascore.app/api/v1/player/${prediction.home_id}/image`}
+                  alt={prediction.home_name}
+                  className="player-avatar-img"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <span className="player-avatar-fallback">🎾</span>
+              )}
+            </div>
             <span className="player-name-text">{prediction.home_name}</span>
             {prediction.home_odds && <span className="player-odds-pill">{prediction.home_odds}</span>}
             {isHomeWinner && <span className="winner-dot" title="Predicted Winner">🎯</span>}
@@ -100,6 +114,20 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
           {/* Away Player */}
           <div className={`compact-player-line ${isAwayWinner ? 'predicted-winner' : ''}`}>
+            <div className="player-avatar-wrapper">
+              {prediction.away_image || prediction.away_id ? (
+                <img
+                  src={prediction.away_image || `https://api.sofascore.app/api/v1/player/${prediction.away_id}/image`}
+                  alt={prediction.away_name}
+                  className="player-avatar-img"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <span className="player-avatar-fallback">🎾</span>
+              )}
+            </div>
             <span className="player-name-text">{prediction.away_name}</span>
             {prediction.away_odds && <span className="player-odds-pill">{prediction.away_odds}</span>}
             {isAwayWinner && <span className="winner-dot" title="Predicted Winner">🎯</span>}
