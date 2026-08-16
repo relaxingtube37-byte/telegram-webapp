@@ -138,9 +138,10 @@ export function App() {
     });
   }, [activeTab, activePredictions, historyPredictions, searchQuery, dateFilter, genderFilter, filterChip, selectedTimezone]);
 
-  // Group by Tournament
+  // Group by Tournament with Tier Priority Sorting (Grand Slams & 1000s First)
   const groupedByTournament = useMemo(() => {
     const groups: Record<string, { surface?: string; items: Prediction[] }> = {};
+    
     displayedList.forEach(p => {
       const tourn = p.tournament_name || 'Tennis Tournament';
       if (!groups[tourn]) {
@@ -148,7 +149,34 @@ export function App() {
       }
       groups[tourn].items.push(p);
     });
-    return groups;
+
+    // Sort items within each tournament (Live matches first, then chronological)
+    Object.values(groups).forEach(g => {
+      g.items.sort((a, b) => {
+        const liveA = a.status === 'LIVE' ? 1 : 0;
+        const liveB = b.status === 'LIVE' ? 1 : 0;
+        if (liveA !== liveB) return liveB - liveA;
+
+        const timeA = new Date(a.match_date || a.published_at).getTime() || 0;
+        const timeB = new Date(b.match_date || b.published_at).getTime() || 0;
+        return timeA - timeB;
+      });
+    });
+
+    // Sort tournament groups by Priority (Grand Slam -> 1000 -> 500 -> 250 -> Challenger -> ITF)
+    const sortedKeys = Object.keys(groups).sort((k1, k2) => {
+      const p1 = getTournamentPriority(k1);
+      const p2 = getTournamentPriority(k2);
+      if (p1 !== p2) return p1 - p2;
+      return k1.localeCompare(k2);
+    });
+
+    const sortedGroups: Record<string, { surface?: string; items: Prediction[] }> = {};
+    sortedKeys.forEach(k => {
+      sortedGroups[k] = groups[k];
+    });
+
+    return sortedGroups;
   }, [displayedList]);
 
   return (

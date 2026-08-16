@@ -222,3 +222,86 @@ export const formatOptionPillText = (
 
   return market || sel;
 };
+
+export const getTournamentPriority = (tournamentName?: string): number => {
+  const combined = (tournamentName || '').toLowerCase();
+
+  // Tier 1: Grand Slams & Tour Finals (Priority 1)
+  if (
+    combined.includes('australian open') ||
+    combined.includes('roland garros') ||
+    combined.includes('french open') ||
+    combined.includes('wimbledon') ||
+    combined.includes('us open') ||
+    combined.includes('atp finals') ||
+    combined.includes('wta finals') ||
+    combined.includes('grand slam')
+  ) {
+    return 1;
+  }
+
+  // Tier 2: Masters 1000 & WTA 1000 (Priority 2)
+  if (
+    combined.includes('1000') ||
+    combined.includes('indian wells') ||
+    combined.includes('miami') ||
+    combined.includes('monte carlo') ||
+    combined.includes('monte-carlo') ||
+    combined.includes('madrid') ||
+    combined.includes('rome') ||
+    combined.includes('italian open') ||
+    combined.includes('cincinnati') ||
+    combined.includes('shanghai') ||
+    combined.includes('paris masters') ||
+    combined.includes('wuhan') ||
+    combined.includes('canadian open') ||
+    combined.includes('montreal') ||
+    combined.includes('toronto')
+  ) {
+    return 2;
+  }
+
+  // Tier 3: ATP 500 & WTA 500 (Priority 3)
+  if (
+    combined.includes('500') ||
+    combined.includes('barcelona open') ||
+    combined.includes('halle') ||
+    combined.includes("queen's") ||
+    combined.includes('rotterdam') ||
+    combined.includes('dubai') ||
+    combined.includes('beijing') ||
+    combined.includes('tokyo') ||
+    combined.includes('vienna') ||
+    combined.includes('basel')
+  ) {
+    return 3;
+  }
+
+  // Tier 4: ATP 250 & WTA 250 (Priority 4)
+  if (combined.includes('250') || combined.includes('atp') || combined.includes('wta')) {
+    return 4;
+  }
+
+  // Tier 5: Challenger / WTA 125 (Priority 5)
+  if (combined.includes('challenger') || combined.includes('125')) {
+    return 5;
+  }
+
+  // Tier 6: ITF World Tennis Tour (Priority 6)
+  if (
+    combined.includes('itf') ||
+    combined.includes('m15') ||
+    combined.includes('m25') ||
+    combined.includes('w15') ||
+    combined.includes('w25') ||
+    combined.includes('w35') ||
+    combined.includes('w50') ||
+    combined.includes('w75') ||
+    combined.includes('w100')
+  ) {
+    return 6;
+  }
+
+  // Tier 7: Others
+  return 7;
+};
