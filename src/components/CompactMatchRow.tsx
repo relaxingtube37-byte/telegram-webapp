@@ -141,11 +141,11 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             </div>
           ) : (
             <div className="details-content">
-              {/* 🏆 Tier 2: AI Verdict & Confidence Progress */}
+              {/* 🏆 Tier 2: AI Winner Verdict & Win Probability */}
               <div className="details-prediction-card">
                 <div className="details-card-top">
                   <span className="details-label">
-                    <Trophy size={13} color="#38bdf8" /> AI MATCH WINNER VERDICT
+                    <Trophy size={13} color="#38bdf8" /> AI WINNER VERDICT
                   </span>
                   <span className="details-prob">{winProb}% Win Probability</span>
                 </div>
@@ -164,7 +164,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 </div>
               </div>
 
-              {/* 🔥 Tier 2: Recommended Value Bet (+EV) */}
+              {/* 🔥 Tier 2: Recommended Value Bet (+EV) & Chosen Market */}
               {prediction.best_bet_selection && (
                 <div className="details-bet-card">
                   <div className="details-bet-header">
@@ -179,53 +179,42 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   <div className="details-bet-market">
                     Market: <strong>{prediction.best_bet_market || 'Match Winner'}</strong>
                   </div>
-                  {prediction.best_bet_rationale && (
-                    <div className="details-bet-rationale">"{prediction.best_bet_rationale}"</div>
+                </div>
+              )}
+
+              {/* 🧠 Tier 3: AI Intelligence Explanation & Tactical Summary */}
+              {(prediction.ai_summary || prediction.best_bet_rationale || (prediction.key_factors && prediction.key_factors.length > 0)) && (
+                <div className="details-ai-box">
+                  <div className="details-ai-header">
+                    <Sparkles size={14} color="#38bdf8" />
+                    <span>توضیحات و تحلیل هوش مصنوعی (AI Breakdown)</span>
+                  </div>
+
+                  {/* Full AI Analysis Text */}
+                  {(prediction.ai_summary || prediction.best_bet_rationale) && (
+                    <p className="details-ai-text">
+                      {prediction.ai_summary || prediction.best_bet_rationale}
+                    </p>
                   )}
-                </div>
-              )}
 
-              {/* 🛡️ Tier 3: Secondary Hedge / Alternative Option */}
-              {prediction.alt_bet_selection && (
-                <div className="details-alt-card">
-                  <div className="details-alt-title">
-                    <Shield size={13} color="#38bdf8" /> Secondary Hedge: <strong>{prediction.alt_bet_selection}</strong>
-                  </div>
-                  <div className="details-alt-market">Market: {prediction.alt_bet_market}</div>
-                  {prediction.alt_bet_rationale && (
-                    <div className="details-alt-desc">{prediction.alt_bet_rationale}</div>
+                  {/* Key Match Analytics */}
+                  {prediction.key_factors && prediction.key_factors.length > 0 && (
+                    <div className="details-ai-factors">
+                      <div className="factors-subtitle">⚡ نکات کلیدی مسابقه:</div>
+                      <ul className="factors-list">
+                        {prediction.key_factors.map((f, i) => (
+                          <li key={i}>{f}</li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
-                </div>
-              )}
 
-              {/* ⚡ Tier 3: 3 Key Analytical Drivers */}
-              {prediction.key_factors && prediction.key_factors.length > 0 && (
-                <div className="details-factors-box">
-                  <div className="factors-title">
-                    <Sparkles size={13} color="#fbbf24" /> Key Match Analytics:
-                  </div>
-                  <ul className="factors-list">
-                    {prediction.key_factors.map((f, i) => (
-                      <li key={i}>{f}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* ⚠️ Tier 3: Devil's Advocate / Contrarian Upset Risk */}
-              {prediction.devils_advocate_risk && (
-                <div className="details-risk-box">
-                  <div className="risk-title">
-                    <AlertTriangle size={13} color="#f43f5e" /> Upset Risk & Counter-Scenario:
-                  </div>
-                  <div className="risk-desc">{prediction.devils_advocate_risk}</div>
-                </div>
-              )}
-
-              {/* 📝 Executive Preview Summary */}
-              {prediction.ai_summary && (
-                <div className="details-summary-box">
-                  <p className="details-summary-text">{prediction.ai_summary}</p>
+                  {/* Contrarian / Upset Risk (if any) */}
+                  {prediction.devils_advocate_risk && (
+                    <div className="details-ai-risk">
+                      <span className="risk-tag">⚠️ ریسک مسابقه:</span> {prediction.devils_advocate_risk}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
