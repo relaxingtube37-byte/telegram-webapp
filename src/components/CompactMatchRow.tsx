@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import type { Prediction } from '../types';
-import { ChevronDown, ChevronUp, Trophy, Flame, Shield, AlertTriangle, Key, Lock, CheckCircle2, Sparkles } from 'lucide-react';
+import { 
+  ChevronDown, ChevronUp, Trophy, Flame, Shield, 
+  AlertTriangle, Key, Lock, Sparkles, TrendingUp,
+  Percent, CheckCircle2, XCircle, Clock
+} from 'lucide-react';
 import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji } from '../utils/formatters';
 
 interface CompactMatchRowProps {
@@ -36,23 +40,39 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   const isHomeWinner = prediction.predicted_winner === prediction.home_name;
   const isAwayWinner = prediction.predicted_winner === prediction.away_name;
 
+  const winProb = prediction.win_probability || 65;
+
   const statusBadge = prediction.status === 'WON' ? (
-    <span className="status-tag status-tag-won">WON {prediction.result_score || '2:1'}</span>
+    <span className="status-tag status-tag-won">
+      <CheckCircle2 size={11} /> WON {prediction.result_score || '2:1'}
+    </span>
   ) : prediction.status === 'LOST' ? (
-    <span className="status-tag status-tag-lost">LOST</span>
+    <span className="status-tag status-tag-lost">
+      <XCircle size={11} /> LOST
+    </span>
   ) : prediction.status === 'LIVE' ? (
-    <span className="status-tag status-tag-live">● LIVE</span>
+    <span className="status-tag status-tag-live">
+      <span className="live-pulse-dot" /> LIVE
+    </span>
   ) : prediction.status === 'VOID' ? (
     <span className="status-tag status-tag-void">VOID</span>
   ) : (
-    <span className="status-tag status-tag-time">{matchTimeStr}</span>
+    <span className="status-tag status-tag-time">
+      <Clock size={11} /> {matchTimeStr}
+    </span>
   );
 
   return (
     <div className={`compact-match-row glass ${expanded ? 'expanded' : ''}`}>
-      {/* Clickable Card Header */}
-      <div className="compact-row-header" onClick={handleToggle}>
-        {/* Date + Time / Status Column */}
+      {/* Clickable Header Row (Tier 1: High-Affordance Glanceable Info) */}
+      <div 
+        className="compact-row-header" 
+        onClick={handleToggle}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+      >
+        {/* Time / Status Column */}
         <div className="compact-time-col">
           {matchDateLabel && (
             <div className="compact-date-tiny">
@@ -62,12 +82,12 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           {statusBadge}
         </div>
 
-        {/* Players & Odds Column */}
+        {/* Players & Odds Column (Center Stage) */}
         <div className="compact-players-col">
           {/* Tournament & Surface Tag */}
           <div className="compact-tourn-tag">
-            <span>{getSurfaceEmoji(prediction.surface)} {prediction.surface || 'Hard'}</span>
-            {prediction.tournament_name && <span> · {prediction.tournament_name}</span>}
+            <span className="surface-pill">{getSurfaceEmoji(prediction.surface)} {prediction.surface || 'Hard'}</span>
+            {prediction.tournament_name && <span className="tourn-name-text"> · {prediction.tournament_name}</span>}
             {prediction.round_name && <span className="text-secondary"> ({prediction.round_name})</span>}
           </div>
 
@@ -86,34 +106,34 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           </div>
         </div>
 
-        {/* Value Bet & Win Prob Column */}
+        {/* Value Bet Pill / Win Prob & Chevron (Affordance Indicator) */}
         <div className="compact-actions-col">
           {prediction.best_bet_selection ? (
             <div className="compact-bet-pill" title={prediction.best_bet_market}>
-              <Flame size={12} color="#f97316" />
+              <Flame size={12} color="#f97316" className="pulse-icon" />
               <span>{prediction.best_bet_selection}</span>
             </div>
           ) : (
             <div className="compact-prob-badge">
-              {prediction.win_probability || 65}%
+              {winProb}%
             </div>
           )}
 
           <div className="compact-chevron">
-            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {expanded ? <ChevronUp size={16} color="#38bdf8" /> : <ChevronDown size={16} color="var(--text-secondary)" />}
           </div>
         </div>
       </div>
 
-      {/* Expandable AI Breakdown Details */}
+      {/* Expandable Intelligence Drawer (Tier 2 & 3: Progressive Disclosure) */}
       {expanded && (
         <div className="compact-details-drawer">
           {isLocked ? (
             <div className="locked-box">
-              <Lock size={24} color="var(--accent-amber)" />
-              <div className="locked-title">🔒 FULL AI BREAKDOWN LOCKED</div>
+              <Lock size={26} color="var(--accent-amber)" />
+              <div className="locked-title">🔒 FULL AI INTELLIGENCE LOCKED</div>
               <p className="locked-desc">
-                Register on our verified partner bookmaker to instantly unlock all Value Bets, Rationale & AI Scores!
+                Register on our verified partner bookmaker to instantly unlock all VIP Value Bets, In-Depth Rationales & Real-Time Probability Matrices!
               </p>
               <button onClick={onUnlockClick} className="btn-primary btn-unlock">
                 <Key size={14} /> Register & Unlock Free VIP Access
@@ -121,38 +141,51 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             </div>
           ) : (
             <div className="details-content">
-              {/* 🏆 Predicted Winner & Score Card */}
+              {/* 🏆 Tier 2: AI Verdict & Confidence Progress */}
               <div className="details-prediction-card">
                 <div className="details-card-top">
-                  <span className="details-label">AI MATCH WINNER VERDICT</span>
-                  <span className="details-prob">{prediction.win_probability || 65}% Confidence</span>
+                  <span className="details-label">
+                    <Trophy size={13} color="#38bdf8" /> AI MATCH WINNER VERDICT
+                  </span>
+                  <span className="details-prob">{winProb}% Win Probability</span>
                 </div>
                 <div className="details-card-winner">
-                  <span className="winner-title-text">🏆 {prediction.predicted_winner}</span>
+                  <span className="winner-title-text">{prediction.predicted_winner}</span>
                   {prediction.predicted_score && (
                     <span className="details-score-badge">Score: {prediction.predicted_score}</span>
                   )}
                 </div>
+                {/* Confidence Bar Meter */}
+                <div className="confidence-bar-track">
+                  <div 
+                    className="confidence-bar-fill"
+                    style={{ width: `${Math.min(Math.max(winProb, 15), 100)}%` }}
+                  />
+                </div>
               </div>
 
-              {/* 🔥 Recommended Value Bet */}
+              {/* 🔥 Tier 2: Recommended Value Bet (+EV) */}
               {prediction.best_bet_selection && (
                 <div className="details-bet-card">
                   <div className="details-bet-header">
-                    <span className="text-green font-bold">🔥 Recommended Value Bet</span>
+                    <span className="text-green font-bold flex items-center gap-1">
+                      <Flame size={14} color="#22c55e" /> Recommended Value Bet
+                    </span>
                     {prediction.best_bet_ev && (
                       <span className="ev-badge">EV: {prediction.best_bet_ev}</span>
                     )}
                   </div>
                   <div className="details-bet-selection">{prediction.best_bet_selection}</div>
-                  <div className="details-bet-market">Market Category: <strong>{prediction.best_bet_market || 'Match Winner'}</strong></div>
+                  <div className="details-bet-market">
+                    Market: <strong>{prediction.best_bet_market || 'Match Winner'}</strong>
+                  </div>
                   {prediction.best_bet_rationale && (
                     <div className="details-bet-rationale">"{prediction.best_bet_rationale}"</div>
                   )}
                 </div>
               )}
 
-              {/* 🛡️ Alternative Option / Safe Bet */}
+              {/* 🛡️ Tier 3: Secondary Hedge / Alternative Option */}
               {prediction.alt_bet_selection && (
                 <div className="details-alt-card">
                   <div className="details-alt-title">
@@ -165,7 +198,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 </div>
               )}
 
-              {/* ⚡ 3 Key Drivers */}
+              {/* ⚡ Tier 3: 3 Key Analytical Drivers */}
               {prediction.key_factors && prediction.key_factors.length > 0 && (
                 <div className="details-factors-box">
                   <div className="factors-title">
@@ -179,7 +212,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 </div>
               )}
 
-              {/* ⚠️ Devil's Advocate / Contrarian Risk */}
+              {/* ⚠️ Tier 3: Devil's Advocate / Contrarian Upset Risk */}
               {prediction.devils_advocate_risk && (
                 <div className="details-risk-box">
                   <div className="risk-title">
@@ -189,7 +222,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 </div>
               )}
 
-              {/* 📝 AI Summary Preview */}
+              {/* 📝 Executive Preview Summary */}
               {prediction.ai_summary && (
                 <div className="details-summary-box">
                   <p className="details-summary-text">{prediction.ai_summary}</p>
