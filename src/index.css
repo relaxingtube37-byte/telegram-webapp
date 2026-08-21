@@ -1122,3 +1122,112 @@ body {
   font-weight: 800;
   color: #f43f5e;
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   🎾 ATP MEN & WTA WOMEN CUSTOM STYLES & SUBTLE ROW TINTS
+   ══════════════════════════════════════════════════════════════ */
+
+/* ATP Men Button */
+.gender-btn-men {
+  color: #93c5fd;
+  border-color: rgba(56, 189, 248, 0.25);
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.gender-btn-men:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #bae6fd;
+}
+
+.gender-btn-men.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(2, 132, 199, 0.18)) !important;
+  border-color: #38bdf8 !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* WTA Women Button */
+.gender-btn-women {
+  color: #f9a8d4;
+  border-color: rgba(244, 63, 94, 0.25);
+  background: rgba(26, 15, 24, 0.85);
+}
+
+.gender-btn-women:hover {
+  border-color: rgba(244, 63, 94, 0.5);
+  color: #fbcfe8;
+}
+
+.gender-btn-women.active {
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.25), rgba(236, 72, 153, 0.18)) !important;
+  border-color: #f43f5e !important;
+  color: #fb7185 !important;
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.25) !important;
+}
+
+/* Subtle Match Row Tint: ATP (Men) */
+.match-row-atp {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.65) 0%, rgba(15, 23, 42, 0.85) 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.14) !important;
+  border-left: 3px solid rgba(56, 189, 248, 0.65) !important;
+}
+
+.match-row-atp:hover {
+  border-color: rgba(56, 189, 248, 0.35) !important;
+}
+
+/* Subtle Match Row Tint: WTA (Women) */
+.match-row-wta {
+  background: linear-gradient(180deg, rgba(24, 15, 24, 0.65) 0%, rgba(20, 14, 22, 0.85) 100%) !important;
+  border: 1px solid rgba(244, 63, 94, 0.14) !important;
+  border-left: 3px solid rgba(244, 63, 94, 0.65) !important;
+}
+
+.match-row-wta:hover {
+  border-color: rgba(244, 63, 94, 0.35) !important;
+}
+
+/* Tournament Headers */
+.tourn-header-atp {
+  border-left: 3px solid #38bdf8 !important;
+}
+
+.tourn-header-wta {
+  border-left: 3px solid #f43f5e !important;
+}
+
+/* Tour Pill Badges (ATP vs WTA) */
+.tour-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 2px;
+}
+
+.tour-badge-sm {
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 3px;
+}
+
+.tour-badge-atp {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.tour-badge-wta {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.35);
+}

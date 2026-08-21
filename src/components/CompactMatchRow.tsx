@@ -5,7 +5,7 @@ import {
   AlertTriangle, Key, Lock, Sparkles,
   CheckCircle2, XCircle, Clock
 } from 'lucide-react';
-import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, formatOptionPillText } from '../utils/formatters';
+import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, formatOptionPillText, getMatchGender } from '../utils/formatters';
 
 interface CompactMatchRowProps {
   prediction: Prediction;
@@ -21,6 +21,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   onUnlockClick,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`);
+  const isWomen = matchGender === 'women';
 
   const triggerHaptic = () => {
     if (window.Telegram?.WebApp?.HapticFeedback) {
@@ -63,7 +65,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   );
 
   return (
-    <div className={`compact-match-row glass ${expanded ? 'expanded' : ''}`}>
+    <div className={`compact-match-row glass ${isWomen ? 'match-row-wta' : 'match-row-atp'} ${expanded ? 'expanded' : ''}`}>
       {/* Clickable Header Row (Tier 1: High-Affordance Glanceable Info) */}
       <div 
         className="compact-row-header" 
@@ -86,6 +88,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         <div className="compact-players-col">
           {/* Tournament & Surface Tag */}
           <div className="compact-tourn-tag">
+            <span className={`tour-badge ${isWomen ? 'tour-badge-wta' : 'tour-badge-atp'}`}>{isWomen ? 'WTA' : 'ATP'}</span>
             <span className="surface-pill">{getSurfaceEmoji(prediction.surface)} {prediction.surface || 'Hard'}</span>
             {prediction.tournament_name && <span className="tourn-name-text"> · {prediction.tournament_name}</span>}
             {prediction.round_name && <span className="text-secondary"> ({prediction.round_name})</span>}

@@ -249,13 +249,13 @@ export function App() {
           🎾 All Matches
         </button>
         <button
-          className={`gender-filter-btn ${genderFilter === 'men' ? 'active' : ''}`}
+          className={`gender-filter-btn gender-btn-men ${genderFilter === 'men' ? 'active' : ''}`}
           onClick={() => setGenderFilter('men')}
         >
           👨 Men (ATP)
         </button>
         <button
-          className={`gender-filter-btn ${genderFilter === 'women' ? 'active' : ''}`}
+          className={`gender-filter-btn gender-btn-women ${genderFilter === 'women' ? 'active' : ''}`}
           onClick={() => setGenderFilter('women')}
         >
           👩 Women (WTA)
@@ -342,14 +342,19 @@ export function App() {
           return (
             <div key={tournName} className="tournament-group">
               {/* Tournament Header (Collapsible Accordion) */}
+              {(() => {
+            const tournGender = getMatchGender(tournName);
+            const isWta = tournGender === 'women';
+            return (
               <div 
-                className="tournament-group-header"
+                className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
                 onClick={() => toggleTournament(tournName)}
                 role="button"
                 tabIndex={0}
                 aria-expanded={!isCollapsed}
               >
                 <div className="tourn-title-left">
+                  <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : 'tour-badge-atp'}`}>{isWta ? 'WTA' : 'ATP'}</span>
                   <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
                   <span className="tourn-name">{tournName}</span>
                   {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
@@ -359,10 +364,12 @@ export function App() {
                   {isCollapsed ? (
                     <ChevronDown size={15} color="var(--text-secondary)" />
                   ) : (
-                    <ChevronUp size={15} color="#38bdf8" />
+                    <ChevronUp size={15} color={isWta ? '#fb7185' : '#38bdf8'} />
                   )}
                 </div>
               </div>
+            );
+          })()}
 
               {/* Match Rows (Shown when not collapsed) */}
               {!isCollapsed && (

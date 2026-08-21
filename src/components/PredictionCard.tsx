@@ -1,3 +1,4 @@
+import { getMatchGender } from '../utils/formatters';
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Flame, Shield, CheckCircle, XCircle, Clock, Lock, Key } from 'lucide-react';
 import type { Prediction } from '../types';
@@ -10,6 +11,8 @@ interface PredictionCardProps {
 
 export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLocked = false, onUnlockClick }) => {
   const [expanded, setExpanded] = useState(false);
+  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`);
+  const isWomen = matchGender === 'women';
 
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱'
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱' : '🟦';
@@ -29,10 +32,11 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
   );
 
   return (
-    <div className="glass" style={{ padding: '1.2rem', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
+    <div className={`glass ${isWomen ? 'match-row-wta' : 'match-row-atp'}`} style={{ padding: '1.2rem', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
       {/* Top Bar: Tournament & Status */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
         <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <span className={`tour-badge ${isWomen ? 'tour-badge-wta' : 'tour-badge-atp'}`}>{isWomen ? 'WTA' : 'ATP'}</span>
           <span>{surfaceEmoji}</span>
           <span>{prediction.tournament_name || 'Tennis Match'}</span>
           {prediction.round_name && <span style={{ opacity: 0.7 }}>• {prediction.round_name}</span>}
