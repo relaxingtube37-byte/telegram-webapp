@@ -187,7 +187,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 <div className="details-ai-box">
                   <div className="details-ai-header">
                     <Sparkles size={14} color="#38bdf8" />
-                    <span>توضیحات و تحلیل هوش مصنوعی (AI Breakdown)</span>
+                    <span>AI Match Analysis & Tactical Breakdown</span>
                   </div>
 
                   {/* Full AI Analysis Text */}
@@ -200,7 +200,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   {/* Key Match Analytics */}
                   {prediction.key_factors && prediction.key_factors.length > 0 && (
                     <div className="details-ai-factors">
-                      <div className="factors-subtitle">⚡ نکات کلیدی مسابقه:</div>
+                      <div className="factors-subtitle">⚡ Key Match Factors:</div>
                       <ul className="factors-list">
                         {prediction.key_factors.map((f, i) => (
                           <li key={i}>{f}</li>
@@ -212,7 +212,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   {/* Contrarian / Upset Risk (if any) */}
                   {prediction.devils_advocate_risk && (
                     <div className="details-ai-risk">
-                      <span className="risk-tag">⚠️ ریسک مسابقه:</span> {prediction.devils_advocate_risk}
+                      <span className="risk-tag">⚠️ Contrarian Risk:</span> {prediction.devils_advocate_risk}
                     </div>
                   )}
                 </div>
