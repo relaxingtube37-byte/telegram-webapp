@@ -443,7 +443,8 @@ body {
 }
 
 .compact-time-col {
-  width: 52px;
+  width: 62px;
+  min-width: 62px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -463,13 +464,20 @@ body {
 }
 
 .status-tag {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 0.15rem 0.3rem;
+  padding: 0.15rem 0.25rem;
   border-radius: 5px;
   text-align: center;
   width: 100%;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  box-sizing: border-box;
 }
 
 .status-tag-time {
@@ -520,6 +528,18 @@ body {
   font-weight: 600;
   min-width: 0;
   overflow: hidden;
+}
+
+.winner-tag-pill {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  line-height: 1.1;
+  flex-shrink: 0;
 }
 
 .winner-prob-tiny {
@@ -1231,3 +1251,10 @@ body {
   color: #fb7185;
   border: 1px solid rgba(244, 63, 94, 0.35);
 }
+
+.tour-badge-mixed {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+}
+

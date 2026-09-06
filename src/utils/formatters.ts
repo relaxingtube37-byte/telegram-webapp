@@ -126,20 +126,20 @@ export const getSurfaceEmoji = (surface?: string): string => {
   return '🟦';
 };
 
+const WTA_KEYWORDS = [
+  'wta', 'women', 'w15', 'w25', 'w35', 'w50', 'w75', 'w100', 'billie jean king', 'ladies', 'girls',
+  'sabalenka', 'swiatek', 'gauff', 'rybakina', 'pegula', 'paolini', 'zheng', 'navarro', 'collins',
+  'kasatkina', 'ostapenko', 'kalinskaya', 'kostyuk', 'fernandez', 'cirstea', 'noskova', 'townsend',
+  'andreeva', 'haddad', 'vondrousova', 'jabeur', 'raducanu', 'badosa', 'keys', 'osaka', 'svitolina',
+  'garcia', 'krejcikova', 'bouzkova', 'linette', 'vekic', 'azarenka', 'mertens', 'kudermetova',
+  'alexandrova', 'pliskova', 'samsonova', 'kenin', 'anisimova', 'potapova', 'stephens', 'tomova',
+  'shnaider', 'barty', 'halep', 'serena', 'venus', 'wozniacki', 'kerber', 'kvitova', 'andreescu'
+];
+
 export const getMatchGender = (tournamentName?: string, roundName?: string, matchTitle?: string): 'men' | 'women' | 'unknown' => {
   const combined = `${tournamentName || ''} ${roundName || ''} ${matchTitle || ''}`.toLowerCase();
 
-  if (
-    combined.includes('wta') ||
-    combined.includes('women') ||
-    combined.includes('w15') ||
-    combined.includes('w25') ||
-    combined.includes('w35') ||
-    combined.includes('w50') ||
-    combined.includes('w75') ||
-    combined.includes('w100') ||
-    combined.includes('billie jean king')
-  ) {
+  if (WTA_KEYWORDS.some(k => combined.includes(k))) {
     return 'women';
   }
 

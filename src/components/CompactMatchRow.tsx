@@ -44,13 +44,16 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
   const winProb = prediction.win_probability || 65;
 
+  const rawScore = (prediction.result_score || '').trim();
+  const compactScore = rawScore ? rawScore.split('(')[0].trim() : '2:1';
+
   const statusBadge = prediction.status === 'WON' ? (
     <span className="status-tag status-tag-won">
-      <CheckCircle2 size={11} /> WON {prediction.result_score || '2:1'}
+      <CheckCircle2 size={11} /> WON {compactScore}
     </span>
   ) : prediction.status === 'LOST' ? (
     <span className="status-tag status-tag-lost">
-      <XCircle size={11} /> LOST
+      <XCircle size={11} /> LOST {compactScore !== '2:1' ? compactScore : ''}
     </span>
   ) : prediction.status === 'LIVE' ? (
     <span className="status-tag status-tag-live">
@@ -98,14 +101,14 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           <div className="compact-player-line">
             <span className="player-name-text">{formatPlayerDisplayName(prediction.home_name)}</span>
             {prediction.home_odds && <span className="player-odds-pill">{prediction.home_odds}</span>}
-            {isHomeWinner && <span className="winner-prob-tiny">{winProb}%</span>}
+            {isHomeWinner && <span className="winner-tag-pill" title="AI Projected Winner">✓ Pick</span>}
           </div>
 
           {/* Away Player */}
           <div className="compact-player-line">
             <span className="player-name-text">{formatPlayerDisplayName(prediction.away_name)}</span>
             {prediction.away_odds && <span className="player-odds-pill">{prediction.away_odds}</span>}
-            {isAwayWinner && <span className="winner-prob-tiny">{winProb}%</span>}
+            {isAwayWinner && <span className="winner-tag-pill" title="AI Projected Winner">✓ Pick</span>}
           </div>
         </div>
 

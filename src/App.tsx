@@ -376,33 +376,35 @@ export function App() {
             <div key={tournName} className="tournament-group">
               {/* Tournament Header (Collapsible Accordion) */}
               {(() => {
-            const tournGender = getMatchGender(tournName);
-            const isWta = tournGender === 'women';
-            return (
-              <div 
-                className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
-                onClick={() => toggleTournament(tournName)}
-                role="button"
-                tabIndex={0}
-                aria-expanded={!isCollapsed}
-              >
-                <div className="tourn-title-left">
-                  <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : 'tour-badge-atp'}`}>{isWta ? 'WTA' : 'ATP'}</span>
-                  <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
-                  <span className="tourn-name">{tournName}</span>
-                  {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span className="tourn-count">{tournData.items.length}</span>
-                  {isCollapsed ? (
-                    <ChevronDown size={15} color="var(--text-secondary)" />
-                  ) : (
-                    <ChevronUp size={15} color={isWta ? '#fb7185' : '#38bdf8'} />
-                  )}
-                </div>
-              </div>
-            );
-          })()}
+                const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} ${p.away_name}`) === 'women');
+                const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} ${p.away_name}`) === 'men');
+                const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
+                const isWta = tournBadge === 'WTA';
+                return (
+                  <div 
+                    className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
+                    onClick={() => toggleTournament(tournName)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={!isCollapsed}
+                  >
+                    <div className="tourn-title-left">
+                      <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
+                      <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
+                      <span className="tourn-name">{tournName}</span>
+                      {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="tourn-count">{tournData.items.length}</span>
+                      {isCollapsed ? (
+                        <ChevronDown size={15} color="var(--text-secondary)" />
+                      ) : (
+                        <ChevronUp size={15} color={isWta ? '#fb7185' : '#38bdf8'} />
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Match Rows (Shown when not collapsed) */}
               {!isCollapsed && (
