@@ -8,10 +8,31 @@ import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilt
 
 const PRODUCTION_API_BASE = 'https://telegram-backend-2yck.onrender.com/api/webapp';
 const LOCAL_API_BASE = 'http://localhost:8080/api/webapp';
-const API_BASE = (
-  (import.meta as ImportMeta & { env?: { VITE_API_BASE?: string; DEV?: boolean } }).env?.VITE_API_BASE ||
-  ((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV ? LOCAL_API_BASE : PRODUCTION_API_BASE)
-).replace(/\/+$/, '');
+
+function resolveApiBase(): string {
+  const envBase = (import.meta as ImportMeta & { env?: { VITE_API_BASE?: string; DEV?: boolean } }).env?.VITE_API_BASE;
+  const isDev = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV;
+
+  let base = (envBase || '').trim().replace(/\/+$/, '');
+  if (!base) {
+    return isDev ? LOCAL_API_BASE : PRODUCTION_API_BASE;
+  }
+
+  // Auto-correct common mistakes if user entered domain root without /api/webapp
+  if (!base.endsWith('/api/webapp')) {
+    if (base.endsWith('/api')) {
+      base = `${base}/webapp`;
+    } else if (base.endsWith('/webapp')) {
+      base = base.replace(/\/webapp$/, '/api/webapp');
+    } else {
+      base = `${base}/api/webapp`;
+    }
+  }
+  return base;
+}
+
+const API_BASE = resolveApiBase();
+
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
