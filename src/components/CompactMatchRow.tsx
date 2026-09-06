@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import type { Prediction } from '../types';
 import { 
-  ChevronDown, ChevronUp, Trophy, Flame, Shield, 
-  AlertTriangle, Key, Lock, Sparkles,
+  ChevronDown, ChevronUp, Trophy, 
+  Key, Lock, Sparkles,
   CheckCircle2, XCircle, Clock
 } from 'lucide-react';
-import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, formatOptionPillText, getMatchGender } from '../utils/formatters';
+import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, getMatchGender } from '../utils/formatters';
 
 interface CompactMatchRowProps {
   prediction: Prediction;
@@ -109,18 +109,11 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           </div>
         </div>
 
-        {/* Value Bet Pill (Only option/market, not player name) */}
+        {/* Win Probability Badge & Toggle Chevron */}
         <div className="compact-actions-col">
-          {prediction.best_bet_selection ? (
-            <div className="compact-bet-pill" title={`${prediction.best_bet_market || ''}: ${prediction.best_bet_selection}`}>
-              <Flame size={12} color="#f97316" className="pulse-icon" />
-              <span>{formatOptionPillText(prediction.best_bet_selection, prediction.best_bet_market, prediction.home_name, prediction.away_name)}</span>
-            </div>
-          ) : (
-            <div className="compact-prob-badge">
-              {winProb}%
-            </div>
-          )}
+          <div className="compact-prob-badge">
+            {winProb}%
+          </div>
 
           <div className="compact-chevron">
             {expanded ? <ChevronUp size={16} color="#38bdf8" /> : <ChevronDown size={16} color="var(--text-secondary)" />}
@@ -136,7 +129,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <Lock size={26} color="var(--accent-amber)" />
               <div className="locked-title">🔒 FULL AI INTELLIGENCE LOCKED</div>
               <p className="locked-desc">
-                Register on our verified partner bookmaker to instantly unlock all VIP Value Bets, In-Depth Rationales & Real-Time Probability Matrices!
+                Register on our verified partner bookmaker to instantly unlock all VIP Analyses, Tactical Breakdowns & Real-Time Probability Matrices!
               </p>
               <button onClick={onUnlockClick} className="btn-primary btn-unlock">
                 <Key size={14} /> Register & Unlock Free VIP Access
@@ -167,26 +160,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 </div>
               </div>
 
-              {/* 🔥 Tier 2: Recommended Value Bet (+EV) & Chosen Market */}
-              {prediction.best_bet_selection && (
-                <div className="details-bet-card">
-                  <div className="details-bet-header">
-                    <span className="text-green font-bold flex items-center gap-1">
-                      <Flame size={14} color="#22c55e" /> Recommended Value Bet
-                    </span>
-                    {prediction.best_bet_ev && (
-                      <span className="ev-badge">EV: {prediction.best_bet_ev}</span>
-                    )}
-                  </div>
-                  <div className="details-bet-selection">{prediction.best_bet_selection}</div>
-                  <div className="details-bet-market">
-                    Market: <strong>{prediction.best_bet_market || 'Match Winner'}</strong>
-                  </div>
-                </div>
-              )}
-
               {/* 🧠 Tier 3: AI Intelligence Explanation & Tactical Summary */}
-              {(prediction.ai_summary || prediction.best_bet_rationale || (prediction.key_factors && prediction.key_factors.length > 0)) && (
+              {(prediction.ai_summary || (prediction.key_factors && prediction.key_factors.length > 0)) && (
                 <div className="details-ai-box">
                   <div className="details-ai-header">
                     <Sparkles size={14} color="#38bdf8" />
@@ -194,9 +169,9 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   </div>
 
                   {/* Full AI Analysis Text */}
-                  {(prediction.ai_summary || prediction.best_bet_rationale) && (
+                  {prediction.ai_summary && (
                     <p className="details-ai-text">
-                      {prediction.ai_summary || prediction.best_bet_rationale}
+                      {prediction.ai_summary}
                     </p>
                   )}
 

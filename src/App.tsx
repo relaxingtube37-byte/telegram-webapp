@@ -6,7 +6,12 @@ import type { Prediction, StatsOverviewData, ReferralSite } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority } from './utils/formatters';
 
-const API_BASE = ((import.meta as any).env?.VITE_API_BASE || 'https://telegram-backend-2yck.onrender.com/api/webapp').replace(/\/+$/, '');
+const PRODUCTION_API_BASE = 'https://telegram-backend-2yck.onrender.com/api/webapp';
+const LOCAL_API_BASE = 'http://localhost:8080/api/webapp';
+const API_BASE = (
+  (import.meta as ImportMeta & { env?: { VITE_API_BASE?: string; DEV?: boolean } }).env?.VITE_API_BASE ||
+  ((import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV ? LOCAL_API_BASE : PRODUCTION_API_BASE)
+).replace(/\/+$/, '');
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
@@ -34,7 +39,7 @@ export function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'week'>('all');
   const [genderFilter, setGenderFilter] = useState<'all' | 'men' | 'women'>('all');
-  const [filterChip, setFilterChip] = useState<'all' | 'value_bets' | 'high_prob' | 'clay' | 'hard'>('all');
+  const [filterChip, setFilterChip] = useState<'all' | 'high_prob' | 'clay' | 'hard'>('all');
   const [selectedTimezone, setSelectedTimezone] = useState<string>(getInitialTimezone());
 
   const handleTimezoneChange = (tz: string) => {
@@ -50,20 +55,35 @@ export function App() {
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
-      if (tg.initDataUnsafe?.user) {
-        const u = tg.initDataUnsafe.user;
-        setTelegramUser(u);
-        if (u.id) {
-          const fn = encodeURIComponent(u.first_name || '');
-          const un = encodeURIComponent(u.username || '');
-          fetch(`${API_BASE}/user/${u.id}?first_name=${fn}&username=${un}`)
-            .then(r => r.json())
-            .then(res => {
-              if (res?.verified) setIsVerified(true);
-              if (res?.access_mode) setAccessMode(res.access_mode);
-            })
-            .catch(() => {});
-        }
+
+      const rawInitData = tg.initData;
+      if (rawInitData) {
+        // Authenticate cryptographically using signed Telegram initData
+        fetch(`${API_BASE}/auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: rawInitData }),
+        })
+          .then(r => r.json())
+          .then(res => {
+            if (res?.success) {
+              if (res.verified !== undefined) setIsVerified(!!res.verified);
+              if (res.access_mode) setAccessMode(res.access_mode);
+              if (res.user) {
+                setTelegramUser({
+                  id: res.user.telegram_id,
+                  first_name: res.user.first_name,
+                  username: res.user.username,
+                });
+              }
+            }
+          })
+          .catch(err => {
+            console.warn('[Telegram WebApp Auth Error]:', err);
+          });
+      } else if (tg.initDataUnsafe?.user) {
+        // Fallback for local browser dev environment outside Telegram Webview
+        setTelegramUser(tg.initDataUnsafe.user);
       }
     }
 
@@ -135,9 +155,7 @@ export function App() {
       }
 
       // 4. Chip Filter Match
-      if (filterChip === 'value_bets') {
-        if (!p.best_bet_selection) return false;
-      } else if (filterChip === 'high_prob') {
+      if (filterChip === 'high_prob') {
         if ((p.win_probability || 0) < 70) return false;
       } else if (filterChip === 'clay') {
         if (!(p.surface || '').toLowerCase().includes('clay')) return false;
@@ -268,13 +286,7 @@ export function App() {
           className={`filter-chip ${filterChip === 'all' ? 'active' : ''}`}
           onClick={() => setFilterChip('all')}
         >
-          All Odds
-        </button>
-        <button
-          className={`filter-chip ${filterChip === 'value_bets' ? 'active' : ''}`}
-          onClick={() => setFilterChip(prev => prev === 'value_bets' ? 'all' : 'value_bets')}
-        >
-          🔥 Value Bets (EV+)
+          All Matches
         </button>
         <button
           className={`filter-chip ${filterChip === 'high_prob' ? 'active' : ''}`}
@@ -334,7 +346,7 @@ export function App() {
       {loading ? (
         <div className="loading-state">
           <Trophy size={42} className="loading-icon" />
-          <div className="loading-text">Loading AI Predictions & Value Bets...</div>
+          <div className="loading-text">Loading AI Predictions & Analysis...</div>
         </div>
       ) : Object.keys(groupedByTournament).length > 0 ? (
         Object.entries(groupedByTournament).map(([tournName, tournData]) => {

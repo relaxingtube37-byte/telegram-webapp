@@ -1,6 +1,6 @@
 import { getMatchGender } from '../utils/formatters';
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Flame, Shield, CheckCircle, XCircle, Clock, Lock, Key } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Lock, Key } from 'lucide-react';
 import type { Prediction } from '../types';
 
 interface PredictionCardProps {
@@ -75,7 +75,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
             🔒 PREDICTION LOCKED
           </h4>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.9rem', lineHeight: 1.4 }}>
-            Register on our partner bookmaker via affiliate link to instantly unlock all daily AI predictions & value bets!
+            Register on our partner platform to instantly unlock all daily AI match predictions & deep tactical insights!
           </p>
           <button
             onClick={onUnlockClick}
@@ -105,45 +105,6 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
           </span>
         </div>
       </div>
-
-      {/* Recommended Value Bet */}
-      {prediction.best_bet_selection && (
-        <div style={{ background: 'rgba(34, 197, 94, 0.08)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '10px', padding: '0.8rem 1rem', marginBottom: '0.8rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Flame size={14} /> 🔥 Recommended Value Bet
-            </span>
-            <span style={{ fontSize: '0.68rem', fontWeight: 700, background: 'rgba(34, 197, 94, 0.2)', color: 'var(--accent-green)', padding: '0.1rem 0.4rem', borderRadius: 4 }}>
-              EV: {prediction.best_bet_ev || 'POSITIVE'}
-            </span>
-          </div>
-
-          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'white' }}>
-            {prediction.best_bet_selection}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', marginTop: 2 }}>
-            Market: {prediction.best_bet_market || 'Full Time Winner'}
-          </div>
-
-          {prediction.best_bet_rationale && (
-            <div style={{ fontSize: '0.78rem', color: '#cbd5e1', fontStyle: 'italic', marginTop: 4 }}>
-              "{prediction.best_bet_rationale}"
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Option Bet if available */}
-      {prediction.alt_bet_selection && (
-        <div style={{ background: 'rgba(56, 189, 248, 0.08)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '10px', padding: '0.7rem 1rem', marginBottom: '0.8rem' }}>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem' }}>
-            <Shield size={13} /> 🛡 Option Bet: {prediction.alt_bet_selection}
-          </div>
-          <div style={{ fontSize: '0.72rem', color: 'var(--accent-amber)' }}>
-            Market: {prediction.alt_bet_market}
-          </div>
-        </div>
-      )}
 
       {/* Expand/Collapse details toggle */}
       <button
