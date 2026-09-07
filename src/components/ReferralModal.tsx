@@ -10,6 +10,32 @@ interface ReferralModalProps {
 }
 
 export const ReferralModal: React.FC<ReferralModalProps> = ({ sites, telegramId, onClose }) => {
+  const [customTgId, setCustomTgId] = React.useState('');
+
+  // Get or create persistent Web visitor ID
+  const effectiveId = React.useMemo(() => {
+    if (customTgId.trim()) {
+      const parsed = parseInt(customTgId.trim(), 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    if (telegramId && telegramId > 0) return telegramId;
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+      return window.Telegram.WebApp.initDataUnsafe.user.id;
+    }
+    try {
+      let stored = localStorage.getItem('ptin_web_uid');
+      if (!stored) {
+        stored = String(Math.floor(100000000 + Math.random() * 900000000));
+        localStorage.setItem('ptin_web_uid', stored);
+      }
+      return parseInt(stored, 10);
+    } catch {
+      return 999999;
+    }
+  }, [telegramId, customTgId]);
+
+  const isTgEnvironment = Boolean(telegramId || window.Telegram?.WebApp?.initData);
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <div className="glass" style={{ width: '100%', maxWidth: 440, padding: '1.4rem', background: '#121a2c', border: '1px solid var(--accent-cyan)' }}>
@@ -20,14 +46,29 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({ sites, telegramId,
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
         </div>
 
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '1rem' }}>
-          Register on one of our verified partner bookmakers below. Your Telegram ID (<code>{telegramId || 'User'}</code>) is automatically tracked for instant auto-verification!
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4, marginBottom: '0.8rem' }}>
+          Register on one of our verified partner bookmakers below. Your Tracking ID (<code>{effectiveId}</code>) is automatically linked for instant auto-verification!
         </p>
+
+        {!isTgEnvironment && (
+          <div style={{ marginBottom: '0.9rem', background: 'rgba(15,23,42,0.6)', padding: '0.6rem 0.8rem', borderRadius: 8, border: '1px solid var(--border)' }}>
+            <label style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+              Link to Telegram (Optional):
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your Telegram ID (e.g. 12345678)"
+              value={customTgId}
+              onChange={(e) => setCustomTgId(e.target.value)}
+              style={{ width: '100%', background: '#0f172a', border: '1px solid var(--border)', color: 'white', padding: '0.4rem 0.6rem', borderRadius: 6, fontSize: '0.78rem' }}
+            />
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem', marginBottom: '1.2rem' }}>
           {sites.length > 0 ? (
             sites.map(site => {
-              const tid = telegramId || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 0;
+              const tid = effectiveId;
               
               // Build tracking URLs
               const backendBase = 'https://telegram-backend-2yck.onrender.com';

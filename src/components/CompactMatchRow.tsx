@@ -3,7 +3,7 @@ import type { Prediction } from '../types';
 import { 
   ChevronDown, ChevronUp, Trophy, 
   Key, Lock, Sparkles,
-  CheckCircle2, XCircle, Clock
+  CheckCircle2, XCircle, Clock, ExternalLink
 } from 'lucide-react';
 import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, getMatchGender, parseAiDossierSections } from '../utils/formatters';
 
@@ -12,6 +12,7 @@ interface CompactMatchRowProps {
   selectedTimezone: string;
   isLocked?: boolean;
   onUnlockClick?: () => void;
+  onOpenMatchPage?: (prediction: Prediction) => void;
 }
 
 export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
@@ -19,6 +20,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   selectedTimezone,
   isLocked = false,
   onUnlockClick,
+  onOpenMatchPage,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`, prediction.home_name, prediction.away_name);
@@ -229,6 +231,34 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                       <span className="risk-tag">⚠️ Critical Upset Scenario:</span> {prediction.devils_advocate_risk}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Optional Full Standalone Page Button (Web / SEO) */}
+              {onOpenMatchPage && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.6rem' }}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenMatchPage(prediction);
+                    }}
+                    style={{
+                      background: 'rgba(56, 189, 248, 0.08)',
+                      border: '1px solid rgba(56, 189, 248, 0.25)',
+                      color: 'var(--accent-cyan)',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                    }}
+                  >
+                    <ExternalLink size={12} /> View Dedicated Match Page
+                  </button>
                 </div>
               )}
             </div>

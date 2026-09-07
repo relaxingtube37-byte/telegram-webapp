@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { CompactMatchRow } from './components/CompactMatchRow';
+import { MatchSeoView } from './components/MatchSeoView';
 import { ReferralModal } from './components/ReferralModal';
 import type { Prediction, StatsOverviewData, ReferralSite } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
@@ -45,6 +46,39 @@ export function App() {
   const [isVerified, setIsVerified] = useState(false);
   const [accessMode, setAccessMode] = useState<'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED'>('REGISTRATION_REQUIRED');
   const [collapsedTournaments, setCollapsedTournaments] = useState<Record<string, boolean>>({});
+  const [selectedMatch, setSelectedMatch] = useState<Prediction | null>(null);
+
+  const handleOpenMatchPage = (pred: Prediction) => {
+    setSelectedMatch(pred);
+    try {
+      const matchParam = pred.fixture_id || pred.id;
+      const newUrl = `${window.location.pathname}?match=${matchParam}`;
+      window.history.pushState({ matchId: matchParam }, '', newUrl);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {}
+  };
+
+  const handleBackToMatches = () => {
+    setSelectedMatch(null);
+    try {
+      window.history.pushState(null, '', window.location.pathname);
+    } catch {}
+  };
+
+  useEffect(() => {
+    const onPopState = () => {
+      const p = new URLSearchParams(window.location.search);
+      const matchId = p.get('match');
+      if (matchId && predictions.length > 0) {
+        const found = predictions.find(m => String(m.fixture_id) === matchId || String(m.id) === matchId);
+        setSelectedMatch(found || null);
+      } else {
+        setSelectedMatch(null);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [predictions]);
 
   const toggleTournament = (tournName: string) => {
     if (window.Telegram?.WebApp?.HapticFeedback) {
@@ -113,6 +147,19 @@ export function App() {
       .then(res => { if (res?.access_mode) setAccessMode(res.access_mode); })
       .catch(() => {});
 
+    // Web visitor verification check (outside Telegram)
+    try {
+      const webUid = localStorage.getItem('ptin_web_uid');
+      if (!window.Telegram?.WebApp?.initData && webUid) {
+        fetch(`${API_BASE}/user/${webUid}`)
+          .then(r => r.json())
+          .then(res => {
+            if (res?.verified) setIsVerified(true);
+          })
+          .catch(() => {});
+      }
+    } catch {}
+
     loadData();
   }, []);
 
@@ -125,9 +172,22 @@ export function App() {
         fetch(`${API_BASE}/referrals`).then(r => r.json()).catch(() => []),
       ]);
 
-      setPredictions(Array.isArray(predRes) ? predRes : []);
+      const loadedPreds: Prediction[] = Array.isArray(predRes) ? predRes : [];
+      setPredictions(loadedPreds);
       setStats(statsRes);
       setReferralSites(Array.isArray(refRes) ? refRes : []);
+
+      // Check URL query for direct match landing (e.g. ?match=123)
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const matchParam = urlParams.get('match');
+        if (matchParam && loadedPreds.length > 0) {
+          const matchTarget = loadedPreds.find(
+            p => String(p.fixture_id) === matchParam || String(p.id) === matchParam
+          );
+          if (matchTarget) setSelectedMatch(matchTarget);
+        }
+      } catch {}
     } catch (e) {
       console.warn("Failed to load WebApp predictions data", e);
     } finally {
@@ -239,200 +299,213 @@ export function App() {
         onTimezoneChange={handleTimezoneChange}
       />
 
-      {/* Search Input & Date Filters Row */}
-      <div className="search-date-combined-row">
-        {/* Search Bar (Half width) */}
-        <div className="search-bar-wrapper">
-          <Search size={14} color="var(--text-secondary)" className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search player..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="search-clear-btn">✕</button>
-          )}
-        </div>
-
-        {/* Date Filter Buttons (Today / Tomorrow / Week) */}
-        <div className="date-filter-group">
-          <button
-            className={`date-filter-btn ${dateFilter === 'today' ? 'active' : ''}`}
-            onClick={() => setDateFilter(prev => prev === 'today' ? 'all' : 'today')}
-          >
-            Today
-          </button>
-          <button
-            className={`date-filter-btn ${dateFilter === 'tomorrow' ? 'active' : ''}`}
-            onClick={() => setDateFilter(prev => prev === 'tomorrow' ? 'all' : 'tomorrow')}
-          >
-            Tomorrow
-          </button>
-          <button
-            className={`date-filter-btn ${dateFilter === 'week' ? 'active' : ''}`}
-            onClick={() => setDateFilter(prev => prev === 'week' ? 'all' : 'week')}
-          >
-            Week
-          </button>
-        </div>
-      </div>
-
-      {/* 3 Side-by-Side Category Buttons (All / Men / Women) */}
-      <div className="gender-filter-row">
-        <button
-          className={`gender-filter-btn ${genderFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setGenderFilter('all')}
-        >
-          🎾 All Matches
-        </button>
-        <button
-          className={`gender-filter-btn gender-btn-men ${genderFilter === 'men' ? 'active' : ''}`}
-          onClick={() => setGenderFilter('men')}
-        >
-          👨 Men (ATP)
-        </button>
-        <button
-          className={`gender-filter-btn gender-btn-women ${genderFilter === 'women' ? 'active' : ''}`}
-          onClick={() => setGenderFilter('women')}
-        >
-          👩 Women (WTA)
-        </button>
-      </div>
-
-      {/* Secondary Filter Chips */}
-      <div className="filter-chips-scroll">
-        <button
-          className={`filter-chip ${filterChip === 'all' ? 'active' : ''}`}
-          onClick={() => setFilterChip('all')}
-        >
-          All Matches
-        </button>
-        <button
-          className={`filter-chip ${filterChip === 'high_prob' ? 'active' : ''}`}
-          onClick={() => setFilterChip(prev => prev === 'high_prob' ? 'all' : 'high_prob')}
-        >
-          🎯 70%+ Win Prob
-        </button>
-        <button
-          className={`filter-chip ${filterChip === 'hard' ? 'active' : ''}`}
-          onClick={() => setFilterChip(prev => prev === 'hard' ? 'all' : 'hard')}
-        >
-          🟦 Hard
-        </button>
-        <button
-          className={`filter-chip ${filterChip === 'clay' ? 'active' : ''}`}
-          onClick={() => setFilterChip(prev => prev === 'clay' ? 'all' : 'clay')}
-        >
-          🧱 Clay
-        </button>
-      </div>
-
-      {/* Navigation Tabs & Actions Row */}
-      <div className="nav-controls-row">
-        <div className="nav-tabs">
-          <button
-            className={`nav-tab ${activeTab === 'active' ? 'active' : ''}`}
-            onClick={() => setActiveTab('active')}
-          >
-            🔥 Active ({activePredictions.length})
-          </button>
-          <button
-            className={`nav-tab ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            📊 History ({historyPredictions.length})
-          </button>
-        </div>
-
-        <button
-          onClick={loadData}
-          disabled={loading}
-          className="btn-refresh"
-          title="Refresh Predictions"
-        >
-          <RefreshCw size={17} className={loading ? 'spin' : ''} />
-        </button>
-
-        <button
-          onClick={() => setShowReferralModal(true)}
-          className={`btn-vip-badge ${accessMode === 'FREE' || isVerified ? 'vip-active' : 'vip-locked'}`}
-        >
-          <Key size={13} /> {accessMode === 'FREE' ? 'FREE 🔓' : isVerified ? 'VIP ✓' : 'UNLOCK'}
-        </button>
-      </div>
-
-      {/* Main Predictions Stream */}
-      {loading ? (
-        <div className="loading-state">
-          <Trophy size={42} className="loading-icon" />
-          <div className="loading-text">Loading AI Predictions & Analysis...</div>
-        </div>
-      ) : Object.keys(groupedByTournament).length > 0 ? (
-        Object.entries(groupedByTournament).map(([tournName, tournData]) => {
-          const isCollapsed = !!collapsedTournaments[tournName];
-          return (
-            <div key={tournName} className="tournament-group">
-              {/* Tournament Header (Collapsible Accordion) */}
-              {(() => {
-                const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
-                const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
-                const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
-                const isWta = tournBadge === 'WTA';
-                return (
-                  <div 
-                    className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
-                    onClick={() => toggleTournament(tournName)}
-                    role="button"
-                    tabIndex={0}
-                    aria-expanded={!isCollapsed}
-                  >
-                    <div className="tourn-title-left">
-                      <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
-                      <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
-                      <span className="tourn-name">{tournName}</span>
-                      {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <span className="tourn-count">{tournData.items.length}</span>
-                      {isCollapsed ? (
-                        <ChevronDown size={15} color="var(--text-secondary)" />
-                      ) : (
-                        <ChevronUp size={15} color={isWta ? '#fb7185' : '#38bdf8'} />
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Match Rows (Shown when not collapsed) */}
-              {!isCollapsed && (
-                <div className="tournament-matches-list">
-                  {tournData.items.map((p, idx) => (
-                    <CompactMatchRow
-                      key={p.id}
-                      prediction={p}
-                      selectedTimezone={selectedTimezone}
-                      isLocked={accessMode === 'FREE' ? false : (!isVerified && idx > 0)}
-                      onUnlockClick={() => setShowReferralModal(true)}
-                    />
-                  ))}
-                </div>
+      {selectedMatch ? (
+        <MatchSeoView
+          prediction={selectedMatch}
+          selectedTimezone={selectedTimezone}
+          isLocked={accessMode === 'FREE' ? false : !isVerified}
+          onBack={handleBackToMatches}
+          onUnlockClick={() => setShowReferralModal(true)}
+        />
+      ) : (
+        <>
+          {/* Search Input & Date Filters Row */}
+          <div className="search-date-combined-row">
+            {/* Search Bar (Half width) */}
+            <div className="search-bar-wrapper">
+              <Search size={14} color="var(--text-secondary)" className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search player..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="search-clear-btn">✕</button>
               )}
             </div>
-          );
-        })
-      ) : (
-        <div className="glass empty-state-box">
-          <Flame size={44} className="empty-icon" />
-          <h3 className="empty-title">
-            {searchQuery || dateFilter !== 'all' ? 'No matching matches found' : activeTab === 'active' ? 'No Active Predictions Right Now' : 'No Settled History Yet'}
-          </h3>
-          <p className="empty-desc">
-            {searchQuery || dateFilter !== 'all' ? 'Try changing your date filter or search terms.' : 'Check back soon! New high-EV predictions are posted regularly.'}
-          </p>
-        </div>
+
+            {/* Date Filter Buttons (Today / Tomorrow / Week) */}
+            <div className="date-filter-group">
+              <button
+                className={`date-filter-btn ${dateFilter === 'today' ? 'active' : ''}`}
+                onClick={() => setDateFilter(prev => prev === 'today' ? 'all' : 'today')}
+              >
+                Today
+              </button>
+              <button
+                className={`date-filter-btn ${dateFilter === 'tomorrow' ? 'active' : ''}`}
+                onClick={() => setDateFilter(prev => prev === 'tomorrow' ? 'all' : 'tomorrow')}
+              >
+                Tomorrow
+              </button>
+              <button
+                className={`date-filter-btn ${dateFilter === 'week' ? 'active' : ''}`}
+                onClick={() => setDateFilter(prev => prev === 'week' ? 'all' : 'week')}
+              >
+                Week
+              </button>
+            </div>
+          </div>
+
+          {/* 3 Side-by-Side Category Buttons (All / Men / Women) */}
+          <div className="gender-filter-row">
+            <button
+              className={`gender-filter-btn ${genderFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setGenderFilter('all')}
+            >
+              🎾 All Matches
+            </button>
+            <button
+              className={`gender-filter-btn gender-btn-men ${genderFilter === 'men' ? 'active' : ''}`}
+              onClick={() => setGenderFilter('men')}
+            >
+              👨 Men (ATP)
+            </button>
+            <button
+              className={`gender-filter-btn gender-btn-women ${genderFilter === 'women' ? 'active' : ''}`}
+              onClick={() => setGenderFilter('women')}
+            >
+              👩 Women (WTA)
+            </button>
+          </div>
+
+          {/* Secondary Filter Chips */}
+          <div className="filter-chips-scroll">
+            <button
+              className={`filter-chip ${filterChip === 'all' ? 'active' : ''}`}
+              onClick={() => setFilterChip('all')}
+            >
+              All Matches
+            </button>
+            <button
+              className={`filter-chip ${filterChip === 'high_prob' ? 'active' : ''}`}
+              onClick={() => setFilterChip(prev => prev === 'high_prob' ? 'all' : 'high_prob')}
+            >
+              🎯 70%+ Win Prob
+            </button>
+            <button
+              className={`filter-chip ${filterChip === 'hard' ? 'active' : ''}`}
+              onClick={() => setFilterChip(prev => prev === 'hard' ? 'all' : 'hard')}
+            >
+              🟦 Hard
+            </button>
+            <button
+              className={`filter-chip ${filterChip === 'clay' ? 'active' : ''}`}
+              onClick={() => setFilterChip(prev => prev === 'clay' ? 'all' : 'clay')}
+            >
+              🧱 Clay
+            </button>
+          </div>
+
+          {/* Navigation Tabs & Actions Row */}
+          <div className="nav-controls-row">
+            <div className="nav-tabs">
+              <button
+                className={`nav-tab ${activeTab === 'active' ? 'active' : ''}`}
+                onClick={() => setActiveTab('active')}
+              >
+                🔥 Active ({activePredictions.length})
+              </button>
+              <button
+                className={`nav-tab ${activeTab === 'history' ? 'active' : ''}`}
+                onClick={() => setActiveTab('history')}
+              >
+                📊 History ({historyPredictions.length})
+              </button>
+            </div>
+
+            <button
+              onClick={loadData}
+              disabled={loading}
+              className="btn-refresh"
+              title="Refresh Predictions"
+            >
+              <RefreshCw size={17} className={loading ? 'spin' : ''} />
+            </button>
+
+            <button
+              onClick={() => setShowReferralModal(true)}
+              className={`btn-vip-badge ${accessMode === 'FREE' || isVerified ? 'vip-active' : 'vip-locked'}`}
+            >
+              <Key size={13} /> {accessMode === 'FREE' ? 'FREE 🔓' : isVerified ? 'VIP ✓' : 'UNLOCK'}
+            </button>
+          </div>
+
+          {/* Main Predictions Stream */}
+          {loading ? (
+            <div className="loading-state">
+              <Trophy size={42} className="loading-icon" />
+              <div className="loading-text">Loading AI Predictions & Analysis...</div>
+            </div>
+          ) : Object.keys(groupedByTournament).length > 0 ? (
+            Object.entries(groupedByTournament).map(([tournName, tournData]) => {
+              const isCollapsed = !!collapsedTournaments[tournName];
+              return (
+                <div key={tournName} className="tournament-group">
+                  {/* Tournament Header (Collapsible Accordion) */}
+                  {(() => {
+                    const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
+                    const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
+                    const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
+                    const isWta = tournBadge === 'WTA';
+                    return (
+                      <div 
+                        className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
+                        onClick={() => toggleTournament(tournName)}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={!isCollapsed}
+                      >
+                        <div className="tourn-title-left">
+                          <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
+                          <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
+                          <span className="tourn-name">{tournName}</span>
+                          {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="tourn-count">{tournData.items.length}</span>
+                          {isCollapsed ? (
+                            <ChevronDown size={15} color="var(--text-secondary)" />
+                          ) : (
+                            <ChevronUp size={15} color={isWta ? '#fb7185' : '#38bdf8'} />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Match Rows (Shown when not collapsed) */}
+                  {!isCollapsed && (
+                    <div className="tournament-matches-list">
+                      {tournData.items.map((p, idx) => (
+                        <CompactMatchRow
+                          key={p.id}
+                          prediction={p}
+                          selectedTimezone={selectedTimezone}
+                          isLocked={accessMode === 'FREE' ? false : (!isVerified && idx > 0)}
+                          onUnlockClick={() => setShowReferralModal(true)}
+                          onOpenMatchPage={handleOpenMatchPage}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="glass empty-state-box">
+              <Flame size={44} className="empty-icon" />
+              <h3 className="empty-title">
+                {searchQuery || dateFilter !== 'all' ? 'No matching matches found' : activeTab === 'active' ? 'No Active Predictions Right Now' : 'No Settled History Yet'}
+              </h3>
+              <p className="empty-desc">
+                {searchQuery || dateFilter !== 'all' ? 'Try changing your date filter or search terms.' : 'Check back soon! New high-EV predictions are posted regularly.'}
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       {/* Referral Partner Registration Modal */}

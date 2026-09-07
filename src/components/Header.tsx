@@ -15,7 +15,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   selectedTimezone,
   onTimezoneChange
 }) => {
-  const userName = telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Tennis Fan');
+  const userName = telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Guest');
 
   return (
     <header className="glass header-container">
@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             <Trophy size={20} color="#0f172a" />
           </div>
           <div>
-            <h1 className="header-title">Tennis AI Studio</h1>
+            <h1 className="header-title">Ptin AI</h1>
             <div className="header-subtitle">
               Hi, <span className="header-user-highlight">{userName}</span>
             </div>
