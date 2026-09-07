@@ -6,6 +6,7 @@ import { ReferralModal } from './components/ReferralModal';
 import type { Prediction, StatsOverviewData, ReferralSite } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority } from './utils/formatters';
+import { buildMatchSlug, parseMatchParamFromUrl, findMatchByParam } from './utils/seo';
 
 const PRODUCTION_API_BASE = 'https://telegram-backend-2yck.onrender.com/api/webapp';
 const LOCAL_API_BASE = 'http://localhost:8080/api/webapp';
@@ -43,17 +44,41 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [showReferralModal, setShowReferralModal] = useState(false);
   const [telegramUser, setTelegramUser] = useState<{ id?: number; first_name?: string; username?: string } | null>(null);
+  const [webId, setWebId] = useState<string | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('ptin_web_session');
+    } catch {
+      return null;
+    }
+  });
+  const [botUsername, setBotUsername] = useState<string>('admdinbetbetforbot');
+  const [webappShortName, setWebappShortName] = useState<string>('app');
   const [isVerified, setIsVerified] = useState(false);
   const [accessMode, setAccessMode] = useState<'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED'>('REGISTRATION_REQUIRED');
   const [collapsedTournaments, setCollapsedTournaments] = useState<Record<string, boolean>>({});
-  const [selectedMatch, setSelectedMatch] = useState<Prediction | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<Prediction | null>(() => {
+    if (typeof window !== 'undefined') {
+      const win = window as any;
+      if (win.__INITIAL_PREDICTION__ || (window as any).__INITIAL_PREDICTION__) {
+        return win.__INITIAL_PREDICTION__ || (window as any).__INITIAL_PREDICTION__;
+      }
+      if (win.__INITIAL_MATCH__ || (window as any).__INITIAL_MATCH__) {
+        return win.__INITIAL_MATCH__ || (window as any).__INITIAL_MATCH__;
+      }
+    }
+    return null;
+  });
 
   const handleOpenMatchPage = (pred: Prediction) => {
     setSelectedMatch(pred);
     try {
-      const matchParam = pred.fixture_id || pred.id;
-      const newUrl = `${window.location.pathname}?match=${matchParam}`;
-      window.history.pushState({ matchId: matchParam }, '', newUrl);
+      const isTelegram = Boolean(window.Telegram?.WebApp?.initData);
+      const slug = buildMatchSlug(pred);
+      const newUrl = isTelegram
+        ? `${window.location.pathname}?match=${pred.fixture_id || pred.id}`
+        : `/match/${slug}`;
+      window.history.pushState({ matchId: pred.fixture_id || pred.id, slug }, '', newUrl);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {}
   };
@@ -61,16 +86,15 @@ export function App() {
   const handleBackToMatches = () => {
     setSelectedMatch(null);
     try {
-      window.history.pushState(null, '', window.location.pathname);
+      window.history.pushState(null, '', '/');
     } catch {}
   };
 
   useEffect(() => {
     const onPopState = () => {
-      const p = new URLSearchParams(window.location.search);
-      const matchId = p.get('match');
-      if (matchId && predictions.length > 0) {
-        const found = predictions.find(m => String(m.fixture_id) === matchId || String(m.id) === matchId);
+      const matchParam = parseMatchParamFromUrl();
+      if (matchParam && predictions.length > 0) {
+        const found = findMatchByParam(predictions, matchParam);
         setSelectedMatch(found || null);
       } else {
         setSelectedMatch(null);
@@ -105,6 +129,13 @@ export function App() {
   };
 
   useEffect(() => {
+    // Purge deprecated unverified uid key if present
+    try {
+      localStorage.removeItem('ptin_web_uid');
+    } catch {}
+
+    const isTelegramEnv = Boolean(window.Telegram?.WebApp?.initData);
+
     // Initialize Telegram WebApp SDK
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
@@ -142,23 +173,48 @@ export function App() {
       }
     }
 
+    // Authenticate web visitor with cryptographically signed server session (if not in Telegram)
+    if (!isTelegramEnv) {
+      const storedToken = localStorage.getItem('ptin_web_session');
+      fetch(`${API_BASE}/auth/web`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionToken: storedToken }),
+      })
+        .then(r => r.json())
+        .then(res => {
+          if (res?.success) {
+            if (res.verified !== undefined) setIsVerified(!!res.verified);
+            if (res.access_mode) setAccessMode(res.access_mode);
+            if (res.sessionToken) {
+              setSessionToken(res.sessionToken);
+              try {
+                localStorage.setItem('ptin_web_session', res.sessionToken);
+              } catch {}
+            }
+            if (res.webId) setWebId(res.webId);
+            if (res.telegramUser) {
+              setTelegramUser({
+                id: res.telegramUser.telegram_id,
+                first_name: res.telegramUser.first_name,
+                username: res.telegramUser.username,
+              });
+            }
+          }
+        })
+        .catch(err => {
+          console.warn('[Web Auth Error]:', err);
+        });
+    }
+
     fetch(`${API_BASE}/config`)
       .then(r => r.json())
-      .then(res => { if (res?.access_mode) setAccessMode(res.access_mode); })
+      .then(res => {
+        if (res?.access_mode) setAccessMode(res.access_mode);
+        if (res?.bot_username) setBotUsername(res.bot_username);
+        if (res?.webapp_short_name) setWebappShortName(res.webapp_short_name);
+      })
       .catch(() => {});
-
-    // Web visitor verification check (outside Telegram)
-    try {
-      const webUid = localStorage.getItem('ptin_web_uid');
-      if (!window.Telegram?.WebApp?.initData && webUid) {
-        fetch(`${API_BASE}/user/${webUid}`)
-          .then(r => r.json())
-          .then(res => {
-            if (res?.verified) setIsVerified(true);
-          })
-          .catch(() => {});
-      }
-    } catch {}
 
     loadData();
   }, []);
@@ -177,14 +233,11 @@ export function App() {
       setStats(statsRes);
       setReferralSites(Array.isArray(refRes) ? refRes : []);
 
-      // Check URL query for direct match landing (e.g. ?match=123)
+      // Check URL path or query for direct match landing (e.g. /match/:slug or ?match=123)
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const matchParam = urlParams.get('match');
+        const matchParam = parseMatchParamFromUrl();
         if (matchParam && loadedPreds.length > 0) {
-          const matchTarget = loadedPreds.find(
-            p => String(p.fixture_id) === matchParam || String(p.id) === matchParam
-          );
+          const matchTarget = findMatchByParam(loadedPreds, matchParam);
           if (matchTarget) setSelectedMatch(matchTarget);
         }
       } catch {}
@@ -513,9 +566,27 @@ export function App() {
         <ReferralModal
           sites={referralSites}
           telegramId={telegramUser?.id}
+          webId={webId}
+          sessionToken={sessionToken}
+          botUsername={botUsername}
+          webappShortName={webappShortName}
+          apiBase={API_BASE}
           onClose={() => setShowReferralModal(false)}
-          onVerified={() => {
+          onVerified={(newToken, user) => {
             setIsVerified(true);
+            if (newToken) {
+              setSessionToken(newToken);
+              try {
+                localStorage.setItem('ptin_web_session', newToken);
+              } catch {}
+            }
+            if (user) {
+              setTelegramUser({
+                id: user.telegram_id || user.id,
+                first_name: user.first_name,
+                username: user.username,
+              });
+            }
             setShowReferralModal(false);
           }}
         />
