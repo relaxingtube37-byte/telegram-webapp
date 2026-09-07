@@ -5,7 +5,7 @@ import {
   Key, Lock, Sparkles,
   CheckCircle2, XCircle, Clock
 } from 'lucide-react';
-import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, getMatchGender } from '../utils/formatters';
+import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, getMatchGender, parseAiDossierSections } from '../utils/formatters';
 
 interface CompactMatchRowProps {
   prediction: Prediction;
@@ -182,18 +182,32 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                     <span>In-Depth Tactical & Statistical Match Analysis</span>
                   </div>
 
-                  {/* Multi-Paragraph AI Analysis Text */}
+                  {/* Multi-Agent Analytical Dossier Cards */}
                   {prediction.ai_summary && (
-                    <div className="details-ai-text-flow">
-                      {prediction.ai_summary
-                        .split(/\n\s*\n|\r\n\s*\r\n/)
-                        .map(p => p.trim())
-                        .filter(Boolean)
-                        .map((para, pIdx) => (
-                          <p key={pIdx} className="details-ai-paragraph">
-                            {para}
+                    <div className="details-ai-text-flow" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                      {parseAiDossierSections(prediction.ai_summary).map((sec, sIdx) => (
+                        <div
+                          key={sIdx}
+                          style={{
+                            background: sec.bg,
+                            border: `1px solid ${sec.border}`,
+                            borderLeft: `3px solid ${sec.color}`,
+                            borderRadius: '8px',
+                            padding: '0.75rem 0.9rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.35rem',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.76rem', fontWeight: 800, color: sec.color, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                            <span style={{ fontSize: '0.95rem' }}>{sec.icon}</span>
+                            <span>{sec.title}</span>
+                          </div>
+                          <p className="details-ai-paragraph" style={{ margin: 0, fontSize: '0.8rem', lineHeight: 1.55, color: '#e2e8f0', textAlign: 'left' }}>
+                            {sec.body}
                           </p>
-                        ))}
+                        </div>
+                      ))}
                     </div>
                   )}
 
@@ -210,7 +224,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   )}
 
                   {/* Upset Vulnerability / Critical Risk Analysis */}
-                  {prediction.devils_advocate_risk && (
+                  {prediction.devils_advocate_risk && !parseAiDossierSections(prediction.ai_summary).some(s => s.type === 'risk') && (
                     <div className="details-ai-risk">
                       <span className="risk-tag">⚠️ Critical Upset Scenario:</span> {prediction.devils_advocate_risk}
                     </div>

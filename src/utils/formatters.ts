@@ -359,3 +359,100 @@ export const getTournamentPriority = (tournamentName?: string): number => {
   // Tier 7: Others / Exhibition / UTR
   return 7;
 };
+
+export interface AgentDossierSection {
+  type: 'overview' | 'statistical' | 'physical' | 'historical' | 'verdict' | 'tactical' | 'risk' | 'general';
+  icon: string;
+  title: string;
+  color: string;
+  bg: string;
+  border: string;
+  body: string;
+}
+
+export function parseAiDossierSections(text?: string): AgentDossierSection[] {
+  if (!text || typeof text !== 'string') return [];
+
+  // Normalize delimiters if newlines were stripped or joined with emoji headers
+  const normalized = text
+    .replace(/\s*([📊📈]?\s*Statistical & Surface Dynamics:?)/gi, '\n\n$1')
+    .replace(/\s*([🏃‍♂️🏃‍♀️🏃]?\s*Physical Conditioning & Fatigue Analysis:?)/gi, '\n\n$1')
+    .replace(/\s*([📜🏛️]?\s*Historical Matchup & Mental Fortitude:?)/gi, '\n\n$1')
+    .replace(/\s*([🎯🏆]?\s*Strategic (?:Consensus Verdict|Projection):?)/gi, '\n\n$1')
+    .replace(/\s*([🧠💡]?\s*Tactical (?:Match Dossier|Dossier):?)/gi, '\n\n$1')
+    .replace(/\s*(⚠️\s*(?:Critical Upset Scenario|Critical upset scenario to monitor|Devils Advocate):?)/gi, '\n\n$1');
+
+  const blocks = normalized
+    .split(/\n\s*\n|\r\n\s*\r\n/)
+    .map(b => b.trim())
+    .filter(Boolean);
+
+  return blocks.map((block, bIdx) => {
+    let type: AgentDossierSection['type'] = bIdx === 0 ? 'overview' : 'general';
+    let icon = bIdx === 0 ? '🌐' : '📝';
+    let title = bIdx === 0 ? 'Executive Match Overview' : 'Tactical Insight';
+    let color = '#38bdf8';
+    let bg = 'rgba(15, 23, 42, 0.65)';
+    let border = 'rgba(56, 189, 248, 0.25)';
+    let body = block;
+
+    if (/^[📊📈]|\bStatistical & Surface Dynamics\b/i.test(block)) {
+      type = 'statistical';
+      icon = '📊';
+      color = '#38bdf8'; // cyan
+      bg = 'rgba(14, 165, 233, 0.08)';
+      border = 'rgba(56, 189, 248, 0.35)';
+      const colonIdx = block.indexOf(':');
+      title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📊📈]\s*/, '').trim() : 'Statistical & Surface Dynamics';
+      body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
+    } else if (/^[🏃]|\bPhysical Conditioning\b/i.test(block)) {
+      type = 'physical';
+      icon = '🏃';
+      color = '#34d399'; // emerald
+      bg = 'rgba(52, 211, 153, 0.08)';
+      border = 'rgba(52, 211, 153, 0.35)';
+      const colonIdx = block.indexOf(':');
+      title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🏃‍♂️🏃‍♀️🏃]\s*/, '').trim() : 'Physical Conditioning & Fatigue Analysis';
+      body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
+    } else if (/^[📜]|\bHistorical Matchup\b/i.test(block)) {
+      type = 'historical';
+      icon = '📜';
+      color = '#a78bfa'; // purple
+      bg = 'rgba(167, 139, 250, 0.08)';
+      border = 'rgba(167, 139, 250, 0.35)';
+      const colonIdx = block.indexOf(':');
+      title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📜🏛️]\s*/, '').trim() : 'Historical Matchup & Mental Fortitude';
+      body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
+    } else if (/^[🎯]|\bStrategic (?:Projection|Consensus)\b/i.test(block)) {
+      type = 'verdict';
+      icon = '🎯';
+      color = '#fbbf24'; // amber
+      bg = 'rgba(251, 191, 36, 0.08)';
+      border = 'rgba(251, 191, 36, 0.35)';
+      const colonIdx = block.indexOf(':');
+      title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🎯🏆]\s*/, '').trim() : 'Strategic Consensus Verdict';
+      body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
+    } else if (/^[🧠]|\bTactical Dossier\b/i.test(block)) {
+      type = 'tactical';
+      icon = '🧠';
+      color = '#818cf8'; // indigo
+      bg = 'rgba(129, 140, 248, 0.08)';
+      border = 'rgba(129, 140, 248, 0.35)';
+      const colonIdx = block.indexOf(':');
+      title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🧠💡]\s*/, '').trim() : 'Tactical Match Dossier';
+      body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
+    } else if (/^⚠️|\bCritical (?:Upset|upset)\b/i.test(block)) {
+      type = 'risk';
+      icon = '⚠️';
+      color = '#f87171'; // rose / red
+      bg = 'rgba(239, 68, 68, 0.08)';
+      border = 'rgba(239, 68, 68, 0.35)';
+      const colonIdx = block.indexOf(':');
+      title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^⚠️\s*/, '').trim() : 'Critical Upset Scenario';
+      body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
+    }
+
+    return { type, icon, title, color, bg, border, body };
+  });
+}
+

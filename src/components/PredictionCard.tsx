@@ -1,4 +1,4 @@
-import { getMatchGender } from '../utils/formatters';
+import { getMatchGender, parseAiDossierSections } from '../utils/formatters';
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Lock, Key } from 'lucide-react';
 import type { Prediction } from '../types';
@@ -123,16 +123,30 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
       {expanded && (
         <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
           {prediction.ai_summary && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              {prediction.ai_summary
-                .split(/\n\s*\n|\r\n\s*\r\n/)
-                .map(p => p.trim())
-                .filter(Boolean)
-                .map((para, pIdx) => (
-                  <div key={pIdx} style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.5, background: 'rgba(15,23,42,0.4)', padding: '0.7rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
-                    {para}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {parseAiDossierSections(prediction.ai_summary).map((sec, sIdx) => (
+                <div
+                  key={sIdx}
+                  style={{
+                    background: sec.bg,
+                    border: `1px solid ${sec.border}`,
+                    borderLeft: `3px solid ${sec.color}`,
+                    borderRadius: '8px',
+                    padding: '0.75rem 0.9rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.35rem',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.76rem', fontWeight: 800, color: sec.color, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                    <span style={{ fontSize: '0.95rem' }}>{sec.icon}</span>
+                    <span>{sec.title}</span>
                   </div>
-                ))}
+                  <div style={{ fontSize: '0.8rem', color: '#e2e8f0', lineHeight: 1.55 }}>
+                    {sec.body}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -147,7 +161,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
             </div>
           )}
 
-          {prediction.devils_advocate_risk && (
+          {prediction.devils_advocate_risk && !parseAiDossierSections(prediction.ai_summary).some(s => s.type === 'risk') && (
             <div style={{ fontSize: '0.78rem', color: '#fca5a5', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '0.6rem 0.8rem', borderRadius: 8, lineHeight: 1.4 }}>
               <span style={{ fontWeight: 700, color: '#f87171' }}>⚠️ Critical Upset Scenario: </span>
               {prediction.devils_advocate_risk}
