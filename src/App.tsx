@@ -170,7 +170,7 @@ export function App() {
 
       // 3. Gender Filter Match (All / Men / Women)
       if (genderFilter !== 'all') {
-        const g = getMatchGender(p.tournament_name, p.round_name, p.match_title);
+        const g = getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name);
         if (genderFilter === 'men' && g === 'women') return false;
         if (genderFilter === 'women' && g === 'men') return false;
       }
@@ -376,8 +376,8 @@ export function App() {
             <div key={tournName} className="tournament-group">
               {/* Tournament Header (Collapsible Accordion) */}
               {(() => {
-                const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} ${p.away_name}`) === 'women');
-                const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} ${p.away_name}`) === 'men');
+                const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
+                const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
                 const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
                 const isWta = tournBadge === 'WTA';
                 return (

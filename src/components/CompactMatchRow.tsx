@@ -21,7 +21,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   onUnlockClick,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`);
+  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`, prediction.home_name, prediction.away_name);
   const isWomen = matchGender === 'women';
 
   const triggerHaptic = () => {
@@ -100,15 +100,19 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           {/* Home Player */}
           <div className="compact-player-line">
             <span className="player-name-text">{formatPlayerDisplayName(prediction.home_name)}</span>
-            {prediction.home_odds && <span className="player-odds-pill">{prediction.home_odds}</span>}
-            {isHomeWinner && <span className="winner-tag-pill" title="AI Projected Winner">✓ Pick</span>}
+            {prediction.home_odds && prediction.home_odds !== 'N/A' && (
+              <span className="player-odds-pill">{prediction.home_odds}</span>
+            )}
+            {isHomeWinner && <span className="winner-tag-pill" title="AI Projected Winner">✓ Predicted Winner</span>}
           </div>
 
           {/* Away Player */}
           <div className="compact-player-line">
             <span className="player-name-text">{formatPlayerDisplayName(prediction.away_name)}</span>
-            {prediction.away_odds && <span className="player-odds-pill">{prediction.away_odds}</span>}
-            {isAwayWinner && <span className="winner-tag-pill" title="AI Projected Winner">✓ Pick</span>}
+            {prediction.away_odds && prediction.away_odds !== 'N/A' && (
+              <span className="player-odds-pill">{prediction.away_odds}</span>
+            )}
+            {isAwayWinner && <span className="winner-tag-pill" title="AI Projected Winner">✓ Predicted Winner</span>}
           </div>
         </div>
 
@@ -132,7 +136,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <Lock size={26} color="var(--accent-amber)" />
               <div className="locked-title">🔒 FULL AI INTELLIGENCE LOCKED</div>
               <p className="locked-desc">
-                Register on our verified partner bookmaker to instantly unlock all VIP Analyses, Tactical Breakdowns & Real-Time Probability Matrices!
+                Register on our verified partner platform to instantly unlock all VIP Analyses, Tactical Breakdowns & Real-Time Probability Matrices!
               </p>
               <button onClick={onUnlockClick} className="btn-primary btn-unlock">
                 <Key size={14} /> Register & Unlock Free VIP Access
@@ -146,12 +150,19 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   <span className="details-label">
                     <Trophy size={13} color="#38bdf8" /> AI WINNER VERDICT
                   </span>
-                  <span className="details-prob">{winProb}% Win Probability</span>
+                  <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                    {prediction.confidence && (
+                      <span className="confidence-pill" style={{ fontSize: '0.7rem', padding: '0.15rem 0.45rem', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', fontWeight: 700, border: '1px solid rgba(56, 189, 248, 0.3)' }}>
+                        {prediction.confidence}
+                      </span>
+                    )}
+                    <span className="details-prob">{winProb}% Win Probability</span>
+                  </div>
                 </div>
                 <div className="details-card-winner">
                   <span className="winner-title-text">{prediction.predicted_winner}</span>
                   {prediction.predicted_score && (
-                    <span className="details-score-badge">Score: {prediction.predicted_score}</span>
+                    <span className="details-score-badge">Projected: {prediction.predicted_score}</span>
                   )}
                 </div>
                 {/* Confidence Bar Meter */}
@@ -163,25 +174,33 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                 </div>
               </div>
 
-              {/* 🧠 Tier 3: AI Intelligence Explanation & Tactical Summary */}
+              {/* 🧠 Tier 3: In-Depth Analytical Match Dossier */}
               {(prediction.ai_summary || (prediction.key_factors && prediction.key_factors.length > 0)) && (
                 <div className="details-ai-box">
                   <div className="details-ai-header">
                     <Sparkles size={14} color="#38bdf8" />
-                    <span>AI Match Analysis & Tactical Breakdown</span>
+                    <span>In-Depth Tactical & Statistical Match Analysis</span>
                   </div>
 
-                  {/* Full AI Analysis Text */}
+                  {/* Multi-Paragraph AI Analysis Text */}
                   {prediction.ai_summary && (
-                    <p className="details-ai-text">
-                      {prediction.ai_summary}
-                    </p>
+                    <div className="details-ai-text-flow">
+                      {prediction.ai_summary
+                        .split(/\n\s*\n|\r\n\s*\r\n/)
+                        .map(p => p.trim())
+                        .filter(Boolean)
+                        .map((para, pIdx) => (
+                          <p key={pIdx} className="details-ai-paragraph">
+                            {para}
+                          </p>
+                        ))}
+                    </div>
                   )}
 
                   {/* Key Match Analytics */}
                   {prediction.key_factors && prediction.key_factors.length > 0 && (
                     <div className="details-ai-factors">
-                      <div className="factors-subtitle">⚡ Key Match Factors:</div>
+                      <div className="factors-subtitle">⚡ Key Decisive Factors:</div>
                       <ul className="factors-list">
                         {prediction.key_factors.map((f, i) => (
                           <li key={i}>{f}</li>
@@ -190,10 +209,10 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                     </div>
                   )}
 
-                  {/* Contrarian / Upset Risk (if any) */}
+                  {/* Upset Vulnerability / Critical Risk Analysis */}
                   {prediction.devils_advocate_risk && (
                     <div className="details-ai-risk">
-                      <span className="risk-tag">⚠️ Contrarian Risk:</span> {prediction.devils_advocate_risk}
+                      <span className="risk-tag">⚠️ Critical Upset Scenario:</span> {prediction.devils_advocate_risk}
                     </div>
                   )}
                 </div>

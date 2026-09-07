@@ -11,7 +11,7 @@ interface PredictionCardProps {
 
 export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLocked = false, onUnlockClick }) => {
   const [expanded, setExpanded] = useState(false);
-  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`);
+  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`, prediction.home_name, prediction.away_name);
   const isWomen = matchGender === 'women';
 
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱'
@@ -47,24 +47,22 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
       {/* Match Title: Home vs Away */}
       <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '0.8rem 1rem', borderRadius: '10px', marginBottom: '1rem', border: '1px solid var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: 'white', flex: 1 }}>
-            {prediction.home_name}
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: 'white', flex: 1, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <span>{prediction.home_name}</span>
+            {prediction.home_odds && prediction.home_odds !== 'N/A' && (
+              <span className="player-odds-pill" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>{prediction.home_odds}</span>
+            )}
           </div>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', padding: '0 0.8rem' }}>
             VS
           </div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: 'white', textAlign: 'right', flex: 1 }}>
-            {prediction.away_name}
+          <div style={{ fontWeight: 700, fontSize: '1rem', color: 'white', textAlign: 'right', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.45rem' }}>
+            {prediction.away_odds && prediction.away_odds !== 'N/A' && (
+              <span className="player-odds-pill" style={{ fontSize: '0.72rem', padding: '0.1rem 0.35rem' }}>{prediction.away_odds}</span>
+            )}
+            <span>{prediction.away_name}</span>
           </div>
         </div>
-
-        {/* Odds if available */}
-        {(prediction.home_odds || prediction.away_odds) && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.78rem', color: 'var(--accent-cyan)' }}>
-            <span>Odds: {prediction.home_odds || '—'}</span>
-            <span>Odds: {prediction.away_odds || '—'}</span>
-          </div>
-        )}
       </div>
 
       {/* LOCKED STATE DISPLAY */}
@@ -93,15 +91,22 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
           <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             AI PREDICTED WINNER
           </div>
-          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-green)' }}>
-            {prediction.win_probability || 65}% Win Prob
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            {prediction.confidence && (
+              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', fontWeight: 700 }}>
+                {prediction.confidence}
+              </span>
+            )}
+            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-green)' }}>
+              {prediction.win_probability || 65}% Win Prob
+            </span>
           </div>
         </div>
 
         <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{prediction.predicted_winner}</span>
           <span style={{ fontSize: '0.85rem', color: 'var(--accent-amber)', background: 'rgba(251, 191, 36, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
-            {prediction.predicted_score || '2:1'}
+            {prediction.predicted_score ? `Projected: ${prediction.predicted_score}` : 'Projected Winner'}
           </span>
         </div>
       </div>
@@ -116,21 +121,36 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
 
       {/* Expanded Breakdown Content */}
       {expanded && (
-        <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <div style={{ marginTop: '0.8rem', paddingTop: '0.8rem', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
           {prediction.ai_summary && (
-            <div style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.4, background: 'rgba(15,23,42,0.4)', padding: '0.6rem 0.8rem', borderRadius: 8 }}>
-              {prediction.ai_summary}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {prediction.ai_summary
+                .split(/\n\s*\n|\r\n\s*\r\n/)
+                .map(p => p.trim())
+                .filter(Boolean)
+                .map((para, pIdx) => (
+                  <div key={pIdx} style={{ fontSize: '0.82rem', color: '#e2e8f0', lineHeight: 1.5, background: 'rgba(15,23,42,0.4)', padding: '0.7rem 0.9rem', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
+                    {para}
+                  </div>
+                ))}
             </div>
           )}
 
           {Array.isArray(prediction.key_factors) && prediction.key_factors.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', marginBottom: '0.3rem' }}>⚡ Key Match Factors</div>
-              <ul style={{ paddingLeft: '1.2rem', fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', marginBottom: '0.3rem' }}>⚡ Key Decisive Factors</div>
+              <ul style={{ paddingLeft: '1.2rem', fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {prediction.key_factors.map((f, i) => (
                   <li key={i}>{f}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {prediction.devils_advocate_risk && (
+            <div style={{ fontSize: '0.78rem', color: '#fca5a5', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '0.6rem 0.8rem', borderRadius: 8, lineHeight: 1.4 }}>
+              <span style={{ fontWeight: 700, color: '#f87171' }}>⚠️ Critical Upset Scenario: </span>
+              {prediction.devils_advocate_risk}
             </div>
           )}
         </div>
