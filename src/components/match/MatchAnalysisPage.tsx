@@ -15,6 +15,7 @@ import { MatchAnalyticsGrid } from './MatchAnalyticsGrid';
 import { MatchDeepAnalysis } from './MatchDeepAnalysis';
 import { MatchBusinessActions } from './MatchBusinessActions';
 import { MatchEditorialSummary } from './MatchEditorialSummary';
+import { Sparkles, BarChart3, Newspaper, Layers } from 'lucide-react';
 
 interface MatchAnalysisPageProps {
   prediction: Prediction;
@@ -31,6 +32,7 @@ interface MatchAnalysisPageProps {
 }
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
+type SubTab = 'all' | 'tactical' | 'stats' | 'editorial';
 
 export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   prediction: seed,
@@ -55,6 +57,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   const [serverVerified, setServerVerified] = useState<boolean>(isVerified);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<SubTab>('all');
 
   useEffect(() => {
     setMatch(seed);
@@ -114,7 +117,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     };
   }, [webApiBase, sessionToken, seed.home_name, seed.away_name, seed.surface, seed.match_date, seed.id, seed.fixture_id]);
 
-  // SEO basics
+  // SEO document title
   useEffect(() => {
     const title = `${match.home_name} vs ${match.away_name} Analysis | Ptin AI`;
     const prev = document.title;
@@ -141,14 +144,18 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 
   if (loadState === 'error' && !match.home_name) {
     return (
-      <div className="glass" style={{ padding: '1.5rem', borderRadius: 14, color: '#fca5a5' }}>
-        Could not open this match. <button type="button" onClick={onBack}>Back</button>
+      <div className="glass" style={{ padding: '1.5rem', borderRadius: 14, color: '#fca5a5', display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-start' }}>
+        <div>Could not open this match data.</div>
+        <button type="button" className="btn-secondary" onClick={onBack} style={{ padding: '0.45rem 0.9rem', fontSize: '0.82rem' }}>
+          Back to all matches
+        </button>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.35rem 0 2rem' }}>
+    <div className="master-match-card-container">
+      {/* ── Hero Scoreboard & Navigation ── */}
       <MatchHeader
         match={match}
         selectedTimezone={selectedTimezone}
@@ -156,8 +163,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         onShare={handleShare}
       />
 
-      <MatchPredictionPanel match={match} />
-
+      {/* ── Match Action & Partner Banner ── */}
       <MatchBusinessActions
         match={match}
         sites={referralSites}
@@ -168,35 +174,85 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         onRegisterInfoClick={onUnlockClick}
       />
 
-      <MatchInsightSummary summary={summary} loading={loadState === 'loading' && !summary} />
+      {/* ── Internal Match Card Sub-Tabs ── */}
+      <div className="match-card-subtabs">
+        <button
+          type="button"
+          className={`card-subtab-btn ${activeTab === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          <Layers size={13} />
+          <span>All Intel</span>
+        </button>
+        <button
+          type="button"
+          className={`card-subtab-btn ${activeTab === 'tactical' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tactical')}
+        >
+          <Sparkles size={13} />
+          <span>AI Tactical</span>
+        </button>
+        <button
+          type="button"
+          className={`card-subtab-btn ${activeTab === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveTab('stats')}
+        >
+          <BarChart3 size={13} />
+          <span>Deep Stats</span>
+        </button>
+        <button
+          type="button"
+          className={`card-subtab-btn ${activeTab === 'editorial' ? 'active' : ''}`}
+          onClick={() => setActiveTab('editorial')}
+        >
+          <Newspaper size={13} />
+          <span>Editorial</span>
+        </button>
+      </div>
 
-      <MatchEditorialSummary
-        apiBase={webappApiBase}
-        fixtureId={match.fixture_id || match.id}
-        sessionToken={sessionToken}
-      />
+      {/* ── Match Details Content Body ── */}
+      <div className="match-card-body-stack">
+        {/* Model Prediction Bar (Shown in 'all' and 'tactical') */}
+        {(activeTab === 'all' || activeTab === 'tactical') && (
+          <>
+            <MatchPredictionPanel match={match} />
+            <MatchInsightSummary summary={summary} loading={loadState === 'loading' && !summary} />
+            <MatchDeepAnalysis
+              match={match}
+              analytics={analytics}
+              canSeeFullAi={canSeeFullAi}
+              onUnlockClick={onUnlockClick}
+            />
+          </>
+        )}
 
-      <MatchAnalyticsGrid
-        analytics={analytics}
-        loading={loadState === 'loading'}
-        error={analyticsError}
-        homeName={match.home_name}
-        awayName={match.away_name}
-        onUnlockClick={contentLocked ? onUnlockClick : undefined}
-      />
+        {/* Deep Stats & Dynamics (Shown in 'all' and 'stats') */}
+        {(activeTab === 'all' || activeTab === 'stats') && (
+          <MatchAnalyticsGrid
+            analytics={analytics}
+            loading={loadState === 'loading'}
+            error={analyticsError}
+            homeName={match.home_name}
+            awayName={match.away_name}
+            onUnlockClick={contentLocked ? onUnlockClick : undefined}
+          />
+        )}
 
-      <MatchDeepAnalysis
-        match={match}
-        analytics={analytics}
-        canSeeFullAi={canSeeFullAi}
-        onUnlockClick={onUnlockClick}
-      />
+        {/* Official Editorial & Story (Shown in 'all' and 'editorial') */}
+        {(activeTab === 'all' || activeTab === 'editorial') && (
+          <MatchEditorialSummary
+            apiBase={webappApiBase}
+            fixtureId={match.fixture_id || match.id}
+            sessionToken={sessionToken}
+          />
+        )}
 
-      {loadState === 'ready' && contentLocked && (
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-          Public preview · deeper dossiers reserved for members
-        </div>
-      )}
+        {loadState === 'ready' && contentLocked && (
+          <div className="match-card-preview-notice">
+            Public preview · deeper dossiers reserved for registered members
+          </div>
+        )}
+      </div>
     </div>
   );
 };

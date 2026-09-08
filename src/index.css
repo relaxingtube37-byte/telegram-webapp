@@ -717,66 +717,741 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   MATCH CARD
+   COLUMNAR TENNIS MATCH ROW & TOURNAMENT LEGEND
    ═══════════════════════════════════════════════════════════ */
-.compact-match-row {
-  margin-bottom: 0.55rem;
-  border-radius: 13px;
-  overflow: hidden;
-  width: 100%;
-  box-sizing: border-box;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.2s ease;
+
+/* ── Columnar Tournament Header Legend ── */
+.tournament-column-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.95rem;
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  margin-bottom: 0.35rem;
+}
+
+.col-legend-status {
+  width: 72px;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+.col-legend-players {
+  flex: 1;
+  min-width: 0;
+  padding-left: 0.25rem;
+}
+
+.col-legend-ai {
+  width: 120px;
+  min-width: 110px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.col-legend-action {
+  width: 38px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+/* ── Modern Tennis Match Row (Zero Dropdown, Clickable Columnar Item) ── */
+.tennis-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.95rem;
+  margin-bottom: 0.45rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
 }
 
-/* ATP row */
-.match-row-atp {
-  background: linear-gradient(160deg, rgba(10, 26, 15, 0.88) 0%, rgba(8, 20, 12, 0.95) 100%) !important;
-  border: 1px solid rgba(212, 168, 67, 0.18) !important;
-  border-left: 3px solid rgba(212, 168, 67, 0.7) !important;
-  box-shadow: var(--shadow-card);
-}
-
-.match-row-atp:hover {
-  border-color: rgba(212, 168, 67, 0.42) !important;
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(212, 168, 67, 0.2) !important;
+.tennis-match-row:hover {
+  background: rgba(30, 41, 59, 0.92);
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.15);
   transform: translateY(-1px);
 }
 
-/* WTA row (rose-tinted left border, keep dark green card bg) */
-.match-row-wta {
-  background: linear-gradient(160deg, rgba(14, 20, 18, 0.88) 0%, rgba(10, 16, 14, 0.95) 100%) !important;
-  border: 1px solid rgba(212, 168, 67, 0.15) !important;
-  border-left: 3px solid rgba(248, 113, 113, 0.6) !important;
-  box-shadow: var(--shadow-card);
-}
-
-.match-row-wta:hover {
-  border-color: rgba(248, 113, 113, 0.35) !important;
-  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55) !important;
-  transform: translateY(-1px);
-}
-
-.compact-match-row:active {
+.tennis-match-row:active {
   transform: scale(0.99);
 }
 
-.compact-match-row.expanded {
-  border-color: rgba(212, 168, 67, 0.45) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), var(--glow-gold) !important;
+/* ATP tour accent */
+.tennis-match-row.match-row-atp {
+  border-left: 3px solid #38bdf8;
 }
 
-/* Row header */
-.compact-row-header {
+/* WTA tour accent */
+.tennis-match-row.match-row-wta {
+  border-left: 3px solid #fb7185;
+}
+
+/* Row actively selected / opened */
+.tennis-match-row.row-active-selected {
+  background: rgba(56, 189, 248, 0.12) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.3) !important;
+}
+
+/* ── Column 1: Time / Status ── */
+.match-col-status {
+  width: 72px;
+  min-width: 72px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+}
+
+.tennis-status-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.18rem 0.45rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.tennis-status-badge.badge-won {
+  background: rgba(34, 197, 94, 0.16);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+}
+
+.tennis-status-badge.badge-lost {
+  background: rgba(239, 68, 68, 0.16);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.tennis-status-badge.badge-live {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ff4d4d;
+  border: 1px solid rgba(255, 77, 77, 0.4);
+  box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+  animation: pulse-live 1.6s infinite;
+}
+
+.tennis-status-badge.badge-void {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+}
+
+.live-ping-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  box-shadow: 0 0 6px #ff4d4d;
+}
+
+.tennis-time-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tennis-match-time {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #e2e8f0;
   display: flex;
   align-items: center;
-  padding: 0.75rem 0.85rem;
-  gap: 0.55rem;
-  cursor: pointer;
+  gap: 4px;
+}
+
+.tennis-match-date {
+  font-size: 0.6rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.match-round-tag {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 68px;
+}
+
+/* ── Column 2: Players & Odds ── */
+.match-col-players {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.player-name-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s ease;
+}
+
+.player-is-winner .player-name-text {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.lean-badge-pill {
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.player-odds-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.08);
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-family: var(--font-mono, monospace);
+}
+
+/* ── Column 3: AI Prediction & Win Probability ── */
+.match-col-ai {
+  width: 120px;
+  min-width: 110px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ai-pred-headline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+}
+
+.ai-pred-label {
+  color: #94a3b8;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ai-sparkle-icon {
+  color: #38bdf8;
+}
+
+.ai-prob-pct {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #38bdf8;
+}
+
+.ai-prob-track {
   width: 100%;
-  box-sizing: border-box;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ai-prob-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8 0%, #4ade80 100%);
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-meta-subrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.62rem;
+  color: #64748b;
+}
+
+.ai-winner-name {
+  color: #94a3b8;
+  font-weight: 700;
+  max-width: 75px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-conf-chip {
+  color: #facc15;
+  font-weight: 800;
+  font-size: 0.6rem;
+}
+
+/* ── Column 4: Quick Actions & Arrow ── */
+.match-col-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-watch-live-mini {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.32);
+  color: #4ade80;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-watch-live-mini:hover {
+  background: rgba(34, 197, 94, 0.22);
+  border-color: #4ade80;
+  transform: scale(1.03);
+}
+
+.row-locked-icon {
+  color: #facc15;
+  display: flex;
+  align-items: center;
+}
+
+.row-open-cta {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.chevron-open-icon {
+  color: #64748b;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.tennis-match-row:hover .row-open-cta {
+  background: rgba(56, 189, 248, 0.16);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.tennis-match-row:hover .chevron-open-icon {
+  color: #38bdf8;
+  transform: translateX(2px);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MASTER MATCH CARD CONTAINER & INTERNAL SUBTABS
+   ═══════════════════════════════════════════════════════════ */
+.master-match-card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 0.25rem 0 2.5rem;
+  width: 100%;
+}
+
+.match-card-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.match-card-subtabs::-webkit-scrollbar {
+  display: none;
+}
+
+.card-subtab-btn {
+  flex: 1;
+  min-width: 90px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.card-subtab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.card-subtab-btn.active {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.match-card-body-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.match-card-preview-notice {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MATCH HERO SCOREBOARD & ARENA
+   ═══════════════════════════════════════════════════════════ */
+.match-card-header-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.match-hero-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btn-back-to-matches {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  padding: 0.48rem 0.95rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-back-to-matches:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateX(-2px);
+}
+
+.match-hero-meta-capsule {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  flex-wrap: wrap;
+}
+
+.hero-tour-pill {
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.hero-tour-pill.tour-atp {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.hero-tour-pill.tour-wta {
+  background: rgba(251, 113, 133, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(251, 113, 133, 0.35);
+}
+
+.hero-tourn-name {
+  font-weight: 800;
+  color: #f1f5f9;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hero-trophy-icon {
+  color: #facc15;
+}
+
+.hero-round-name {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.hero-surface-tag {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+}
+
+.btn-share-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  padding: 0.48rem 0.95rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-share-match:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+}
+
+/* Scoreboard Arena Card */
+.match-scoreboard-arena {
+  padding: 1.35rem 1.5rem;
+  border-radius: 16px;
+  background: linear-gradient(165deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 15, 28, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.match-scoreboard-arena.arena-atp {
+  border-top: 3px solid #38bdf8;
+}
+
+.match-scoreboard-arena.arena-wta {
+  border-top: 3px solid #fb7185;
+}
+
+.arena-top-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.arena-match-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.arena-players-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.arena-player-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arena-player-card.away-player {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.arena-player-name {
+  font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.arena-player-card.is-favored .arena-player-name {
+  color: #ffffff;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+}
+
+.arena-player-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arena-odds-badge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.1);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: var(--font-mono, monospace);
+}
+
+.arena-lean-chip {
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.arena-center-nexus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.arena-vs-badge {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.04em;
+}
+
+.arena-score-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.3rem 0.85rem;
+  border-radius: 8px;
+}
+
+.score-main-text {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono, monospace);
+}
+
+.score-sub-label {
+  font-size: 0.52rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .match-col-ai {
+    display: none;
+  }
+  .tournament-column-legend .col-legend-ai {
+    display: none;
+  }
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .tennis-match-row {
+    padding: 0.6rem 0.75rem;
+    gap: 0.5rem;
+  }
+  .match-col-status {
+    width: 62px;
+    min-width: 62px;
+  }
+  .arena-players-grid {
+    gap: 0.5rem;
+  }
+  .arena-player-name {
+    font-size: 0.95rem;
+  }
 }
 
 /* Time / Status column */

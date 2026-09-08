@@ -645,12 +645,20 @@ export function App() {
                   {/* Match Rows (Shown when not collapsed) */}
                   {!isCollapsed && (
                     <div className="tournament-matches-list">
+                      {/* Columnar Header Legend */}
+                      <div className="tournament-column-legend">
+                        <span className="col-legend-status">Status / Time</span>
+                        <span className="col-legend-players">Players &amp; Odds</span>
+                        <span className="col-legend-ai">AI Win Forecast</span>
+                        <span className="col-legend-action">Open</span>
+                      </div>
                       {tournData.items.map((p) => (
                         <CompactMatchRow
                           key={p.id}
                           prediction={p}
                           selectedTimezone={selectedTimezone}
                           isLocked={!canSeeDeepAnalysis}
+                          isSelected={false}
                           onUnlockClick={() => setShowReferralModal(true)}
                           onOpenMatchPage={handleOpenMatchPage}
                           apiBase={API_BASE}

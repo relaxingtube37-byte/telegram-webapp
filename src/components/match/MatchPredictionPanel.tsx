@@ -9,9 +9,12 @@ interface MatchPredictionPanelProps {
 
 export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ match }) => {
   const winProb = match.win_probability ?? 0;
-  const homeLean = match.predicted_winner
-    ? match.predicted_winner.toLowerCase().includes(match.home_name.toLowerCase())
-    : true;
+  const winner = (match.predicted_winner || '').trim().toLowerCase();
+  const home = (match.home_name || '').trim().toLowerCase();
+  const away = (match.away_name || '').trim().toLowerCase();
+
+  const homeLean = Boolean(winner && home && (winner.includes(home) || home.includes(winner)));
+  const awayLean = Boolean(winner && away && (winner.includes(away) || away.includes(winner)));
 
   return (
     <div className="glass" style={{ padding: '1.15rem 1.25rem', borderRadius: 14, display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
@@ -37,7 +40,7 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
           {match.away_odds != null && match.away_odds !== '' && (
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Odds @{match.away_odds}</div>
           )}
-          {!homeLean && (
+          {awayLean && (
             <span style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', fontWeight: 800, color: '#4ade80', background: 'rgba(74,222,128,0.12)', padding: '0.2rem 0.5rem', borderRadius: 6 }}>
               <CheckCircle2 size={12} /> Likely winner
             </span>

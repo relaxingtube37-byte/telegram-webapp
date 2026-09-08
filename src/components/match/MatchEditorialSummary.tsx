@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { buildAuthHeaders } from '../../utils/webApi';
 
 export interface MatchEditorialView {
   fixture_id?: number;
@@ -19,20 +20,11 @@ export interface MatchEditorialView {
   publish_status?: string;
 }
 
-interface MatchEditorialSummaryProps {
+export interface MatchEditorialSummaryProps {
   apiBase: string;
   fixtureId?: number;
   slugHint?: string;
   sessionToken?: string | null;
-}
-
-function buildAuthHeaders(sessionToken?: string | null): HeadersInit {
-  const headers: Record<string, string> = {};
-  if (sessionToken) {
-    headers.Authorization = `Bearer ${sessionToken}`;
-    headers['x-ptin-session'] = sessionToken;
-  }
-  return headers;
 }
 
 /** Additive Phase D block — does not replace Phase B analytics layout. */

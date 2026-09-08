@@ -97,10 +97,34 @@ function testSummaryAndFind() {
   console.log('  ✅ summary truncate + findMatchInWebList');
 }
 
+function testEdgeCases() {
+  assert(shortInsightSummary(null) === null, 'null summary');
+  assert(shortInsightSummary('') === null, 'empty summary');
+  assert(shortInsightSummary('   ') === null, 'whitespace summary');
+
+  const emptyMapped = mapDeepAnalyticsPayload({});
+  assert(emptyMapped.locked === false, 'empty unverified is not locked if content_locked not true');
+  assert(emptyMapped.cards.length === 0, 'empty cards array');
+  assert(emptyMapped.p1Form === null, 'empty p1Form');
+  assert(emptyMapped.previewOnly === false, 'empty previewOnly');
+
+  const checkLean = (w?: string | null, p?: string) => {
+    const wNorm = (w || '').trim().toLowerCase();
+    const pNorm = (p || '').trim().toLowerCase();
+    return Boolean(wNorm && pNorm && (wNorm.includes(pNorm) || pNorm.includes(wNorm)));
+  };
+  assert(checkLean('Carlos Alcaraz', 'Carlos Alcaraz') === true, 'home lean matching');
+  assert(checkLean('Carlos Alcaraz', 'Jannik Sinner') === false, 'away lean non-matching');
+  assert(checkLean('', 'Carlos Alcaraz') === false, 'empty winner must not lean');
+  assert(checkLean(null, 'Carlos Alcaraz') === false, 'null winner must not lean');
+  console.log('  ✅ edge cases + winner lean heuristics');
+}
+
 console.log('\nPhase B match-page checks');
 testResolveWebApiBase();
 testGuestMapping();
 testPartialGuestMapping();
 testMemberMapping();
 testSummaryAndFind();
+testEdgeCases();
 console.log('\n✅ Phase B checks PASSED\n');

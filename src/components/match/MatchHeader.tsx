@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Share2 } from 'lucide-react';
+import { ArrowLeft, Share2, Trophy, Clock } from 'lucide-react';
 import type { Prediction } from '../../types';
 import {
   formatMatchTime,
@@ -29,83 +29,113 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
     match.home_name,
     match.away_name
   );
-  const tour = gender === 'women' ? 'WTA' : 'ATP';
+  const isWomen = gender === 'women';
+  const tour = isWomen ? 'WTA' : 'ATP';
+
+  const isHomeWinner = match.predicted_winner === match.home_name;
+  const isAwayWinner = match.predicted_winner === match.away_name;
+
+  const rawScore = (match.result_score || '').trim();
+  const compactScore = rawScore ? rawScore.split('(')[0].trim() : '';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+    <div className="match-card-header-hero">
+      {/* ── Top Navigation Bar ── */}
+      <div className="match-hero-nav-bar">
         <button
           type="button"
           onClick={onBack}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-primary)',
-            padding: '0.45rem 0.9rem',
-            borderRadius: 8,
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
+          className="btn-back-to-matches"
+          title="Back to matches list"
         >
-          <ArrowLeft size={16} /> All Matches
+          <ArrowLeft size={16} />
+          <span>All Matches</span>
         </button>
+
+        <div className="match-hero-meta-capsule">
+          <span className={`hero-tour-pill ${isWomen ? 'tour-wta' : 'tour-atp'}`}>
+            {tour}
+          </span>
+          <span className="hero-tourn-name">
+            <Trophy size={12} className="hero-trophy-icon" />
+            {match.tournament_name || 'Tennis Tour'}
+          </span>
+          {match.round_name && (
+            <span className="hero-round-name">• {match.round_name}</span>
+          )}
+          <span className="hero-surface-tag">
+            {getSurfaceEmoji(match.surface)} {match.surface || 'Hard'}
+          </span>
+        </div>
+
         {onShare && (
           <button
             type="button"
             onClick={onShare}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              background: 'rgba(56, 189, 248, 0.1)',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-              color: 'var(--accent-cyan)',
-              padding: '0.45rem 0.9rem',
-              borderRadius: 8,
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className="btn-share-match"
+            title="Share match link"
           >
-            <Share2 size={15} /> Share
+            <Share2 size={14} />
+            <span className="hide-on-mobile">Share</span>
           </button>
         )}
       </div>
 
-      <div className="glass" style={{ padding: '1.2rem 1.3rem', borderRadius: 14 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.82rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 800, color: gender === 'women' ? '#f472b6' : '#38bdf8' }}>{tour}</span>
-            <span>•</span>
-            <span style={{ fontWeight: 700, color: 'white' }}>{match.tournament_name || 'Tour'}</span>
-            {match.round_name && (
-              <>
-                <span>•</span>
-                <span>{match.round_name}</span>
-              </>
-            )}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
-            <span>{getSurfaceEmoji(match.surface)} {match.surface || 'Hard'}</span>
-            <span>•</span>
+      {/* ── Scoreboard Arena Card ── */}
+      <div className={`match-scoreboard-arena ${isWomen ? 'arena-wta' : 'arena-atp'}`}>
+        {/* Arena Top Line: Live / Scheduled status */}
+        <div className="arena-top-status-row">
+          <div className="arena-match-time">
+            <Clock size={12} />
             <span>{formatMatchTime(match.match_date, selectedTimezone)}</span>
-            <MatchLiveStatus status={match.status} resultScore={match.result_score} />
           </div>
+          <MatchLiveStatus status={match.status} resultScore={match.result_score} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ fontSize: 'clamp(1rem, 2.8vw, 1.25rem)', fontWeight: 800, color: 'white' }}>
-            {formatPlayerDisplayName(match.home_name)}
+        {/* Arena Players & Center Score */}
+        <div className="arena-players-grid">
+          {/* Home Player */}
+          <div className={`arena-player-card home-player ${isHomeWinner ? 'is-favored' : ''}`}>
+            <div className="arena-player-name">
+              {formatPlayerDisplayName(match.home_name)}
+            </div>
+            <div className="arena-player-sub">
+              {match.home_odds && match.home_odds !== 'N/A' && (
+                <span className="arena-odds-badge">@{match.home_odds}</span>
+              )}
+              {isHomeWinner && (
+                <span className="arena-lean-chip">✓ MODEL LEAN</span>
+              )}
+            </div>
           </div>
-          <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.06)', padding: '0.3rem 0.65rem', borderRadius: 999 }}>
-            VS
+
+          {/* Center Score / VS Box */}
+          <div className="arena-center-nexus">
+            {compactScore ? (
+              <div className="arena-score-display">
+                <span className="score-main-text">{compactScore}</span>
+                <span className="score-sub-label">SET SCORE</span>
+              </div>
+            ) : (
+              <div className="arena-vs-badge">
+                <span>VS</span>
+              </div>
+            )}
           </div>
-          <div style={{ fontSize: 'clamp(1rem, 2.8vw, 1.25rem)', fontWeight: 800, color: 'white', textAlign: 'right' }}>
-            {formatPlayerDisplayName(match.away_name)}
+
+          {/* Away Player */}
+          <div className={`arena-player-card away-player ${isAwayWinner ? 'is-favored' : ''}`}>
+            <div className="arena-player-name">
+              {formatPlayerDisplayName(match.away_name)}
+            </div>
+            <div className="arena-player-sub">
+              {isAwayWinner && (
+                <span className="arena-lean-chip">✓ MODEL LEAN</span>
+              )}
+              {match.away_odds && match.away_odds !== 'N/A' && (
+                <span className="arena-odds-badge">@{match.away_odds}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
