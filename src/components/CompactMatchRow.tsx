@@ -235,6 +235,11 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               ★ {prediction.confidence}
             </span>
           )}
+          {isLocked && (
+            <span className="locked-row-pill">
+              <Lock size={10} /> VIP Only
+            </span>
+          )}
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
             <span style={{ fontSize: '0.68rem', color: '#d4a843', fontWeight: 700 }}>
               {expanded ? 'Close' : 'View Analysis'}
@@ -252,14 +257,28 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         <div className="compact-details-drawer">
           {isLocked ? (
             <div className="locked-box">
-              <Lock size={28} color="#d4a843" />
-              <div className="locked-title">🔒 FULL AI INTELLIGENCE LOCKED</div>
+              <div className="locked-icon-wrap">
+                <Lock size={26} color="#d4a843" />
+              </div>
+              <div className="locked-title">VIP AI INTELLIGENCE LOCKED</div>
+              <div className="locked-teaser-pill">
+                <span>AI Win Matrix: Hidden</span>
+                <span className="teaser-dot">•</span>
+                <span>Tactical Edge: Hidden</span>
+                <span className="teaser-dot">•</span>
+                <span>High-EV Bet: Hidden</span>
+              </div>
               <p className="locked-desc">
-                Register on our verified partner platform to instantly unlock all VIP Analyses, Tactical Breakdowns &amp; Real-Time Probability Matrices!
+                Register on our official partner bookmaker with <strong>0 subscription fees</strong> to instantly unlock all VIP predictions, tactical breakdowns &amp; real-time probabilities!
               </p>
-              <button onClick={onUnlockClick} className="btn-primary btn-unlock">
+              <button onClick={onUnlockClick} className="btn-primary btn-unlock pulse-glow" id="match-row-unlock-btn">
                 <Key size={14} /> Register &amp; Unlock Free VIP Access
               </button>
+              <div className="locked-perks-row">
+                <span>✓ 100% Free Registration</span>
+                <span>✓ Instant Auto-Unlock</span>
+                <span>✓ Daily High-EV Picks</span>
+              </div>
             </div>
           ) : (
             <div className="details-content">

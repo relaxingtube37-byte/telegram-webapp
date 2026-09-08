@@ -3,6 +3,10 @@ import { Header } from './components/Header';
 import { CompactMatchRow } from './components/CompactMatchRow';
 import { MatchSeoView } from './components/MatchSeoView';
 import { ReferralModal } from './components/ReferralModal';
+import { SideBanner } from './components/SideBanner';
+import { SignUpStrip } from './components/SignUpStrip';
+import { SportsNavSidebar } from './components/SportsNavSidebar';
+import { AiTopPickWidget } from './components/AiTopPickWidget';
 import type { Prediction, StatsOverviewData, ReferralSite } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority } from './utils/formatters';
@@ -69,6 +73,15 @@ export function App() {
     }
     return null;
   });
+
+  const effectiveTrackingId = useMemo(() => {
+    if (telegramUser?.id && telegramUser.id > 0) return telegramUser.id;
+    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+      return (window as any).Telegram.WebApp.initDataUnsafe.user.id;
+    }
+    if (webId) return webId;
+    return 'anonymous';
+  }, [telegramUser, webId]);
 
   const handleOpenMatchPage = (pred: Prediction) => {
     setSelectedMatch(pred);
@@ -254,14 +267,34 @@ export function App() {
   }, [predictions]);
 
   const historyPredictions = useMemo(() => {
-    return predictions.filter(p => p.status === 'WON' || p.status === 'LOST' || p.status === 'VOID');
+    return predictions.filter(p => p.status !== 'UPCOMING' && p.status !== 'LIVE');
   }, [predictions]);
+
+  // Dynamic category counts for sidebars & header (100% real active data)
+  const counts = useMemo(() => {
+    let live = 0;
+    let today = 0;
+    let atp = 0;
+    let wta = 0;
+
+    activePredictions.forEach(p => {
+      if (p.status === 'LIVE') live++;
+      const dStr = p.match_date || p.published_at;
+      if (matchMatchesDateFilter(dStr, 'today', selectedTimezone)) today++;
+
+      const g = getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name);
+      if (g === 'women') wta++;
+      else atp++;
+    });
+
+    return { live, today, atp, wta };
+  }, [activePredictions, selectedTimezone]);
 
   const displayedList = useMemo(() => {
     const base = activeTab === 'active' ? activePredictions : historyPredictions;
     const query = searchQuery.toLowerCase().trim();
 
-    return base.filter(p => {
+    return base.filter((p: Prediction) => {
       // 1. Search Query Match
       if (query) {
         const home = (p.home_name || '').toLowerCase();
@@ -305,7 +338,7 @@ export function App() {
   const groupedByTournament = useMemo(() => {
     const groups: Record<string, { surface?: string; items: Prediction[] }> = {};
     
-    displayedList.forEach(p => {
+    displayedList.forEach((p: Prediction) => {
       const tourn = p.tournament_name || 'Tennis Tournament';
       if (!groups[tourn]) {
         groups[tourn] = { surface: p.surface, items: [] };
@@ -343,16 +376,58 @@ export function App() {
   }, [displayedList]);
 
   return (
-    <div className="webapp-container">
-      {/* Header with Stats & Timezone */}
+    <div className="portal-root">
+      {/* ── FULL WIDTH TOPBAR (100% WIDTH) ── */}
       <Header
         stats={stats}
         telegramUser={telegramUser}
         selectedTimezone={selectedTimezone}
         onTimezoneChange={handleTimezoneChange}
+        isVerified={isVerified}
+        accessMode={accessMode}
+        onOpenVipModal={() => setShowReferralModal(true)}
+        genderFilter={genderFilter}
+        onGenderFilterChange={setGenderFilter}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        atpCount={counts.atp}
+        wtaCount={counts.wta}
       />
 
-      {selectedMatch ? (
+      {/* ── 3-COLUMN PORTAL CONTAINER ── */}
+      <div className="portal-layout">
+        {/* Left Functional Navigation Sidebar (Desktop) */}
+        <SportsNavSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          dateFilter={dateFilter}
+          onDateFilterChange={setDateFilter}
+          genderFilter={genderFilter}
+          onGenderFilterChange={setGenderFilter}
+          surfaceFilter={filterChip === 'clay' ? 'clay' : filterChip === 'hard' ? 'hard' : 'all'}
+          onSurfaceFilterChange={(s) => setFilterChip(s === 'all' ? 'all' : s)}
+          liveCount={counts.live}
+          todayCount={counts.today}
+          atpCount={counts.atp}
+          wtaCount={counts.wta}
+          isVerified={isVerified}
+          onOpenModal={() => setShowReferralModal(true)}
+        />
+
+        {/* Center Main Match Feed Column */}
+        <main className="portal-center-feed">
+          {/* Mobile Promotional Sign-Up Strip (Only on mobile or unverified) */}
+          {!selectedMatch && !isVerified && accessMode !== 'FREE' && (
+            <SignUpStrip
+              isVerified={isVerified}
+              accessMode={accessMode}
+              sites={referralSites}
+              effectiveId={effectiveTrackingId}
+              onOpenModal={() => setShowReferralModal(true)}
+            />
+          )}
+
+        {selectedMatch ? (
         <MatchSeoView
           prediction={selectedMatch}
           selectedTimezone={selectedTimezone}
@@ -400,28 +475,6 @@ export function App() {
                 Week
               </button>
             </div>
-          </div>
-
-          {/* 3 Side-by-Side Category Buttons (All / Men / Women) */}
-          <div className="gender-filter-row">
-            <button
-              className={`gender-filter-btn ${genderFilter === 'all' ? 'active' : ''}`}
-              onClick={() => setGenderFilter('all')}
-            >
-              🎾 All Matches
-            </button>
-            <button
-              className={`gender-filter-btn gender-btn-men ${genderFilter === 'men' ? 'active' : ''}`}
-              onClick={() => setGenderFilter('men')}
-            >
-              👨 Men (ATP)
-            </button>
-            <button
-              className={`gender-filter-btn gender-btn-women ${genderFilter === 'women' ? 'active' : ''}`}
-              onClick={() => setGenderFilter('women')}
-            >
-              👩 Women (WTA)
-            </button>
           </div>
 
           {/* Secondary Filter Chips */}
@@ -480,9 +533,10 @@ export function App() {
 
             <button
               onClick={() => setShowReferralModal(true)}
-              className={`btn-vip-badge ${accessMode === 'FREE' || isVerified ? 'vip-active' : 'vip-locked'}`}
+              className={`btn-vip-badge ${accessMode === 'FREE' || isVerified ? 'vip-active' : 'vip-locked pulse-glow'}`}
+              title="Unlock All VIP AI Intelligence"
             >
-              <Key size={13} /> {accessMode === 'FREE' ? 'FREE 🔓' : isVerified ? 'VIP ✓' : 'UNLOCK'}
+              <Key size={13} /> {accessMode === 'FREE' ? 'FREE 🔓' : isVerified ? 'VIP ✓' : 'UNLOCK VIP 🔓'}
             </button>
           </div>
 
@@ -560,6 +614,24 @@ export function App() {
           )}
         </>
       )}
+
+        </main>
+
+        {/* Right Sidebar: AI Value Pick + Official Sponsor (Desktop) */}
+        <aside className="portal-right-column">
+          <AiTopPickWidget
+            predictions={predictions}
+            onSelectMatch={handleOpenMatchPage}
+            isVerified={isVerified}
+            onUnlockClick={() => setShowReferralModal(true)}
+          />
+          <SideBanner
+            sites={referralSites}
+            effectiveId={effectiveTrackingId}
+            onOpenModal={() => setShowReferralModal(true)}
+          />
+        </aside>
+      </div>
 
       {/* Referral Partner Registration Modal */}
       {showReferralModal && (

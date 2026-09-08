@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, TrendingUp } from 'lucide-react';
+import { Globe, Sparkles, CheckCircle, Key, Search } from 'lucide-react';
 import type { StatsOverviewData } from '../types';
 
 interface HeaderProps {
@@ -7,22 +7,40 @@ interface HeaderProps {
   telegramUser?: { first_name?: string; username?: string } | null;
   selectedTimezone: string;
   onTimezoneChange: (tz: string) => void;
+  isVerified?: boolean;
+  accessMode?: 'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED';
+  onOpenVipModal?: () => void;
+  genderFilter: 'all' | 'men' | 'women';
+  onGenderFilterChange: (g: 'all' | 'men' | 'women') => void;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  atpCount: number;
+  wtaCount: number;
 }
 
 export const Header: React.FC<HeaderProps> = React.memo(({
   stats,
   telegramUser,
   selectedTimezone,
-  onTimezoneChange
+  onTimezoneChange,
+  isVerified = false,
+  accessMode = 'REGISTRATION_REQUIRED',
+  onOpenVipModal,
+  genderFilter,
+  onGenderFilterChange,
+  searchQuery,
+  onSearchChange,
+  atpCount,
+  wtaCount,
 }) => {
   const userName = telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Guest');
 
   return (
-    <header className="header-container">
-      {/* Top Identity Row */}
-      <div className="header-top-row">
-        <div className="header-user-badge">
-          {/* Premium tennis racket logo circle */}
+    <header className="full-width-header">
+      {/* ── TOP MAIN BAR (100% WIDTH) ── */}
+      <div className="header-primary-row">
+        {/* Brand identity on the left */}
+        <div className="header-brand-wrap">
           <div className="header-logo-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="10" r="7" stroke="#d4a843" strokeWidth="1.5" fill="none"/>
@@ -34,48 +52,117 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             </svg>
           </div>
           <div>
-            <h1 className="header-title">PTIN AI</h1>
-            <div className="header-subtitle">
+            <div className="header-brand-title">PTIN AI</div>
+            <div className="header-brand-tagline">
               Pro Tennis Intelligence &nbsp;·&nbsp; Hi, <span className="header-user-highlight">{userName}</span>
             </div>
           </div>
         </div>
 
-        {/* Timezone Selector */}
-        <div className="timezone-pill">
-          <Globe size={12} color="#d4a843" />
-          <select
-            value={selectedTimezone}
-            onChange={(e) => onTimezoneChange(e.target.value)}
-            className="timezone-select"
+        {/* Center Tour Switcher: ATP / WTA (Desktop) */}
+        <div className="header-tour-switcher">
+          <button
+            className={`tour-nav-btn ${genderFilter === 'all' ? 'active' : ''}`}
+            onClick={() => onGenderFilterChange('all')}
           >
-            <option value="UTC">🌐 UTC</option>
-            <option value="Asia/Tehran">🇮🇷 Tehran</option>
-            <option value="local">💻 Local</option>
-            <option value="Europe/London">🇬🇧 London</option>
-            <option value="America/New_York">🇺🇸 New York</option>
-          </select>
+            <span>All Matches</span>
+          </button>
+          <button
+            className={`tour-nav-btn btn-atp ${genderFilter === 'men' ? 'active' : ''}`}
+            onClick={() => onGenderFilterChange('men')}
+          >
+            <span className="tour-badge-pill tour-pill-atp">ATP</span>
+            <span>ATP Men</span>
+            {atpCount > 0 && <span className="tour-count-pill">{atpCount}</span>}
+          </button>
+          <button
+            className={`tour-nav-btn btn-wta ${genderFilter === 'women' ? 'active' : ''}`}
+            onClick={() => onGenderFilterChange('women')}
+          >
+            <span className="tour-badge-pill tour-pill-wta">WTA</span>
+            <span>WTA Women</span>
+            {wtaCount > 0 && <span className="tour-count-pill">{wtaCount}</span>}
+          </button>
+        </div>
+
+        {/* Right actions: Search, Timezone, VIP Register */}
+        <div className="header-right-actions">
+          {/* Quick Search */}
+          <div className="header-search-wrap">
+            <Search size={13} color="#7a9580" />
+            <input
+              type="text"
+              placeholder="Search player..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="header-search-input"
+            />
+            {searchQuery && (
+              <button onClick={() => onSearchChange('')} className="search-clear-btn">✕</button>
+            )}
+          </div>
+
+          {/* Timezone Selector */}
+          <div className="timezone-pill">
+            <Globe size={12} color="#d4a843" />
+            <select
+              value={selectedTimezone}
+              onChange={(e) => onTimezoneChange(e.target.value)}
+              className="timezone-select"
+              aria-label="Select Timezone"
+            >
+              <option value="UTC">🌐 UTC</option>
+              <option value="Asia/Tehran">🇮🇷 Tehran</option>
+              <option value="local">💻 Local</option>
+              <option value="Europe/London">🇬🇧 London</option>
+              <option value="America/New_York">🇺🇸 New York</option>
+            </select>
+          </div>
+
+          {/* Prominent Sign Up / VIP CTA Button */}
+          {accessMode === 'FREE' ? (
+            <div className="header-vip-pill header-vip-free">
+              <Sparkles size={12} />
+              <span>FREE ACCESS</span>
+            </div>
+          ) : isVerified ? (
+            <div className="header-vip-pill header-vip-verified">
+              <CheckCircle size={12} />
+              <span>VIP ACTIVE ✓</span>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenVipModal}
+              className="header-signup-btn pulse-glow"
+              title="Sign Up to Unlock All VIP Predictions"
+              id="header-signup-cta-btn"
+            >
+              <Key size={13} className="header-btn-key" />
+              <span className="header-btn-text">Sign Up / VIP</span>
+              <span className="header-btn-tag">FREE</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Stats Row */}
+      {/* ── STATS BAR STRIP ── */}
       {stats && (
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-label">WIN RATE</div>
-            <div className="stat-val stat-val-green">{stats.winRatePct}%</div>
+        <div className="header-stats-ticker">
+          <div className="ticker-item">
+            <span className="ticker-label">WIN RATE:</span>
+            <span className="ticker-val ticker-val-green">{stats.winRatePct}%</span>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">RECORD</div>
-            <div className="stat-val" style={{ fontSize: '1.05rem' }}>
-              <span className="text-green">{stats.won}W</span>
-              <span style={{ color: '#4a6455', margin: '0 2px' }}>—</span>
-              <span className="text-rose">{stats.lost}L</span>
-            </div>
+          <div className="ticker-divider">•</div>
+          <div className="ticker-item">
+            <span className="ticker-label">RECORD:</span>
+            <span className="ticker-val">
+              <span className="text-green">{stats.won}W</span> - <span className="text-rose">{stats.lost}L</span>
+            </span>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">LIVE PICKS</div>
-            <div className="stat-val stat-val-cyan">{stats.upcoming}</div>
+          <div className="ticker-divider">•</div>
+          <div className="ticker-item">
+            <span className="ticker-label">ACTIVE PICKS:</span>
+            <span className="ticker-val ticker-val-gold">{stats.upcoming} Upcoming</span>
           </div>
         </div>
       )}

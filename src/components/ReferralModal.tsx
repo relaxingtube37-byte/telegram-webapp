@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, CheckCircle2, ShieldAlert, Download } from 'lucide-react';
+import { ExternalLink, CheckCircle2, ShieldCheck, Download, Sparkles, X, Send } from 'lucide-react';
 import type { ReferralSite } from '../types';
 
 declare global {
@@ -108,157 +108,94 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(8px)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-      }}
+      className="modal-backdrop"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
     >
       <div
-        className="glass"
-        style={{
-          width: '100%',
-          maxWidth: 440,
-          padding: '1.4rem',
-          background: '#121a2c',
-          border: '1px solid var(--accent-cyan)',
-        }}
+        className="referral-modal-card"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '0.9rem',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '1.05rem',
-              fontWeight: 800,
-              color: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-            }}
-          >
-            <ShieldAlert color="var(--accent-amber)" size={20} /> VIP Access & Unlock
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              fontSize: '1.2rem',
-              cursor: 'pointer',
-            }}
-          >
-            ✕
+        {/* Top Header */}
+        <div className="ref-modal-header">
+          <div className="ref-modal-title-group">
+            <div className="ref-modal-icon-badge">
+              <Sparkles size={18} color="#d4a843" />
+            </div>
+            <div>
+              <h2 className="ref-modal-title">VIP Membership &amp; Free Unlock</h2>
+              <p className="ref-modal-subtitle">Follow 3 simple steps to access all AI predictions</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="ref-modal-close-btn" aria-label="Close modal">
+            <X size={20} />
           </button>
         </div>
 
-        <p
-          style={{
-            fontSize: '0.8rem',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.4,
-            marginBottom: '0.8rem',
-          }}
-        >
-          Register on one of our verified partner bookmakers below. Your Tracking ID (
-          <code>{effectiveId}</code>) is automatically linked for instant auto-verification!
-        </p>
+        {/* 3-Step Visual Progress Guide */}
+        <div className="ref-steps-container">
+          <div className="ref-step-item">
+            <div className="ref-step-num">1</div>
+            <div className="ref-step-text">
+              <strong>Register Free</strong>
+              <span>Click partner link below</span>
+            </div>
+          </div>
+          <div className="ref-step-arrow">→</div>
+          <div className="ref-step-item">
+            <div className="ref-step-num">2</div>
+            <div className="ref-step-text">
+              <strong>Auto Link</strong>
+              <span>ID attached automatically</span>
+            </div>
+          </div>
+          <div className="ref-step-arrow">→</div>
+          <div className="ref-step-item">
+            <div className="ref-step-num">3</div>
+            <div className="ref-step-text">
+              <strong>VIP Unlocked</strong>
+              <span>Instant full access</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tracking ID Badge */}
+        <div className="ref-tracking-badge">
+          <ShieldCheck size={14} color="#4ade80" />
+          <span>Tracking ID: <code>{effectiveId}</code> (Auto-synced)</span>
+        </div>
 
         {/* Secure Telegram Linkage Section for Web Users */}
         {!isTgEnvironment && (
-          <div
-            style={{
-              marginBottom: '0.9rem',
-              background: 'rgba(15,23,42,0.6)',
-              padding: '0.75rem',
-              borderRadius: 8,
-              border: '1px solid var(--border)',
-            }}
-          >
+          <div className="ref-tg-link-box">
             {telegramId ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  color: 'var(--accent-green)',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                }}
-              >
-                <CheckCircle2 size={16} /> Verified Telegram Linked: ID {telegramId}
+              <div className="ref-tg-linked">
+                <CheckCircle2 size={16} color="#4ade80" />
+                <span>Verified Telegram Linked: ID {telegramId}</span>
               </div>
             ) : (
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.74rem',
-                    color: 'var(--text-secondary)',
-                    marginBottom: '0.3rem',
-                    fontWeight: 600,
-                  }}
-                >
+                <label className="ref-tg-label">
                   Link Telegram Account:
                 </label>
-                <p
-                  style={{
-                    fontSize: '0.7rem',
-                    color: '#94a3b8',
-                    marginBottom: '0.6rem',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  Log in securely with Telegram to verify ownership and sync your VIP status.
+                <p className="ref-tg-desc">
+                  Log in securely with Telegram to sync VIP access across all your devices.
                 </p>
 
                 {linkError && (
-                  <div
-                    style={{
-                      color: '#ef4444',
-                      fontSize: '0.72rem',
-                      marginBottom: '0.5rem',
-                      background: 'rgba(239,68,68,0.1)',
-                      padding: '0.4rem',
-                      borderRadius: 4,
-                    }}
-                  >
+                  <div className="ref-error-box">
                     {linkError}
                   </div>
                 )}
 
                 {linking && (
-                  <div
-                    style={{
-                      color: 'var(--accent-cyan)',
-                      fontSize: '0.72rem',
-                      marginBottom: '0.5rem',
-                    }}
-                  >
+                  <div className="ref-status-text">
                     Verifying Telegram authentication...
                   </div>
                 )}
 
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    alignItems: 'center',
-                  }}
-                >
+                <div className="ref-tg-widget-wrap">
                   <div
                     ref={widgetContainerRef}
                     style={{ minHeight: 38, display: 'flex', justifyContent: 'center' }}
@@ -268,15 +205,9 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                     href={`https://t.me/${botUsername}/${webappShortName}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{
-                      fontSize: '0.72rem',
-                      color: 'var(--accent-cyan)',
-                      textDecoration: 'underline',
-                      cursor: 'pointer',
-                      textAlign: 'center',
-                    }}
+                    className="ref-tg-miniapp-link"
                   >
-                    Or open directly in Telegram Mini App →
+                    <Send size={12} /> Or open directly in Telegram Mini App →
                   </a>
                 </div>
               </div>
@@ -285,22 +216,13 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         )}
 
         {/* Partner Sites List */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.7rem',
-            marginBottom: '1.2rem',
-          }}
-        >
+        <div className="ref-partners-list">
           {sites.length > 0 ? (
             sites.map((site) => {
               const tid = effectiveId;
-
-              // Build tracking URLs
               const backendBase = 'https://telegram-backend-2yck.onrender.com';
               const trackingUrl =
-                tid && tid !== 'anonymous' ? `${backendBase}/go/${site.id}/${tid}` : site.base_url;
+                (tid && tid !== 'anonymous' ? `${backendBase}/go/${site.id}/${tid}` : site.base_url || site.referral_url) || '';
 
               let appTrackingUrl = site.app_url || '';
               if (appTrackingUrl && tid && tid !== 'anonymous') {
@@ -310,6 +232,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
               const handleOpenWeb = (e: React.MouseEvent) => {
                 e.preventDefault();
+                if (!trackingUrl) return;
                 if (window.Telegram?.WebApp?.openLink) {
                   window.Telegram.WebApp.openLink(trackingUrl);
                 } else {
@@ -327,70 +250,38 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               };
 
               return (
-                <div
-                  key={site.id}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.4rem',
-                    background: 'rgba(15,23,42,0.6)',
-                    padding: '0.8rem',
-                    borderRadius: 10,
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <span style={{ fontWeight: 800, fontSize: '0.9rem', color: 'white' }}>
-                      {site.name}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '0.68rem',
-                        color: 'var(--accent-green)',
-                        fontWeight: 700,
-                        background: 'rgba(34, 197, 94, 0.15)',
-                        padding: '0.1rem 0.4rem',
-                        borderRadius: 4,
-                      }}
-                    >
-                      Verified Partner
-                    </span>
+                <div key={site.id} className="ref-partner-card">
+                  <div className="ref-partner-top">
+                    <div>
+                      <span className="ref-partner-title">
+                        {site.name.toUpperCase()}
+                      </span>
+                      <span className="ref-verified-pill">
+                        ✓ Verified Partner
+                      </span>
+                    </div>
+                    <div className="ref-bonus-tag">
+                      🎁 500% Welcome Bonus
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: 4 }}>
+                  <p className="ref-partner-perks">
+                    Register with zero fees to unlock complete AI predictions, real-time value odds &amp; game models.
+                  </p>
+
+                  <div className="ref-partner-actions">
                     <button
                       onClick={handleOpenWeb}
-                      className="btn-primary"
-                      style={{ flex: 1, fontSize: '0.78rem', padding: '0.55rem' }}
+                      className="ref-btn-register pulse-glow"
                     >
-                      <ExternalLink size={13} /> Register Website
+                      <ExternalLink size={14} /> Register with {site.name} (Free)
                     </button>
                     {appTrackingUrl && (
                       <button
                         onClick={handleOpenApp}
-                        style={{
-                          flex: 1,
-                          fontSize: '0.78rem',
-                          padding: '0.55rem',
-                          background: 'rgba(56, 189, 248, 0.15)',
-                          border: '1px solid var(--accent-cyan)',
-                          color: 'var(--accent-cyan)',
-                          borderRadius: 10,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.3rem',
-                          fontWeight: 700,
-                        }}
+                        className="ref-btn-app"
                       >
-                        <Download size={13} /> Android App
+                        <Download size={14} /> App Download
                       </button>
                     )}
                   </div>
@@ -398,32 +289,16 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               );
             })
           ) : (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '1.5rem',
-                color: 'var(--text-secondary)',
-                fontSize: '0.8rem',
-              }}
-            >
+            <div className="ref-empty-state">
               No active referral partners available at the moment.
             </div>
           )}
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontSize: '0.75rem',
-            color: 'var(--accent-cyan)',
-            background: 'rgba(56, 189, 248, 0.08)',
-            padding: '0.6rem 0.8rem',
-            borderRadius: 8,
-          }}
-        >
-          <CheckCircle2 size={16} /> Instant VIP unlock after registration
+        {/* Footer Guarantee */}
+        <div className="ref-modal-footer">
+          <CheckCircle2 size={15} color="#4ade80" />
+          <span>Instant auto-verification • No credit card required • 100% Free</span>
         </div>
       </div>
     </div>
