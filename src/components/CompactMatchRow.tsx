@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import type { Prediction } from '../types';
+import type { ContentLayerFlags, Prediction, ReferralSite } from '../types';
 import {
   ChevronDown, ChevronUp, Trophy,
   Key, Lock, Sparkles,
-  CheckCircle2, XCircle, Clock, ExternalLink, TrendingUp
+  CheckCircle2, XCircle, Clock, ExternalLink, Tv
 } from 'lucide-react';
 import { formatMatchTime, getCompactDateLabel, getSurfaceEmoji, formatPlayerDisplayName, getMatchGender, parseAiDossierSections } from '../utils/formatters';
+import { buildPartnerWatchUrl, openExternalLink, shouldShowWatchLive } from '../utils/referralLinks';
 
 interface CompactMatchRowProps {
   prediction: Prediction;
@@ -13,6 +14,11 @@ interface CompactMatchRowProps {
   isLocked?: boolean;
   onUnlockClick?: () => void;
   onOpenMatchPage?: (prediction: Prediction) => void;
+  apiBase?: string;
+  referralSites?: ReferralSite[];
+  trackingId?: string | number;
+  contentLayers?: ContentLayerFlags;
+  canWatchLive?: boolean;
 }
 
 export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
@@ -21,6 +27,10 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   isLocked = false,
   onUnlockClick,
   onOpenMatchPage,
+  apiBase = '',
+  referralSites = [],
+  trackingId = 'anonymous',
+  canWatchLive = true,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`, prediction.home_name, prediction.away_name);
@@ -140,7 +150,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   fontSize: '0.58rem', fontWeight: 800, color: '#4ade80',
                   background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)',
                   padding: '0.04rem 0.3rem', borderRadius: 4, flexShrink: 0,
-                }}>✓ PICK</span>
+                }}>✓ LEAN</span>
               )}
             </div>
             {prediction.home_odds && prediction.home_odds !== 'N/A' && (
@@ -175,7 +185,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
                   fontSize: '0.58rem', fontWeight: 800, color: '#4ade80',
                   background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)',
                   padding: '0.04rem 0.3rem', borderRadius: 4, flexShrink: 0,
-                }}>✓ PICK</span>
+                }}>✓ LEAN</span>
               )}
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {formatPlayerDisplayName(prediction.away_name)}
@@ -215,15 +225,25 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         </div>
 
         {/* Bottom action row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {prediction.best_bet_market && prediction.best_bet_market !== 'NO_BET' && (
-            <span style={{
-              fontSize: '0.65rem', fontWeight: 700, color: '#4ade80',
-              background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.28)',
-              padding: '0.15rem 0.5rem', borderRadius: 20,
-            }}>
-              {prediction.best_bet_market}
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {canWatchLive && shouldShowWatchLive(prediction.status, prediction.match_date || prediction.published_at) && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const url = buildPartnerWatchUrl({ apiBase, sites: referralSites, trackingId });
+                if (url) openExternalLink(url);
+                else onUnlockClick?.();
+              }}
+              style={{
+                fontSize: '0.65rem', fontWeight: 800, color: '#4ade80',
+                background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.28)',
+                padding: '0.15rem 0.5rem', borderRadius: 20,
+                display: 'inline-flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer',
+              }}
+            >
+              <Tv size={11} /> Watch Live
+            </button>
           )}
           {prediction.confidence && (
             <span style={{
@@ -237,7 +257,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           )}
           {isLocked && (
             <span className="locked-row-pill">
-              <Lock size={10} /> VIP Only
+              <Lock size={10} /> Deep analysis locked
             </span>
           )}
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -260,24 +280,24 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <div className="locked-icon-wrap">
                 <Lock size={26} color="#d4a843" />
               </div>
-              <div className="locked-title">VIP AI INTELLIGENCE LOCKED</div>
+              <div className="locked-title">FULL MATCH ANALYSIS LOCKED</div>
               <div className="locked-teaser-pill">
-                <span>AI Win Matrix: Hidden</span>
+                <span>Odds & lean: Visible</span>
                 <span className="teaser-dot">•</span>
-                <span>Tactical Edge: Hidden</span>
+                <span>Deep stats: Hidden</span>
                 <span className="teaser-dot">•</span>
-                <span>High-EV Bet: Hidden</span>
+                <span>AI dossier: Hidden</span>
               </div>
               <p className="locked-desc">
-                Register on our official partner bookmaker with <strong>0 subscription fees</strong> to instantly unlock all VIP predictions, tactical breakdowns &amp; real-time probabilities!
+                Register with our partner to unlock deep form, surface stats, and the full AI tactical dossier — free registration.
               </p>
               <button onClick={onUnlockClick} className="btn-primary btn-unlock pulse-glow" id="match-row-unlock-btn">
-                <Key size={14} /> Register &amp; Unlock Free VIP Access
+                <Key size={14} /> Register &amp; Unlock Analysis
               </button>
               <div className="locked-perks-row">
-                <span>✓ 100% Free Registration</span>
-                <span>✓ Instant Auto-Unlock</span>
-                <span>✓ Daily High-EV Picks</span>
+                <span>✓ Free registration</span>
+                <span>✓ Instant unlock</span>
+                <span>✓ Full match dossiers</span>
               </div>
             </div>
           ) : (
@@ -286,7 +306,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <div className="details-prediction-card">
                 <div className="details-card-top">
                   <span className="details-label">
-                    <Trophy size={13} color="#d4a843" /> AI WINNER VERDICT
+                    <Trophy size={13} color="#d4a843" /> LIKELY WINNER
                   </span>
                   <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
                     {prediction.confidence && (

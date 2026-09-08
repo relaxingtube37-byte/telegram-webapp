@@ -1,3 +1,21 @@
+export interface ContentLayerFlags {
+  guest_can_see_summary: boolean;
+  guest_can_see_stats: boolean;
+  guest_can_see_ai_full: boolean;
+  guest_can_see_watch_live: boolean;
+  payment_gateway_enabled: boolean;
+  unlock_via_referral: boolean;
+}
+
+export const DEFAULT_CONTENT_LAYERS: ContentLayerFlags = {
+  guest_can_see_summary: true,
+  guest_can_see_stats: false,
+  guest_can_see_ai_full: false,
+  guest_can_see_watch_live: true,
+  payment_gateway_enabled: false,
+  unlock_via_referral: true,
+};
+
 export interface Prediction {
   id: number;
   fixture_id?: number;
@@ -34,6 +52,8 @@ export interface Prediction {
   result_score?: string;
   match_date?: string;
   published_at: string;
+  content_locked?: boolean;
+  content_layers?: ContentLayerFlags;
 }
 
 export interface StatsOverviewData {
@@ -52,6 +72,26 @@ export interface ReferralSite {
   referral_url?: string;
   app_url?: string;
   verify_mode?: string;
+}
+
+export interface DeepAnalyticsTeaser {
+  locked?: boolean;
+  matchInfo?: {
+    player1: string;
+    player2: string;
+    surface: string;
+    asOfCutoff: string;
+    dataCompletenessPct: number;
+  };
+  teaser?: any;
+  p1RollingForm?: any;
+  p2RollingForm?: any;
+  h2hSummary?: any;
+  p1SurfaceMastery?: any;
+  p2SurfaceMastery?: any;
+  p1Workload?: any;
+  p2Workload?: any;
+  explanationCards?: { title: string; body: string; severity?: string }[];
 }
 
 declare global {

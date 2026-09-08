@@ -31,7 +31,10 @@ export default async function handler(req, res) {
       return res.redirect(302, '/');
     }
 
-    const predictions = await apiRes.json();
+    const predictionsRaw = await apiRes.json();
+    const predictions = Array.isArray(predictionsRaw)
+      ? predictionsRaw
+      : (Array.isArray(predictionsRaw?.predictions) ? predictionsRaw.predictions : null);
     if (!Array.isArray(predictions)) {
       return res.redirect(302, '/');
     }
@@ -73,10 +76,10 @@ export default async function handler(req, res) {
     const idPart = match.fixture_id || match.id;
     const resolvedSlug = `${homeSlug}-vs-${awaySlug}-${idPart}`;
 
-    const title = `${matchTitle} Prediction, Odds & AI Tactical Preview | Ptin AI`;
+    const title = `${matchTitle} Analysis, Odds & AI Match Preview | Ptin AI`;
     const description = match.ai_summary
       ? match.ai_summary.slice(0, 160).replace(/[\n\r]+/g, ' ').trim()
-      : `Complete tactical match analysis for ${matchTitle} at ${tournament}. Surface: ${surface}. AI Predicted Winner: ${predictedWinner} (${winProb}%). Full preview on Ptin AI.`;
+      : `Complete tactical match analysis for ${matchTitle} at ${tournament}. Surface: ${surface}. Model lean: ${predictedWinner} (${winProb}%). Full preview on Ptin AI.`;
 
     const canonicalUrl = `${baseUrl}/match/${resolvedSlug}`;
     const ogImageUrl = `${baseUrl}/og-tennis-banner.jpg`;
@@ -222,7 +225,7 @@ ${JSON.stringify(jsonLd, null, 2)}
         <div class="prerender-meta">🎾 Professional Tennis Match Analysis & Tactical Dossier</div>
         
         <div class="prerender-meter">
-          <div class="prerender-meter-text">AI Predicted Winner: ${escapeHtml(predictedWinner)} (${winProb}% Confidence)</div>
+          <div class="prerender-meter-text">Likely winner: ${escapeHtml(predictedWinner)} (${winProb}% win probability)</div>
         </div>
 
         <article class="prerender-summary">

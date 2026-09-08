@@ -1,13 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { CompactMatchRow } from './components/CompactMatchRow';
-import { MatchSeoView } from './components/MatchSeoView';
+import { MatchAnalysisPage } from './components/match/MatchAnalysisPage';
 import { ReferralModal } from './components/ReferralModal';
 import { SideBanner } from './components/SideBanner';
 import { SignUpStrip } from './components/SignUpStrip';
 import { SportsNavSidebar } from './components/SportsNavSidebar';
 import { AiTopPickWidget } from './components/AiTopPickWidget';
-import type { Prediction, StatsOverviewData, ReferralSite } from './types';
+import type { Prediction, StatsOverviewData, ReferralSite, ContentLayerFlags } from './types';
+import { DEFAULT_CONTENT_LAYERS } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority } from './utils/formatters';
 import { buildMatchSlug, parseMatchParamFromUrl, findMatchByParam } from './utils/seo';
@@ -39,6 +40,16 @@ function resolveApiBase(): string {
 
 const API_BASE = resolveApiBase();
 
+function buildAuthHeaders(sessionToken: string | null): HeadersInit {
+  const headers: Record<string, string> = {};
+  if (sessionToken) {
+    headers.Authorization = `Bearer ${sessionToken}`;
+    headers['x-ptin-session'] = sessionToken;
+  }
+  const initData = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initData : undefined;
+  if (initData) headers['x-telegram-init-data'] = initData;
+  return headers;
+}
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
@@ -60,6 +71,12 @@ export function App() {
   const [webappShortName, setWebappShortName] = useState<string>('app');
   const [isVerified, setIsVerified] = useState(false);
   const [accessMode, setAccessMode] = useState<'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED'>('REGISTRATION_REQUIRED');
+  const [contentLayers, setContentLayers] = useState<ContentLayerFlags>(DEFAULT_CONTENT_LAYERS);
+  const [businessActions, setBusinessActions] = useState({
+    registration_referral_enabled: true,
+    watch_live_enabled: true,
+    payment_mode_placeholder_enabled: false,
+  });
   const [collapsedTournaments, setCollapsedTournaments] = useState<Record<string, boolean>>({});
   const [selectedMatch, setSelectedMatch] = useState<Prediction | null>(() => {
     if (typeof window !== 'undefined') {
@@ -82,6 +99,11 @@ export function App() {
     if (webId) return webId;
     return 'anonymous';
   }, [telegramUser, webId]);
+
+  const canSeeDeepAnalysis = accessMode === 'FREE' || isVerified || contentLayers.guest_can_see_ai_full;
+  const canWatchLive =
+    (businessActions.watch_live_enabled !== false) &&
+    (accessMode === 'FREE' || isVerified || contentLayers.guest_can_see_watch_live);
 
   const handleOpenMatchPage = (pred: Prediction) => {
     setSelectedMatch(pred);
@@ -168,6 +190,7 @@ export function App() {
             if (res?.success) {
               if (res.verified !== undefined) setIsVerified(!!res.verified);
               if (res.access_mode) setAccessMode(res.access_mode);
+              if (res.content_layers) setContentLayers(prev => ({ ...prev, ...res.content_layers }));
               if (res.user) {
                 setTelegramUser({
                   id: res.user.telegram_id,
@@ -199,6 +222,7 @@ export function App() {
           if (res?.success) {
             if (res.verified !== undefined) setIsVerified(!!res.verified);
             if (res.access_mode) setAccessMode(res.access_mode);
+            if (res.content_layers) setContentLayers(prev => ({ ...prev, ...res.content_layers }));
             if (res.sessionToken) {
               setSessionToken(res.sessionToken);
               try {
@@ -226,6 +250,22 @@ export function App() {
         if (res?.access_mode) setAccessMode(res.access_mode);
         if (res?.bot_username) setBotUsername(res.bot_username);
         if (res?.webapp_short_name) setWebappShortName(res.webapp_short_name);
+        if (res?.content_layers) {
+          setContentLayers(prev => ({ ...prev, ...res.content_layers }));
+        } else {
+          setContentLayers(prev => ({
+            ...prev,
+            guest_can_see_summary: res.guest_can_see_summary ?? prev.guest_can_see_summary,
+            guest_can_see_stats: res.guest_can_see_stats ?? prev.guest_can_see_stats,
+            guest_can_see_ai_full: res.guest_can_see_ai_full ?? prev.guest_can_see_ai_full,
+            guest_can_see_watch_live: res.guest_can_see_watch_live ?? prev.guest_can_see_watch_live,
+            payment_gateway_enabled: res.payment_gateway_enabled ?? prev.payment_gateway_enabled,
+            unlock_via_referral: res.unlock_via_referral ?? prev.unlock_via_referral,
+          }));
+        }
+        if (res?.business_actions && typeof res.business_actions === 'object') {
+          setBusinessActions(prev => ({ ...prev, ...res.business_actions }));
+        }
       })
       .catch(() => {});
 
@@ -235,13 +275,24 @@ export function App() {
   const loadData = async () => {
     setLoading(true);
     try {
+      const token = (() => {
+        try { return localStorage.getItem('ptin_web_session'); } catch { return sessionToken; }
+      })();
+      const headers = buildAuthHeaders(token || sessionToken);
+
       const [predRes, statsRes, refRes] = await Promise.all([
-        fetch(`${API_BASE}/predictions`).then(r => r.json()).catch(() => []),
-        fetch(`${API_BASE}/stats`).then(r => r.json()).catch(() => null),
+        fetch(`${API_BASE}/predictions`, { headers }).then(r => r.json()).catch(() => ({})),
+        fetch(`${API_BASE}/stats`, { headers }).then(r => r.json()).catch(() => null),
         fetch(`${API_BASE}/referrals`).then(r => r.json()).catch(() => []),
       ]);
 
-      const loadedPreds: Prediction[] = Array.isArray(predRes) ? predRes : [];
+      const loadedPreds: Prediction[] = Array.isArray(predRes)
+        ? predRes
+        : (Array.isArray(predRes?.predictions) ? predRes.predictions : []);
+      if (predRes?.content_layers) setContentLayers(prev => ({ ...prev, ...predRes.content_layers }));
+      if (predRes?.verified !== undefined) setIsVerified(!!predRes.verified);
+      if (predRes?.access_mode) setAccessMode(predRes.access_mode);
+
       setPredictions(loadedPreds);
       setStats(statsRes);
       setReferralSites(Array.isArray(refRes) ? refRes : []);
@@ -424,14 +475,22 @@ export function App() {
               sites={referralSites}
               effectiveId={effectiveTrackingId}
               onOpenModal={() => setShowReferralModal(true)}
+              apiBase={API_BASE}
+              registrationEnabled={businessActions.registration_referral_enabled !== false}
             />
           )}
 
         {selectedMatch ? (
-        <MatchSeoView
+        <MatchAnalysisPage
           prediction={selectedMatch}
           selectedTimezone={selectedTimezone}
-          isLocked={accessMode === 'FREE' ? false : !isVerified}
+          webappApiBase={API_BASE}
+          sessionToken={sessionToken}
+          isVerified={isVerified}
+          accessMode={accessMode}
+          referralSites={referralSites}
+          trackingId={effectiveTrackingId}
+          businessActions={businessActions}
           onBack={handleBackToMatches}
           onUnlockClick={() => setShowReferralModal(true)}
         />
@@ -586,14 +645,19 @@ export function App() {
                   {/* Match Rows (Shown when not collapsed) */}
                   {!isCollapsed && (
                     <div className="tournament-matches-list">
-                      {tournData.items.map((p, idx) => (
+                      {tournData.items.map((p) => (
                         <CompactMatchRow
                           key={p.id}
                           prediction={p}
                           selectedTimezone={selectedTimezone}
-                          isLocked={accessMode === 'FREE' ? false : (!isVerified && idx > 0)}
+                          isLocked={!canSeeDeepAnalysis}
                           onUnlockClick={() => setShowReferralModal(true)}
                           onOpenMatchPage={handleOpenMatchPage}
+                          apiBase={API_BASE}
+                          referralSites={referralSites}
+                          trackingId={effectiveTrackingId}
+                          contentLayers={contentLayers}
+                          canWatchLive={canWatchLive}
                         />
                       ))}
                     </div>
@@ -605,10 +669,10 @@ export function App() {
             <div className="glass empty-state-box">
               <Flame size={44} className="empty-icon" />
               <h3 className="empty-title">
-                {searchQuery || dateFilter !== 'all' ? 'No matching matches found' : activeTab === 'active' ? 'No Active Predictions Right Now' : 'No Settled History Yet'}
+                {searchQuery || dateFilter !== 'all' ? 'No matching matches found' : activeTab === 'active' ? 'No Active Matches Right Now' : 'No Settled History Yet'}
               </h3>
               <p className="empty-desc">
-                {searchQuery || dateFilter !== 'all' ? 'Try changing your date filter or search terms.' : 'Check back soon! New high-EV predictions are posted regularly.'}
+                {searchQuery || dateFilter !== 'all' ? 'Try changing your date filter or search terms.' : 'Check back soon for new ATP/WTA match analyses.'}
               </p>
             </div>
           )}
@@ -629,6 +693,7 @@ export function App() {
             sites={referralSites}
             effectiveId={effectiveTrackingId}
             onOpenModal={() => setShowReferralModal(true)}
+            apiBase={API_BASE}
           />
         </aside>
       </div>

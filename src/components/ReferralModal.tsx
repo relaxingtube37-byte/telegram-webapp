@@ -1,6 +1,7 @@
 import React from 'react';
 import { ExternalLink, CheckCircle2, ShieldCheck, Download, Sparkles, X, Send } from 'lucide-react';
 import type { ReferralSite } from '../types';
+import { buildPartnerRegisterUrl, openExternalLink } from '../utils/referralLinks';
 
 declare global {
   interface Window {
@@ -220,9 +221,12 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
           {sites.length > 0 ? (
             sites.map((site) => {
               const tid = effectiveId;
-              const backendBase = 'https://telegram-backend-2yck.onrender.com';
-              const trackingUrl =
-                (tid && tid !== 'anonymous' ? `${backendBase}/go/${site.id}/${tid}` : site.base_url || site.referral_url) || '';
+              const trackingUrl = buildPartnerRegisterUrl({
+                apiBase,
+                sites: [site],
+                trackingId: tid || 'anonymous',
+                page: 'referral_modal',
+              });
 
               let appTrackingUrl = site.app_url || '';
               if (appTrackingUrl && tid && tid !== 'anonymous') {
@@ -233,11 +237,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               const handleOpenWeb = (e: React.MouseEvent) => {
                 e.preventDefault();
                 if (!trackingUrl) return;
-                if (window.Telegram?.WebApp?.openLink) {
-                  window.Telegram.WebApp.openLink(trackingUrl);
-                } else {
-                  window.open(trackingUrl, '_blank', 'noopener,noreferrer');
-                }
+                openExternalLink(trackingUrl);
               };
 
               const handleOpenApp = (e: React.MouseEvent) => {

@@ -1,25 +1,32 @@
 import React from 'react';
 import { ShieldCheck, ExternalLink, Flame, Send } from 'lucide-react';
 import type { ReferralSite } from '../types';
+import { buildPartnerRegisterUrl, openExternalLink } from '../utils/referralLinks';
 
 interface SideBannerProps {
   sites: ReferralSite[];
   effectiveId?: string | number;
   onOpenModal: () => void;
+  apiBase?: string;
 }
 
 /** Professional sponsor & community cards for the right-hand sidebar */
-export const SideBanner: React.FC<SideBannerProps> = ({ sites, effectiveId, onOpenModal }) => {
+export const SideBanner: React.FC<SideBannerProps> = ({
+  sites,
+  effectiveId,
+  onOpenModal,
+  apiBase = 'https://telegram-backend-2yck.onrender.com/api/webapp',
+}) => {
   const primarySite = sites[0];
 
-  const backendBase = 'https://telegram-backend-2yck.onrender.com';
   const buildTrackingUrl = (site?: ReferralSite) => {
     if (!site) return '';
-    const tid = effectiveId;
-    if (tid && tid !== 'anonymous') {
-      return `${backendBase}/go/${site.id}/${tid}`;
-    }
-    return site.base_url || site.referral_url || '';
+    return buildPartnerRegisterUrl({
+      apiBase,
+      sites: [site],
+      trackingId: effectiveId || 'anonymous',
+      page: 'side_banner',
+    });
   };
 
   const primaryTrackingUrl = buildTrackingUrl(primarySite);
@@ -30,11 +37,7 @@ export const SideBanner: React.FC<SideBannerProps> = ({ sites, effectiveId, onOp
       onOpenModal();
       return;
     }
-    if (window.Telegram?.WebApp?.openLink) {
-      window.Telegram.WebApp.openLink(url);
-    } else {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
+    openExternalLink(url);
   };
 
   return (
