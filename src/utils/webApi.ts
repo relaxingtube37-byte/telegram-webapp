@@ -14,8 +14,8 @@ export function resolveWebApiBase(webappApiBase: string): string {
 export function buildAuthHeaders(sessionToken: string | null | undefined): HeadersInit {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (sessionToken) {
+    // Authorization alone works with currently deployed Render CORS.
     headers.Authorization = `Bearer ${sessionToken}`;
-    headers['x-ptin-session'] = sessionToken;
   }
   if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initData) {
     headers['x-telegram-init-data'] = window.Telegram.WebApp.initData;

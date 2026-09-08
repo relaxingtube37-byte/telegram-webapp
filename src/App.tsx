@@ -43,8 +43,9 @@ const API_BASE = resolveApiBase();
 function buildAuthHeaders(sessionToken: string | null): HeadersInit {
   const headers: Record<string, string> = {};
   if (sessionToken) {
+    // Authorization alone — live Render CORS currently allows this header.
+    // Do not send x-ptin-session until backend CORS redeploy includes it.
     headers.Authorization = `Bearer ${sessionToken}`;
-    headers['x-ptin-session'] = sessionToken;
   }
   const initData = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initData : undefined;
   if (initData) headers['x-telegram-init-data'] = initData;

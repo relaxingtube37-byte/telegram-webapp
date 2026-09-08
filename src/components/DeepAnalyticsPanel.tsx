@@ -19,7 +19,6 @@ function authHeaders(sessionToken?: string | null, initData?: string): HeadersIn
   const h: Record<string, string> = {};
   if (sessionToken) {
     h.Authorization = `Bearer ${sessionToken}`;
-    h['x-ptin-session'] = sessionToken;
   }
   if (initData) h['x-telegram-init-data'] = initData;
   return h;
