@@ -8,7 +8,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(bot|crawler|spider|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|embedly|slackbot|discord|google|bing|yandex|duckduck|baidu|lighthouse).*"
+          "value": ".*(bot|crawler|spider|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|embedly|slackbot|discord|google|bing|yandex|duckduck|baidu|lighthouse).*"
         }
       ],
       "destination": "/api/seo?match=:slug"
@@ -23,7 +23,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(bot|crawler|spider|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|embedly|slackbot|discord|google|bing|yandex|duckduck|baidu|lighthouse).*"
+          "value": ".*(bot|crawler|spider|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|embedly|slackbot|discord|google|bing|yandex|duckduck|baidu|lighthouse).*"
         }
       ],
       "destination": "/api/seo"
