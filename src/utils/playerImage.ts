@@ -12,7 +12,10 @@ export function getPlayerImageUrl(
   playerId?: number | string | null,
   apiBase: string = DEFAULT_API_BASE
 ): string | null {
-  const effectiveBase = (apiBase && apiBase.trim()) ? apiBase.trim() : DEFAULT_API_BASE;
+  let effectiveBase = (apiBase && apiBase.trim()) ? apiBase.trim() : DEFAULT_API_BASE;
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && effectiveBase.includes('localhost')) {
+    effectiveBase = DEFAULT_API_BASE;
+  }
   const cleanBase = effectiveBase.replace(/\/+$/, '');
   const root = cleanBase.replace(/\/api\/webapp$/, '');
 

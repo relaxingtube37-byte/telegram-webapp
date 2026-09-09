@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface PlayerAvatarProps {
   name: string;
@@ -16,20 +16,26 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = React.memo(({
   className = '',
 }) => {
   const [imgError, setImgError] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     setImgError(false);
-    setImgLoaded(false);
   }, [imageUrl]);
+
+  const handleImgRef = (el: HTMLImageElement | null) => {
+    imgRef.current = el;
+    if (el && el.complete) {
+      if (el.naturalWidth === 0) {
+        setImgError(true);
+      }
+    }
+  };
 
   const initial = (name || 'P')
     .trim()
     .replace(/^[^a-zA-Z0-9]+/, '')
     .charAt(0)
     .toUpperCase() || '•';
-
-  const shouldShowImg = Boolean(imageUrl && !imgError);
 
   return (
     <div
@@ -43,26 +49,26 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = React.memo(({
       title={name}
       aria-label={`Photo of ${name}`}
     >
-      {shouldShowImg ? (
+      {/* Background fallback letter badge: always present underneath */}
+      <div
+        className="player-avatar-fallback"
+        style={{
+          fontSize: size <= 24 ? '0.62rem' : size <= 36 ? '0.75rem' : '0.95rem',
+        }}
+      >
+        {initial}
+      </div>
+
+      {/* Player photo: rendered on top of fallback, hidden only on error */}
+      {imageUrl && !imgError && (
         <img
-          src={imageUrl!}
+          ref={handleImgRef}
+          src={imageUrl}
           alt={name}
-          loading="lazy"
-          className={`player-avatar-img ${imgLoaded ? 'loaded' : ''}`}
-          onLoad={() => setImgLoaded(true)}
+          decoding="async"
+          className="player-avatar-img"
           onError={() => setImgError(true)}
         />
-      ) : null}
-
-      {(!shouldShowImg || !imgLoaded) && (
-        <div
-          className="player-avatar-fallback"
-          style={{
-            fontSize: size <= 24 ? '0.6rem' : size <= 36 ? '0.75rem' : '0.95rem',
-          }}
-        >
-          {initial}
-        </div>
       )}
     </div>
   );
