@@ -1,5 +1,5 @@
-import React from 'react';
-import { Globe, Sparkles, CheckCircle, Key, Search, Gift } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Globe, Sparkles, CheckCircle, Search, Gift, ChevronDown, ShieldCheck, LogOut } from 'lucide-react';
 import type { StatsOverviewData } from '../types';
 
 interface HeaderProps {
@@ -16,6 +16,8 @@ interface HeaderProps {
   onSearchChange: (q: string) => void;
   atpCount: number;
   wtaCount: number;
+  onLogout?: () => void;
+  effectiveTrackingId?: string | number;
 }
 
 export const Header: React.FC<HeaderProps> = React.memo(({
@@ -32,8 +34,28 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   onSearchChange,
   atpCount,
   wtaCount,
+  onLogout,
+  effectiveTrackingId,
 }) => {
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProfileMenu]);
+
   const userName = telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Guest');
+  const userInitial = (telegramUser?.first_name || telegramUser?.username || 'U').charAt(0).toUpperCase().replace('@', '');
 
   return (
     <header className="full-width-header">
@@ -85,7 +107,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
           </button>
         </div>
 
-        {/* Right actions: Search, Timezone, VIP Register */}
+        {/* Right actions: Search, Timezone, VIP Register / Profile */}
         <div className="header-right-actions">
           {/* Quick Search */}
           <div className="header-search-wrap">
@@ -119,58 +141,278 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             </select>
           </div>
 
-          {/* Prominent 2-Step Sign Up / VIP CTA Button */}
-          {accessMode === 'FREE' ? (
-            <div className="header-vip-pill header-vip-free">
-              <Sparkles size={12} />
-              <span>FREE ACCESS</span>
-            </div>
-          ) : isVerified ? (
-            <div className="header-vip-pill header-vip-verified">
-              <CheckCircle size={13} color="#4ade80" />
-              <span>MEMBER ACTIVE ✓</span>
-            </div>
-          ) : telegramUser ? (
-            /* User finished Step 1 (Google/TG) -> Highlight Step 2 (1WIN activation) */
-            <button
-              onClick={() => onOpenVipModal?.(2)}
-              className="header-signup-btn pulse-glow"
-              title="Complete Step 2: Activate 1WIN Partner for 500% Welcome Bonus"
-              id="header-signup-cta-btn"
-              style={{
-                background: 'linear-gradient(135deg, #d4a843, #fbbf24)',
-                color: '#09090b',
-                fontWeight: 800,
-                border: '1px solid #f59e0b',
-              }}
-            >
-              <Gift size={13} />
-              <span className="header-btn-text">ACTIVATE 1WIN (+500%)</span>
-              <span className="header-btn-tag" style={{ background: '#09090b', color: '#fbbf24' }}>STEP 2</span>
-            </button>
-          ) : (
-            /* User hasn't finished Step 1 yet -> Show Google Sign In CTA */
-            <button
-              onClick={() => onOpenVipModal?.(1)}
-              className="header-signup-btn"
-              title="Sign in with Google to start activation"
-              id="header-signup-cta-btn"
-              style={{
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '1px solid rgba(56, 189, 248, 0.4)',
-                color: '#38bdf8',
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              <span className="header-btn-text">Sign in with Google</span>
-              <span className="header-btn-tag">STEP 1</span>
-            </button>
-          )}
+          {/* User Account / Profile Capsule & Trust Menu */}
+          <div style={{ position: 'relative' }} ref={profileMenuRef}>
+            {telegramUser || isVerified ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                {/* Pending Step 2 Quick CTA (if authenticated but not verified yet) */}
+                {!isVerified && accessMode !== 'FREE' && (
+                  <button
+                    onClick={() => onOpenVipModal?.(2)}
+                    className="header-signup-btn pulse-glow"
+                    title="Activate 1WIN Partner for 500% Welcome Bonus"
+                    style={{
+                      background: 'linear-gradient(135deg, #d4a843, #fbbf24)',
+                      color: '#09090b',
+                      fontWeight: 800,
+                      padding: '0.35rem 0.75rem',
+                      fontSize: '0.72rem',
+                    }}
+                  >
+                    <Gift size={13} />
+                    <span>Activate 1WIN</span>
+                  </button>
+                )}
+
+                {/* Profile Capsule Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowProfileMenu(prev => !prev)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    background: 'rgba(15, 30, 20, 0.85)',
+                    border: `1px solid ${isVerified ? 'rgba(74, 222, 128, 0.45)' : 'rgba(212, 168, 67, 0.45)'}`,
+                    padding: '0.28rem 0.65rem 0.28rem 0.35rem',
+                    borderRadius: 24,
+                    cursor: 'pointer',
+                    boxShadow: isVerified ? '0 0 12px rgba(74, 222, 128, 0.15)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
+                  title="View Profile & Account Security"
+                >
+                  {/* Avatar with Online Dot */}
+                  <div style={{ position: 'relative', width: 26, height: 26 }}>
+                    {telegramUser?.avatar_url ? (
+                      <img
+                        src={telegramUser.avatar_url}
+                        alt={userName}
+                        style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: '50%',
+                        background: isVerified
+                          ? 'linear-gradient(135deg, #10b981, #059669)'
+                          : 'linear-gradient(135deg, #d4a843, #b45309)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        fontWeight: 800,
+                        fontSize: '0.72rem',
+                      }}>
+                        {userInitial}
+                      </div>
+                    )}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      width: 7,
+                      height: 7,
+                      borderRadius: '50%',
+                      background: '#4ade80',
+                      border: '1.5px solid #060f0a',
+                    }} />
+                  </div>
+
+                  {/* Name and verified pill */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff', maxWidth: 85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Member')}
+                    </span>
+                    <span style={{
+                      fontSize: '0.56rem',
+                      fontWeight: 800,
+                      color: isVerified ? '#4ade80' : '#fbbf24',
+                    }}>
+                      {isVerified ? 'PRO MEMBER ✓' : 'STEP 2 PENDING'}
+                    </span>
+                  </div>
+
+                  <ChevronDown size={13} color="var(--text-secondary)" style={{ transform: showProfileMenu ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                </button>
+              </div>
+            ) : (
+              /* Guest Sign In Button */
+              <button
+                onClick={() => onOpenVipModal?.(1)}
+                className="header-signup-btn pulse-glow"
+                id="header-signup-cta-btn"
+                style={{
+                  background: 'linear-gradient(135deg, #0284c7, #0ea5e9)',
+                  color: '#fff',
+                  padding: '0.4rem 0.85rem',
+                }}
+              >
+                <Sparkles size={13} />
+                <span className="header-btn-text">Sign In / Join</span>
+              </button>
+            )}
+
+            {/* ── Trust-Enhanced User Profile Dropdown ── */}
+            {showProfileMenu && (
+              <div
+                className="glass"
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 10px)',
+                  right: 0,
+                  zIndex: 100,
+                  minWidth: 285,
+                  maxWidth: 320,
+                  padding: '1.1rem',
+                  borderRadius: 14,
+                  border: '1px solid rgba(212, 168, 67, 0.35)',
+                  boxShadow: '0 16px 48px rgba(0, 0, 0, 0.85)',
+                  background: 'rgba(9, 20, 14, 0.98)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* Profile Identity Card */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.9rem' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--gold)', flexShrink: 0 }}>
+                    {telegramUser?.avatar_url ? (
+                      <img src={telegramUser.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#fff',
+                        fontWeight: 900,
+                        fontSize: '1.15rem',
+                      }}>
+                        {userInitial}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Pro Member')}
+                    </div>
+                    {telegramUser?.email && (
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {telegramUser.email}
+                      </div>
+                    )}
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      marginTop: 4,
+                      background: 'rgba(0,0,0,0.45)',
+                      padding: '0.12rem 0.5rem',
+                      borderRadius: 10,
+                      fontSize: '0.62rem',
+                      color: 'var(--gold-bright)',
+                    }}>
+                      <ShieldCheck size={11} color="#4ade80" />
+                      <span>Tracking ID: #{effectiveTrackingId || 'anonymous'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Membership Status Box */}
+                <div style={{
+                  background: isVerified ? 'rgba(74, 222, 128, 0.08)' : 'rgba(251, 191, 36, 0.08)',
+                  border: `1px solid ${isVerified ? 'rgba(74, 222, 128, 0.25)' : 'rgba(251, 191, 36, 0.3)'}`,
+                  borderRadius: 10,
+                  padding: '0.7rem 0.8rem',
+                  marginBottom: '0.85rem',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: isVerified ? '#4ade80' : '#fbbf24' }}>
+                      {isVerified ? 'PRO ACCESS: ACTIVE ✓' : 'STEP 2: ACTIVATION PENDING'}
+                    </span>
+                    <span style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.35)', padding: '0.06rem 0.32rem', borderRadius: 4, color: '#4ade80', fontWeight: 700 }}>
+                      Verified
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                    {isVerified
+                      ? 'Full 90%+ AI models, tactical simulation dossiers & live feeds permanently unlocked.'
+                      : 'Activate 1WIN partner to claim your 500% bonus and auto-unlock full AI predictive models.'}
+                  </p>
+                  {!isVerified && (
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        onOpenVipModal?.(2);
+                      }}
+                      style={{
+                        width: '100%',
+                        marginTop: '0.55rem',
+                        padding: '0.45rem',
+                        borderRadius: 7,
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #d4a843, #fbbf24)',
+                        color: '#09090b',
+                        fontWeight: 800,
+                        fontSize: '0.74rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Activate 1WIN (+500% Bonus) ➔
+                    </button>
+                  )}
+                </div>
+
+                {/* Trust & Unlocked Features Checklist */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.68rem', color: '#d4d4d8', padding: '0.2rem 0.2rem 0.4rem 0.2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
+                    <span>90%+ Win Probability Models (Active)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
+                    <span>Deep Tactical Head-to-Head Dossiers</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
+                    <span>256-Bit SSL Encrypted &amp; Non-Custodial</span>
+                  </div>
+                </div>
+
+                <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '0.75rem 0' }} />
+
+                {/* Log Out Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onLogout?.();
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.45rem',
+                    padding: '0.55rem',
+                    borderRadius: 8,
+                    background: 'rgba(244, 63, 94, 0.1)',
+                    border: '1px solid rgba(244, 63, 94, 0.25)',
+                    color: '#fb7185',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <LogOut size={13} />
+                  <span>Log Out (خروج از حساب)</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

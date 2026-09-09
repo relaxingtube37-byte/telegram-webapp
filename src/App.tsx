@@ -180,6 +180,20 @@ export function App() {
     setShowReferralModal(false);
   };
 
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('ptin_web_session');
+      localStorage.removeItem('ptin_web_verified');
+      localStorage.removeItem('ptin_partner_activated');
+      localStorage.removeItem('ptin_telegram_user');
+      localStorage.removeItem('ptin_web_uid');
+    } catch {}
+    setSessionToken(null);
+    setTelegramUser(null);
+    setIsVerified(false);
+    loadData();
+  };
+
   const handleOpenMatchPage = (pred: Prediction) => {
     setSelectedMatch(pred);
     try {
@@ -556,6 +570,8 @@ export function App() {
         onSearchChange={setSearchQuery}
         atpCount={counts.atp}
         wtaCount={counts.wta}
+        onLogout={handleLogout}
+        effectiveTrackingId={effectiveTrackingId}
       />
 
       {/* ── 3-COLUMN PORTAL CONTAINER ── */}
