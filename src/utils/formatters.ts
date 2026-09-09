@@ -456,3 +456,203 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
   });
 }
 
+export interface ParsedTennisScore {
+  isLive: boolean;
+  isFinished: boolean;
+  setsScore: string; // e.g. "2-0", "2-1", "1-0"
+  liveSets?: string; // e.g. "1-0"
+  liveGames?: string; // e.g. "4-3" (current set games)
+  livePoints?: string; // e.g. "15-30" (current game points)
+  homeSets?: string;
+  awaySets?: string;
+  homeGames?: string;
+  awayGames?: string;
+  homePoints?: string;
+  awayPoints?: string;
+  summaryText: string; // e.g. "1-0   15-30    4-3" for LIVE, or "2-0" for finished
+}
+
+/**
+ * Parses raw match score strings for both Live and Finished tennis matches.
+ * - Finished matches: strictly displays sets count only (e.g. "2-0", "2-1", "0-2")
+ * - Live matches: displays sets score, game points, and current set games (e.g. "1-0   15-30    4-3")
+ */
+export function parseTennisScore(rawScore?: string, status?: string): ParsedTennisScore | null {
+  const isLive = status === 'LIVE';
+  const clean = (rawScore || '').trim();
+
+  // If no score string provided, provide clean defaults based on status
+  if (!clean) {
+    if (status === 'WON') {
+      return {
+        isLive: false,
+        isFinished: true,
+        setsScore: '2-0',
+        homeSets: '2',
+        awaySets: '0',
+        summaryText: '2-0',
+      };
+    }
+    if (status === 'LOST') {
+      return {
+        isLive: false,
+        isFinished: true,
+        setsScore: '0-2',
+        homeSets: '0',
+        awaySets: '2',
+        summaryText: '0-2',
+      };
+    }
+    if (status === 'LIVE') {
+      return {
+        isLive: true,
+        isFinished: false,
+        setsScore: '0-0',
+        liveSets: '0-0',
+        liveGames: '0-0',
+        livePoints: '0-0',
+        homeSets: '0',
+        awaySets: '0',
+        homeGames: '0',
+        awayGames: '0',
+        homePoints: '0',
+        awayPoints: '0',
+        summaryText: '0-0   0-0    0-0',
+      };
+    }
+    return null;
+  }
+
+  // ── 1. LIVE MATCHES ──
+  // Expected or user format: "1-0   15-30    4-3" or "1-0 | 15-30 | 4-3"
+  if (isLive || clean.includes('   ') || clean.includes('  ')) {
+    const parts = clean.split(/[\s|,]+/).filter(Boolean);
+    const scoreTokens = parts.filter((p) => /^([0-9A-Za-z]+)[-:]([0-9A-Za-z]+)$/.test(p));
+
+    if (scoreTokens.length >= 2) {
+      let liveSets = '';
+      let liveGames = '';
+      let livePoints = '';
+
+      // Determine points token (typically contains 15, 30, 40, A, ADV, AD)
+      const isPoint = (tok: string) => {
+        const [a, b] = tok.split(/[-:]/);
+        return /^(15|30|40|A|AD|ADV)$/i.test(a) || /^(15|30|40|A|AD|ADV)$/i.test(b);
+      };
+
+      const pointIdx = scoreTokens.findIndex(isPoint);
+      if (pointIdx !== -1) {
+        livePoints = scoreTokens[pointIdx].replace(':', '-');
+        const remaining = scoreTokens.filter((_, i) => i !== pointIdx);
+        if (remaining.length >= 2) {
+          liveSets = remaining[0].replace(':', '-');
+          liveGames = remaining[1].replace(':', '-');
+        } else if (remaining.length === 1) {
+          liveSets = remaining[0].replace(':', '-');
+        }
+      } else if (scoreTokens.length >= 3) {
+        // User order: sets, points, games (e.g. 1-0   15-30   4-3)
+        liveSets = scoreTokens[0].replace(':', '-');
+        livePoints = scoreTokens[1].replace(':', '-');
+        liveGames = scoreTokens[2].replace(':', '-');
+      } else if (scoreTokens.length === 2) {
+        liveSets = scoreTokens[0].replace(':', '-');
+        liveGames = scoreTokens[1].replace(':', '-');
+      }
+
+      const [hS = '', aS = ''] = liveSets ? liveSets.split('-') : [];
+      const [hG = '', aG = ''] = liveGames ? liveGames.split('-') : [];
+      const [hP = '', aP = ''] = livePoints ? livePoints.split('-') : [];
+
+      // Format as user requested: "1-0   15-30    4-3"
+      const summaryParts = [liveSets, livePoints, liveGames].filter(Boolean);
+      return {
+        isLive: true,
+        isFinished: false,
+        setsScore: liveSets || '0-0',
+        liveSets: liveSets || '0-0',
+        liveGames: liveGames || '',
+        livePoints: livePoints || '',
+        homeSets: hS,
+        awaySets: aS,
+        homeGames: hG,
+        awayGames: aG,
+        homePoints: hP,
+        awayPoints: aP,
+        summaryText: summaryParts.join('   '),
+      };
+    }
+
+    if (scoreTokens.length === 1) {
+      const liveSets = scoreTokens[0].replace(':', '-');
+      const [hS = '', aS = ''] = liveSets.split('-');
+      return {
+        isLive: true,
+        isFinished: false,
+        setsScore: liveSets,
+        liveSets,
+        liveGames: '',
+        livePoints: '',
+        homeSets: hS,
+        awaySets: aS,
+        homeGames: '',
+        awayGames: '',
+        homePoints: '',
+        awayPoints: '',
+        summaryText: liveSets,
+      };
+    }
+  }
+
+  // ── 2. FINISHED MATCHES (Strictly Set Score, e.g. "2-0", "2-1", "3-1") ──
+  // Case A: string contains set prefix like "2:0 (6-4, 6-3)" or "3:1 (6-3, 3-6, 6-4, 6-2)"
+  const prefixMatch = clean.match(/^(\d+)[-:](\d+)(?:\s*\((.*)\))?$/);
+  if (prefixMatch) {
+    const s1 = parseInt(prefixMatch[1], 10);
+    const s2 = parseInt(prefixMatch[2], 10);
+    if (s1 <= 5 && s2 <= 5 && (s1 > 0 || s2 > 0 || !prefixMatch[3])) {
+      const setsStr = `${s1}-${s2}`;
+      return {
+        isLive: false,
+        isFinished: true,
+        setsScore: setsStr,
+        homeSets: String(s1),
+        awaySets: String(s2),
+        summaryText: setsStr,
+      };
+    }
+  }
+
+  // Case B: raw set scores like "6-4, 4-6, 6-3, 6-3" -> calculate sets won
+  const setMatches = clean.match(/(\d+)[-:](\d+)/g);
+  if (setMatches && setMatches.length > 0) {
+    let homeWonSets = 0;
+    let awayWonSets = 0;
+    for (const sm of setMatches) {
+      const [g1, g2] = sm.split(/[-:]/).map(Number);
+      if (g1 > g2) homeWonSets++;
+      else if (g2 > g1) awayWonSets++;
+    }
+    if (homeWonSets > 0 || awayWonSets > 0) {
+      const setsStr = `${homeWonSets}-${awayWonSets}`;
+      return {
+        isLive: false,
+        isFinished: true,
+        setsScore: setsStr,
+        homeSets: String(homeWonSets),
+        awaySets: String(awayWonSets),
+        summaryText: setsStr,
+      };
+    }
+  }
+
+  // Fallback: keep clean sets representation
+  const cleanSets = clean.replace(':', '-');
+  return {
+    isLive: false,
+    isFinished: true,
+    setsScore: cleanSets,
+    summaryText: cleanSets,
+  };
+}
+

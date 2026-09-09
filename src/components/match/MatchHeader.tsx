@@ -6,6 +6,7 @@ import {
   formatPlayerDisplayName,
   getMatchGender,
   getSurfaceEmoji,
+  parseTennisScore,
 } from '../../utils/formatters';
 import { MatchLiveStatus } from './MatchLiveStatus';
 import { PlayerAvatar } from '../PlayerAvatar';
@@ -37,8 +38,9 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   const isHomeWinner = match.predicted_winner === match.home_name;
   const isAwayWinner = match.predicted_winner === match.away_name;
 
-  const rawScore = (match.result_score || '').trim();
-  const compactScore = rawScore ? rawScore.split('(')[0].trim() : '';
+  const parsedScore = parseTennisScore(match.result_score, match.status);
+  const isLive = match.status === 'LIVE';
+  const isFinished = match.status === 'WON' || match.status === 'LOST';
 
   return (
     <div className="match-card-header-hero">
@@ -58,16 +60,14 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           <span className={`hero-tour-pill ${isWomen ? 'tour-wta' : 'tour-atp'}`}>
             {tour}
           </span>
-          <span className="hero-tourn-name">
-            <Trophy size={12} className="hero-trophy-icon" />
-            {match.tournament_name || 'Tennis Tour'}
-          </span>
-          {match.round_name && (
-            <span className="hero-round-name">• {match.round_name}</span>
+          {match.surface && (
+            <span className="hero-surface-pill">
+              {getSurfaceEmoji(match.surface)} {match.surface}
+            </span>
           )}
-          <span className="hero-surface-tag">
-            {getSurfaceEmoji(match.surface)} {match.surface || 'Hard'}
-          </span>
+          {match.round_name && (
+            <span className="hero-round-pill">{match.round_name}</span>
+          )}
         </div>
 
         {onShare && (
@@ -75,7 +75,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             type="button"
             onClick={onShare}
             className="btn-share-match"
-            title="Share match link"
+            title="Share Match Intelligence"
           >
             <Share2 size={14} />
             <span className="hide-on-mobile">Share</span>
@@ -120,10 +120,31 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
 
           {/* Center Score / VS Box */}
           <div className="arena-center-nexus">
-            {compactScore ? (
+            {isLive && parsedScore ? (
+              <div className="arena-live-scoreboard">
+                <div className="arena-live-tag-mini">
+                  <span className="live-dot-pulse" />
+                  <span>LIVE</span>
+                </div>
+                <div className="arena-triplet-grid">
+                  <div className="triplet-col sets-col" title="Sets Won">
+                    <span className="triplet-label">SETS</span>
+                    <span className="triplet-num">{parsedScore.liveSets}</span>
+                  </div>
+                  <div className="triplet-col points-col" title="Game Points">
+                    <span className="triplet-label">POINTS</span>
+                    <span className="triplet-num pts-accent">{parsedScore.livePoints}</span>
+                  </div>
+                  <div className="triplet-col games-col" title="Current Set Games">
+                    <span className="triplet-label">GAMES</span>
+                    <span className="triplet-num">{parsedScore.liveGames}</span>
+                  </div>
+                </div>
+              </div>
+            ) : isFinished && parsedScore ? (
               <div className="arena-score-display">
-                <span className="score-main-text">{compactScore}</span>
-                <span className="score-sub-label">SET SCORE</span>
+                <span className="score-main-text">{parsedScore.setsScore}</span>
+                <span className="score-sub-label">FINAL SETS</span>
               </div>
             ) : (
               <div className="arena-vs-badge">

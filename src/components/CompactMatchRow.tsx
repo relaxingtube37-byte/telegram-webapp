@@ -9,7 +9,8 @@ import {
   getCompactDateLabel,
   getSurfaceEmoji,
   formatPlayerDisplayName,
-  getMatchGender
+  getMatchGender,
+  parseTennisScore
 } from '../utils/formatters';
 import { buildPartnerWatchUrl, openExternalLink, shouldShowWatchLive } from '../utils/referralLinks';
 import { PlayerAvatar } from './PlayerAvatar';
@@ -70,7 +71,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   const winProb = prediction.win_probability || 65;
 
   const rawScore = (prediction.result_score || '').trim();
-  const compactScore = rawScore ? rawScore.split('(')[0].trim() : '';
+  const parsedScore = parseTennisScore(prediction.result_score, prediction.status);
 
   const homeAvatarUrl = getPlayerImageUrl(prediction.home_image, prediction.home_name, prediction.home_id, apiBase);
   const awayAvatarUrl = getPlayerImageUrl(prediction.away_image, prediction.away_name, prediction.away_id, apiBase);
@@ -78,27 +79,36 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   // Status Badge
   const renderStatus = () => {
     if (prediction.status === 'WON') {
+      const displayScore = parsedScore?.setsScore || '2-0';
       return (
         <span className="tennis-status-badge badge-won">
           <CheckCircle2 size={11} />
-          <span>WON {compactScore}</span>
+          <span>WON {displayScore}</span>
         </span>
       );
     }
     if (prediction.status === 'LOST') {
+      const displayScore = parsedScore?.setsScore || '0-2';
       return (
         <span className="tennis-status-badge badge-lost">
           <XCircle size={11} />
-          <span>LOST {compactScore}</span>
+          <span>LOST {displayScore}</span>
         </span>
       );
     }
     if (prediction.status === 'LIVE') {
       return (
-        <span className="tennis-status-badge badge-live">
-          <span className="live-dot-pulse" />
-          <span>LIVE {compactScore}</span>
-        </span>
+        <div className="live-status-badge-wrap">
+          <span className="tennis-status-badge badge-live">
+            <span className="live-dot-pulse" />
+            <span>LIVE</span>
+          </span>
+          {parsedScore?.summaryText && (
+            <div className="live-score-summary-bar" title="Sets | Points | Games">
+              {parsedScore.summaryText}
+            </div>
+          )}
+        </div>
       );
     }
     if (prediction.status === 'VOID') {
@@ -114,6 +124,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   };
 
   const showWatch = canWatchLive && shouldShowWatchLive(prediction.status, rawDateStr);
+  const isFinished = prediction.status === 'WON' || prediction.status === 'LOST';
+  const isLive = prediction.status === 'LIVE';
 
   return (
     <div
@@ -157,9 +169,30 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               </span>
             )}
           </div>
-          {prediction.home_odds && prediction.home_odds !== 'N/A' && (
-            <span className="player-odds-tag">@{prediction.home_odds}</span>
-          )}
+
+          <div className="player-row-right">
+            {/* Live Scores: Sets | Points | Games */}
+            {isLive && parsedScore && (
+              <div className="player-live-metric-row">
+                <span className="metric-chip chip-sets" title="Sets Won">{parsedScore.homeSets ?? '0'}</span>
+                <span className="metric-chip chip-points" title="Game Points">{parsedScore.homePoints ?? '0'}</span>
+                <span className="metric-chip chip-games" title="Current Set Games">{parsedScore.homeGames ?? '0'}</span>
+              </div>
+            )}
+
+            {/* Finished Match: Sets Won Only (e.g. 2, 0) */}
+            {isFinished && parsedScore && (
+              <div className="player-final-set-wrap" title="Final Sets Won">
+                <span className={`final-set-cell ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-set-winner' : ''}`}>
+                  {parsedScore.homeSets}
+                </span>
+              </div>
+            )}
+
+            {prediction.home_odds && prediction.home_odds !== 'N/A' && (
+              <span className="player-odds-tag">@{prediction.home_odds}</span>
+            )}
+          </div>
         </div>
 
         {/* Away Player */}
@@ -180,9 +213,30 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               </span>
             )}
           </div>
-          {prediction.away_odds && prediction.away_odds !== 'N/A' && (
-            <span className="player-odds-tag">@{prediction.away_odds}</span>
-          )}
+
+          <div className="player-row-right">
+            {/* Live Scores: Sets | Points | Games */}
+            {isLive && parsedScore && (
+              <div className="player-live-metric-row">
+                <span className="metric-chip chip-sets" title="Sets Won">{parsedScore.awaySets ?? '0'}</span>
+                <span className="metric-chip chip-points" title="Game Points">{parsedScore.awayPoints ?? '0'}</span>
+                <span className="metric-chip chip-games" title="Current Set Games">{parsedScore.awayGames ?? '0'}</span>
+              </div>
+            )}
+
+            {/* Finished Match: Sets Won Only (e.g. 2, 0) */}
+            {isFinished && parsedScore && (
+              <div className="player-final-set-wrap" title="Final Sets Won">
+                <span className={`final-set-cell ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-set-winner' : ''}`}>
+                  {parsedScore.awaySets}
+                </span>
+              </div>
+            )}
+
+            {prediction.away_odds && prediction.away_odds !== 'N/A' && (
+              <span className="player-odds-tag">@{prediction.away_odds}</span>
+            )}
+          </div>
         </div>
       </div>
 

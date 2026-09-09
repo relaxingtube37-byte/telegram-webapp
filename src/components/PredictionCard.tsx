@@ -1,4 +1,4 @@
-import { getMatchGender, parseAiDossierSections } from '../utils/formatters';
+import { getMatchGender, parseAiDossierSections, parseTennisScore } from '../utils/formatters';
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Lock, Key } from 'lucide-react';
 import type { Prediction } from '../types';
@@ -17,19 +17,22 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱'
     : prediction.surface?.toLowerCase().includes('grass') ? '🌱' : '🟦';
 
+  const parsedScore = parseTennisScore(prediction.result_score, prediction.status);
+
   const statusBadge = prediction.status === 'WON' ? (
-    <span className="badge badge-won"><CheckCircle size={12} /> WON ({prediction.result_score || '2:1'})</span>
+    <span className="badge badge-won"><CheckCircle size={12} /> WON ({parsedScore?.setsScore || '2-0'})</span>
   ) : prediction.status === 'LOST' ? (
-    <span className="badge badge-lost"><XCircle size={12} /> LOST</span>
+    <span className="badge badge-lost"><XCircle size={12} /> LOST ({parsedScore?.setsScore || '0-2'})</span>
   ) : prediction.status === 'INTERRUPTED' ? (
     <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>⏸ INTERRUPTED</span>
   ) : prediction.status === 'VOID' ? (
     <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>🔄 VOID</span>
   ) : prediction.status === 'LIVE' ? (
-    <span className="badge badge-live">● LIVE</span>
+    <span className="badge badge-live">● LIVE {parsedScore?.summaryText ? `• ${parsedScore.summaryText}` : ''}</span>
   ) : (
     <span className="badge badge-upcoming"><Clock size={12} /> UPCOMING</span>
   );
+
 
   return (
     <div className={`glass ${isWomen ? 'match-row-wta' : 'match-row-atp'}`} style={{ padding: '1.2rem', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>

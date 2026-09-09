@@ -1018,6 +1018,170 @@ body {
   font-family: var(--font-mono, monospace);
 }
 
+/* ── Live Status Badge & Triplet Summary ── */
+.live-status-badge-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.live-score-summary-bar {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #ff6b6b;
+  background: rgba(255, 77, 77, 0.12);
+  border: 1px solid rgba(255, 77, 77, 0.28);
+  padding: 1px 4px;
+  border-radius: 4px;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+}
+
+/* ── Player Row Right Side Score Indicators ── */
+.player-row-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.player-live-metric-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.metric-chip.chip-sets {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.metric-chip.chip-points {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.2);
+}
+
+.metric-chip.chip-games {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.player-final-set-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.final-set-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.final-set-cell.is-set-winner {
+  color: #4ade80;
+  font-weight: 900;
+  background: rgba(74, 222, 128, 0.16);
+  border-color: rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.2);
+}
+
+/* ── Arena Center Live Scoreboard ── */
+.arena-live-scoreboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 77, 77, 0.35);
+  box-shadow: 0 4px 16px rgba(255, 77, 77, 0.15);
+  border-radius: 10px;
+  padding: 0.4rem 0.75rem;
+  min-width: 140px;
+}
+
+.arena-live-tag-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #ff4d4d;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.arena-triplet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  text-align: center;
+}
+
+.triplet-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.triplet-col.points-col {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.triplet-label {
+  font-size: 0.48rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+.triplet-num {
+  font-size: 0.9rem;
+  font-weight: 900;
+  font-family: var(--font-mono, monospace);
+  color: #f1f5f9;
+  letter-spacing: 0.02em;
+}
+
+.triplet-num.pts-accent {
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
 /* ── Column 3: AI Prediction & Win Probability ── */
 .match-col-ai {
   width: 120px;
