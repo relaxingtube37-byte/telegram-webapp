@@ -32,7 +32,7 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
         <div className="signup-strip-content">
           <Sparkles size={16} color="#4ade80" />
           <span className="strip-title-text">
-            <strong>دسترسی آزاد فعال است:</strong> تمام تحلیل‌های تخصصی و شبیه‌سازی‌های هوش مصنوعی آزاد هستند.
+            <strong>Open Access Mode Active:</strong> All specialist AI match analyses &amp; tactical dossiers are free to explore.
           </span>
         </div>
       </div>
@@ -45,10 +45,10 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
         <div className="signup-strip-content">
           <CheckCircle size={16} color="#4ade80" />
           <span className="strip-title-text">
-            <strong>عضویت ویژه فعال است:</strong> دسترسی نامحدود به پیش‌بینی‌های ۹۰٪+، شبیه‌سازی و پخش زنده فعال شد.
+            <strong>Pro Member Access Active:</strong> Full match predictions, simulation models &amp; live stream access unlocked.
           </span>
         </div>
-        <span className="strip-vip-pill">تایید شده ✓</span>
+        <span className="strip-vip-pill">VERIFIED ✓</span>
       </div>
     );
   }
@@ -79,21 +79,21 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
         <div className="strip-text-box">
           <div className="strip-badge-row">
             <span className="strip-badge-gold">
-              <Sparkles size={11} /> {isLoggedIn ? 'گام ۲: فعال‌سازی نهایی' : 'ثبت‌نام ۲ مرحله‌ای'}
+              <Sparkles size={11} /> {isLoggedIn ? 'STEP 2: PARTNER ACTIVATION' : '2-STEP REGISTRATION'}
             </span>
             <span className={isLoggedIn ? 'strip-badge-green' : 'strip-badge-blue'}>
-              {isLoggedIn ? `✓ متصل به نام ${userName || 'شما'}` : '۱۰۰٪ رایگان'}
+              {isLoggedIn ? `✓ Connected as ${userName || 'Member'}` : '100% Free'}
             </span>
           </div>
           <h4 className="strip-headline">
             {isLoggedIn
-              ? 'گام ۲: فعال‌سازی در وان‌وین و باز شدن مادام‌العمر تمام پیش‌بینی‌ها'
-              : 'مسیر فعال‌سازی دسترسی کامل: ۱. ورود با گوگل ➔ ۲. ثبت‌نام در اسپانسر'}
+              ? 'Step 2: Activate 1WIN to permanently unlock all AI predictive models'
+              : 'Full Access Flow: 1. Sign in with Google ➔ 2. Activate Partner (500% Bonus)'}
           </h4>
           <p className="strip-subtext">
             {isLoggedIn
-              ? 'با ثبت‌نام در 1WIN، بونوس ۵۰۰٪ دریافت کرده و تحلیل‌های پیشرفته به‌صورت خودکار باز می‌شوند.'
-              : 'ابتدا با ۱ کلیک هویت خود را با گوگل ثبت کنید و سپس دسترسی کامل را دریافت نمایید.'}
+              ? 'Complete free registration on 1WIN to claim your 500% welcome bonus and auto-unlock full AI tactical dossiers.'
+              : 'Connect your account in 1-click to auto-link your tracking ID, then unlock deep analytics.'}
           </p>
         </div>
       </div>
@@ -101,19 +101,19 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
         {isLoggedIn ? (
           <>
             <button onClick={handleStep2Click} className="strip-btn-primary pulse-glow" id="strip-step2-cta-btn">
-              <Gift size={14} /> فعال‌سازی در 1WIN (+۵۰۰٪ بونوس)
+              <Gift size={14} /> Activate 1WIN (+500% Bonus)
             </button>
-            <button onClick={() => onOpenModal(2)} className="strip-btn-secondary" title="مشاهده جزییات">
-              راهنما <ChevronRight size={13} />
+            <button onClick={() => onOpenModal(2)} className="strip-btn-secondary" title="View details">
+              How it works <ChevronRight size={13} />
             </button>
           </>
         ) : (
           <>
             <button onClick={() => onOpenModal(1)} className="strip-btn-primary" id="strip-step1-cta-btn" style={{ background: 'linear-gradient(135deg, #0284c7, #0ea5e9)' }}>
-              <ArrowRight size={14} /> ورود با گوگل (گام ۱)
+              <ArrowRight size={14} /> Sign in with Google (Step 1)
             </button>
-            <button onClick={() => onOpenModal(1)} className="strip-btn-secondary" title="مشاهده مراحل">
-              مراحل ۲ گانه <ChevronRight size={13} />
+            <button onClick={() => onOpenModal(1)} className="strip-btn-secondary" title="View onboarding steps">
+              2-Step Guide <ChevronRight size={13} />
             </button>
           </>
         )}

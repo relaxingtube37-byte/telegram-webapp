@@ -123,19 +123,19 @@ export const Header: React.FC<HeaderProps> = React.memo(({
           {accessMode === 'FREE' ? (
             <div className="header-vip-pill header-vip-free">
               <Sparkles size={12} />
-              <span>دسترسی آزاد (FREE)</span>
+              <span>FREE ACCESS</span>
             </div>
           ) : isVerified ? (
             <div className="header-vip-pill header-vip-verified">
               <CheckCircle size={13} color="#4ade80" />
-              <span>عضویت کامل تایید شده ✓</span>
+              <span>MEMBER ACTIVE ✓</span>
             </div>
           ) : telegramUser ? (
             /* User finished Step 1 (Google/TG) -> Highlight Step 2 (1WIN activation) */
             <button
               onClick={() => onOpenVipModal?.(2)}
               className="header-signup-btn pulse-glow"
-              title="تکمیل مرحله ۲: فعال‌سازی در وان‌وین با بونوس ۵۰۰٪"
+              title="Complete Step 2: Activate 1WIN Partner for 500% Welcome Bonus"
               id="header-signup-cta-btn"
               style={{
                 background: 'linear-gradient(135deg, #d4a843, #fbbf24)',
@@ -145,15 +145,15 @@ export const Header: React.FC<HeaderProps> = React.memo(({
               }}
             >
               <Gift size={13} />
-              <span className="header-btn-text">فعال‌سازی 1WIN (+۵۰۰٪)</span>
-              <span className="header-btn-tag" style={{ background: '#09090b', color: '#fbbf24' }}>گام ۲</span>
+              <span className="header-btn-text">ACTIVATE 1WIN (+500%)</span>
+              <span className="header-btn-tag" style={{ background: '#09090b', color: '#fbbf24' }}>STEP 2</span>
             </button>
           ) : (
             /* User hasn't finished Step 1 yet -> Show Google Sign In CTA */
             <button
               onClick={() => onOpenVipModal?.(1)}
               className="header-signup-btn"
-              title="ورود با گوگل برای شروع فعال‌سازی"
+              title="Sign in with Google to start activation"
               id="header-signup-cta-btn"
               style={{
                 background: 'rgba(56, 189, 248, 0.15)',
@@ -167,8 +167,8 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
               </svg>
-              <span className="header-btn-text">ورود با گوگل</span>
-              <span className="header-btn-tag">گام ۱</span>
+              <span className="header-btn-text">Sign in with Google</span>
+              <span className="header-btn-tag">STEP 1</span>
             </button>
           )}
         </div>

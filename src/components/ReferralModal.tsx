@@ -177,8 +177,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               <Sparkles size={18} color="#d4a843" />
             </div>
             <div>
-              <h2 className="ref-modal-title">مسیر فعال‌سازی دسترسی کامل (۲ گام ساده)</h2>
-              <p className="ref-modal-subtitle">2-Step Official Access &amp; Partner Activation</p>
+              <h2 className="ref-modal-title">Unlock Pro AI Predictions (2-Step Access)</h2>
+              <p className="ref-modal-subtitle">Official Access &amp; Partner Activation</p>
             </div>
           </div>
           <button onClick={onClose} className="ref-modal-close-btn" aria-label="Close modal">
@@ -216,7 +216,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               borderRadius: 8,
               cursor: 'pointer',
               color: 'inherit',
-              textAlign: 'right',
+              textAlign: 'left',
             }}
           >
             <div style={{
@@ -231,14 +231,14 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               background: isUserAuthenticated ? '#4ade80' : currentStep === 1 ? '#38bdf8' : '#27272a',
               color: isUserAuthenticated || currentStep === 1 ? '#09090b' : '#a1a1aa',
             }}>
-              {isUserAuthenticated ? '✓' : '۱'}
+              {isUserAuthenticated ? '✓' : '1'}
             </div>
             <div style={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
               <div style={{ fontWeight: 700, color: currentStep === 1 ? '#38bdf8' : isUserAuthenticated ? '#4ade80' : '#d4d4d8' }}>
-                گام ۱: ورود هویت
+                Step 1: Connect Account
               </div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
-                {isUserAuthenticated ? 'متصل شد ✓' : 'Google / Telegram'}
+                {isUserAuthenticated ? 'Connected ✓' : 'Google / Telegram'}
               </div>
             </div>
           </button>
@@ -262,7 +262,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               borderRadius: 8,
               cursor: 'pointer',
               color: 'inherit',
-              textAlign: 'right',
+              textAlign: 'left',
             }}
           >
             <div style={{
@@ -277,14 +277,14 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               background: currentStep === 2 ? '#fbbf24' : '#27272a',
               color: currentStep === 2 ? '#09090b' : '#a1a1aa',
             }}>
-              ۲
+              2
             </div>
             <div style={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
               <div style={{ fontWeight: 700, color: currentStep === 2 ? '#fbbf24' : '#d4d4d8' }}>
-                گام ۲: فعال‌سازی 1WIN
+                Step 2: Activate 1WIN
               </div>
               <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
-                ۵۰۰٪ بونوس + آنلاک کامل
+                500% Bonus + Full Unlock
               </div>
             </div>
           </button>
@@ -305,10 +305,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                   <CheckCircle2 size={32} color="#4ade80" />
                 </div>
                 <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#4ade80', margin: '0 0 0.4rem 0' }}>
-                  گام ۱ با موفقیت انجام شده است!
+                  Step 1 Completed Successfully!
                 </h3>
                 <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
-                  حساب شما با نام <strong>{activeUser?.first_name || activeUser?.username || 'کاربر گرامی'}</strong> ({activeUser?.email || `ID: ${effectiveId}`}) متصل است.
+                  Account connected as <strong>{activeUser?.first_name || activeUser?.username || 'Member'}</strong> ({activeUser?.email || `ID: ${effectiveId}`}).
                 </p>
 
                 <div style={{
@@ -323,7 +323,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                   marginTop: '0.85rem',
                 }}>
                   <ShieldCheck size={14} color="#4ade80" />
-                  <span>کد ردیابی اختصاصی شما: <code>{effectiveId}</code></span>
+                  <span>Your Dedicated Tracking ID: <code>{effectiveId}</code> (Auto-synced)</span>
                 </div>
 
                 <div style={{ marginTop: '1.2rem' }}>
@@ -345,7 +345,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                       gap: '0.5rem',
                     }}
                   >
-                    <span>رفتن به گام ۲: فعال‌سازی در وان‌وین (+۵۰۰٪ بونوس)</span>
+                    <span>Proceed to Step 2: Activate 1WIN (+500% Bonus)</span>
                     <ArrowRight size={16} />
                   </button>
                 </div>
@@ -360,11 +360,11 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
                   <UserCheck size={18} color="#38bdf8" />
                   <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
-                    گام ۱ از ۲: ورود با اکانت گوگل یا تلگرام
+                    Step 1 of 2: Sign in with Google or Telegram
                   </span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1rem 0', lineHeight: 1.5 }}>
-                  برای اینکه سیستم بتواند کد پیگیری اختصاصی بسازد و پس از ثبت‌نام در اسپانسر، قفل تحلیل‌های هوش مصنوعی را برای همیشه برای شما باز نگه دارد، ابتدا با ۱ کلیک وارد شوید:
+                  Sign in with 1-click to auto-link your dedicated tracking ID and save your predictive model insights across all devices:
                 </p>
 
                 {linkError && (
@@ -384,7 +384,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
                 {linking && (
                   <div style={{ textAlign: 'center', color: '#38bdf8', fontSize: '0.82rem', marginBottom: '0.8rem' }}>
-                    در حال اتصال و تایید حساب گوگل...
+                    Connecting and verifying Google account...
                   </div>
                 )}
 
@@ -395,7 +395,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', margin: '0.85rem 0', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                   <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
-                  <span>یا ورود از طریق تلگرام</span>
+                  <span>or sign in with Telegram</span>
                   <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
                 </div>
 
@@ -416,7 +416,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                       marginTop: 4,
                     }}
                   >
-                    <Send size={12} /> باز کردن مستقیم در مینی‌اپ تلگرام →
+                    <Send size={12} /> Open directly in Telegram Mini App →
                   </a>
                 </div>
               </div>
@@ -441,14 +441,14 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 {isUserAuthenticated ? (
                   <>
                     <CheckCircle2 size={16} color="#4ade80" />
-                    <span style={{ color: '#4ade80', fontWeight: 700 }}>گام ۱ متصل شد:</span>
-                    <span style={{ color: '#fff' }}>{activeUser?.first_name || activeUser?.email || 'حساب کاربری'}</span>
+                    <span style={{ color: '#4ade80', fontWeight: 700 }}>Step 1 Connected:</span>
+                    <span style={{ color: '#fff' }}>{activeUser?.first_name || activeUser?.email || 'User Account'}</span>
                   </>
                 ) : (
                   <>
                     <Lock size={15} color="#fbbf24" />
-                    <span style={{ color: '#fbbf24', fontWeight: 700 }}>گام ۱ هنوز انجام نشده است:</span>
-                    <span style={{ color: '#a1a1aa' }}>بهتر است ابتدا وارد شوید</span>
+                    <span style={{ color: '#fbbf24', fontWeight: 700 }}>Step 1 Pending:</span>
+                    <span style={{ color: '#a1a1aa' }}>Sign in to connect tracking ID</span>
                   </>
                 )}
               </div>
@@ -467,7 +467,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                     textDecoration: 'underline',
                   }}
                 >
-                  ورود با گوگل ➔
+                  Sign in with Google ➔
                 </button>
               )}
             </div>
@@ -475,7 +475,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
             {/* Tracking ID Connection Badge */}
             <div className="ref-tracking-badge" style={{ margin: 0 }}>
               <ShieldCheck size={14} color="#4ade80" />
-              <span>شناسه اتصال اختصاصی شما: <code>{effectiveId}</code> (متصل به لینک رفرال)</span>
+              <span>Dedicated Tracking ID: <code>{effectiveId}</code> (Linked to Partner)</span>
             </div>
 
             {/* Partner Site 1WIN Card */}
@@ -517,17 +517,17 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                           <span className="ref-partner-title" style={{ fontSize: '1.1rem', color: '#fbbf24' }}>
                             {site.name.toUpperCase()}
                           </span>
-                          <span className="ref-verified-pill" style={{ marginRight: 6 }}>
-                            ✓ اسپانسر رسمی
+                          <span className="ref-verified-pill" style={{ marginLeft: 6 }}>
+                            ✓ Official Partner
                           </span>
                         </div>
                         <div className="ref-bonus-tag" style={{ background: 'linear-gradient(135deg, #d4a843, #fbbf24)', color: '#09090b', fontWeight: 800 }}>
-                          🎁 ۵۰۰٪ بونوس خوش‌آمدگویی
+                          🎁 500% Welcome Bonus
                         </div>
                       </div>
 
                       <p className="ref-partner-perks" style={{ margin: '0.6rem 0 1rem 0', lineHeight: 1.5, fontSize: '0.84rem' }}>
-                        با کلیک روی دکمه زیر، مستقیماً با کد تخفیف و بونوس ۵۰۰٪ وارد سایت <strong>{site.name}</strong> می‌شوید. به محض ثبت‌نام یا واریز، اکانت شما به صورت خودکار شناسایی شده و قفل تمام پیش‌بینی‌های ۹۰٪+، شبیه‌سازی هوش مصنوعی و پخش زنده مسابقات برای همیشه باز می‌شود.
+                        Click the button below to register directly with our official bonus code on <strong>{site.name}</strong>. Once registered, your account will be automatically recognized and full access to 90%+ AI predictions, live match feeds, and tactical simulations will unlock permanently.
                       </p>
 
                       <div className="ref-partner-actions">
@@ -541,14 +541,14 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                             fontWeight: 800,
                           }}
                         >
-                          <Gift size={16} /> ثبت‌نام در {site.name} و دریافت ۵۰۰٪ بونوس
+                          <Gift size={16} /> Register on {site.name} &amp; Claim 500% Bonus
                         </button>
                         {appTrackingUrl && (
                           <button
                             onClick={handleOpenApp}
                             className="ref-btn-app"
                           >
-                            <Download size={14} /> دانلود اپلیکیشن
+                            <Download size={14} /> Download App
                           </button>
                         )}
                       </div>
@@ -557,7 +557,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 })
               ) : (
                 <div className="ref-empty-state">
-                  در حال حاضر شریک رفرال فعالی ثبت نشده است.
+                  No active referral partner configured at this moment.
                 </div>
               )}
             </div>
@@ -567,7 +567,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         {/* Footer Guarantee */}
         <div className="ref-modal-footer">
           <CheckCircle2 size={15} color="#4ade80" />
-          <span>تایید خودکار با Tracking ID • بدون هزینه اشتراک • ۱۰۰٪ ایمن و رایگان</span>
+          <span>Instant Auto-Verification • No Subscription Fees • 100% Free Access</span>
         </div>
       </div>
     </div>
