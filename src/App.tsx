@@ -840,6 +840,7 @@ export function App() {
                       <div className="tournament-column-legend">
                         <span className="col-legend-status">Status / Time</span>
                         <span className="col-legend-players">Players &amp; Odds</span>
+                        <span className="col-legend-score">Result / Score</span>
                         <span className="col-legend-ai">AI Win Forecast</span>
                         <span className="col-legend-action">Open</span>
                       </div>

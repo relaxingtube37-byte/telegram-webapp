@@ -126,18 +126,18 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
                   <span className="live-dot-pulse" />
                   <span>LIVE</span>
                 </div>
-                <div className="arena-triplet-grid">
-                  <div className="triplet-col sets-col" title="Sets Won">
-                    <span className="triplet-label">SETS</span>
-                    <span className="triplet-num">{parsedScore.liveSets}</span>
+                <div className="arena-vertical-score-stack">
+                  <div className="vertical-score-row sets-row" title="Sets Won">
+                    <span className="v-label">SETS</span>
+                    <span className="v-num">{parsedScore.liveSets || '0-0'}</span>
                   </div>
-                  <div className="triplet-col points-col" title="Game Points">
-                    <span className="triplet-label">POINTS</span>
-                    <span className="triplet-num pts-accent">{parsedScore.livePoints}</span>
+                  <div className="vertical-score-row points-row" title="Game Points">
+                    <span className="v-label">POINTS</span>
+                    <span className="v-num pts-glow">{parsedScore.livePoints || '0-0'}</span>
                   </div>
-                  <div className="triplet-col games-col" title="Current Set Games">
-                    <span className="triplet-label">GAMES</span>
-                    <span className="triplet-num">{parsedScore.liveGames}</span>
+                  <div className="vertical-score-row games-row" title="Current Set Games">
+                    <span className="v-label">GAMES</span>
+                    <span className="v-num">{parsedScore.liveGames || '0-0'}</span>
                   </div>
                 </div>
               </div>
