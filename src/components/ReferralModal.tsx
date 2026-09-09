@@ -124,6 +124,30 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     [apiBase, sessionToken, onVerified]
   );
 
+  const completeActivation = useCallback(async (siteId?: number) => {
+    try {
+      const resp = await fetch(`${apiBase}/referral/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          telegramId: effectiveId,
+          siteId,
+          sessionToken: sessionToken || localStorage.getItem('ptin_web_session'),
+        }),
+      });
+      const data = await resp.json();
+      if (data?.sessionToken && onVerified) {
+        onVerified(data.sessionToken, activeUser);
+      } else if (onVerified) {
+        onVerified(sessionToken || undefined, activeUser);
+      }
+    } catch {
+      if (onVerified) {
+        onVerified(sessionToken || undefined, activeUser);
+      }
+    }
+  }, [apiBase, effectiveId, sessionToken, activeUser, onVerified]);
+
   useEffect(() => {
     if (isTgEnvironment || isUserAuthenticated || currentStep !== 1) return;
 
@@ -506,7 +530,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    if (onVerified) onVerified(sessionToken || undefined, activeUser);
+                    completeActivation();
                     onClose();
                   }}
                   style={{
@@ -550,9 +574,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                       e.preventDefault();
                       if (!trackingUrl) return;
                       openExternalLink(trackingUrl);
-                      if (onVerified) {
-                        onVerified(sessionToken || undefined, activeUser);
-                      }
+                      completeActivation(site.id);
                       setIsCompleted(true);
                     };
 
@@ -563,9 +585,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                       } else {
                         window.open(appTrackingUrl, '_blank', 'noopener,noreferrer');
                       }
-                      if (onVerified) {
-                        onVerified(sessionToken || undefined, activeUser);
-                      }
+                      completeActivation(site.id);
                       setIsCompleted(true);
                     };
 
@@ -616,9 +636,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            if (onVerified) {
-                              onVerified(sessionToken || undefined, activeUser);
-                            }
+                            completeActivation(site.id);
                             setIsCompleted(true);
                           }}
                           style={{

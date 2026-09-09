@@ -212,13 +212,25 @@ export function App() {
               if (res.verified !== undefined) setIsVerified(!!res.verified);
               if (res.access_mode) setAccessMode(res.access_mode);
               if (res.content_layers) setContentLayers(prev => ({ ...prev, ...res.content_layers }));
+              if (res.sessionToken) {
+                setSessionToken(res.sessionToken);
+                try {
+                  localStorage.setItem('ptin_web_session', res.sessionToken);
+                } catch {}
+              }
               if (res.user) {
                 setTelegramUser({
                   id: res.user.telegram_id,
                   first_name: res.user.first_name,
                   username: res.user.username,
+                  auth_provider: 'telegram',
                 });
+                try {
+                  localStorage.setItem('ptin_web_verified', 'true');
+                } catch {}
               }
+              // Immediately refresh data with the verified Telegram session
+              loadData();
             }
           })
           .catch(err => {
@@ -311,7 +323,9 @@ export function App() {
         ? predRes
         : (Array.isArray(predRes?.predictions) ? predRes.predictions : []);
       if (predRes?.content_layers) setContentLayers(prev => ({ ...prev, ...predRes.content_layers }));
-      if (predRes?.verified !== undefined) setIsVerified(!!predRes.verified);
+      if (predRes?.verified !== undefined) {
+        setIsVerified(isUserRegistered ? true : !!predRes.verified);
+      }
       if (predRes?.access_mode) setAccessMode(predRes.access_mode);
 
       setPredictions(loadedPreds);
