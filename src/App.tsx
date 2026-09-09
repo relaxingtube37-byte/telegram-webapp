@@ -469,8 +469,19 @@ export function App() {
       // Check URL path or query for direct match landing (e.g. /match/:slug or ?match=123)
       try {
         const matchParam = parseMatchParamFromUrl();
-        if (matchParam && loadedPreds.length > 0) {
-          const matchTarget = findMatchByParam(loadedPreds, matchParam);
+        if (matchParam) {
+          let matchTarget = loadedPreds.length > 0 ? findMatchByParam(loadedPreds, matchParam) : null;
+          if (!matchTarget) {
+            const trailing = matchParam.match(/-(\d+)$/) || matchParam.match(/^(\d+)$/);
+            if (trailing) {
+              try {
+                const singleRes = await fetch(`${API_BASE}/matches/${trailing[1]}/betting`, { headers }).then(r => r.json());
+                if (singleRes && (singleRes.fixture_id || singleRes.id)) {
+                  matchTarget = singleRes;
+                }
+              } catch {}
+            }
+          }
           if (matchTarget) setSelectedMatch(matchTarget);
         }
       } catch {}
@@ -638,8 +649,8 @@ export function App() {
 
         {/* Center Main Match Feed Column */}
         <main className="portal-center-feed">
-          {/* Mobile Promotional Sign-Up Strip (Only on mobile or unverified) */}
-          {!selectedMatch && !effectiveVerified && effectiveAccessMode !== 'FREE' && (
+          {/* Mobile Promotional Sign-Up Strip (Only on mobile or unverified, and not direct match landing) */}
+          {!selectedMatch && !parseMatchParamFromUrl() && !effectiveVerified && effectiveAccessMode !== 'FREE' && (
             <SignUpStrip
               isVerified={effectiveVerified}
               accessMode={effectiveAccessMode}
@@ -655,21 +666,26 @@ export function App() {
           )}
 
         {selectedMatch ? (
-        <MatchAnalysisPage
-          prediction={selectedMatch}
-          selectedTimezone={selectedTimezone}
-          webappApiBase={API_BASE}
-          sessionToken={sessionToken}
-          isVerified={effectiveVerified}
-          accessMode={effectiveAccessMode}
-          referralSites={referralSites}
-          trackingId={effectiveTrackingId}
-          businessActions={businessActions}
-          onBack={handleBackToMatches}
-          onUnlockClick={() => setShowReferralModal(true)}
-          onVerified={handlePartnerActivation}
-        />
-      ) : (
+          <MatchAnalysisPage
+            prediction={selectedMatch}
+            selectedTimezone={selectedTimezone}
+            webappApiBase={API_BASE}
+            sessionToken={sessionToken}
+            isVerified={effectiveVerified}
+            accessMode={effectiveAccessMode}
+            referralSites={referralSites}
+            trackingId={effectiveTrackingId}
+            businessActions={businessActions}
+            onBack={handleBackToMatches}
+            onUnlockClick={() => setShowReferralModal(true)}
+            onVerified={handlePartnerActivation}
+          />
+        ) : parseMatchParamFromUrl() && loading ? (
+          <div className="loading-state" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Trophy size={48} className="loading-icon" />
+            <div className="loading-text" style={{ marginTop: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>Loading Match Dossier &amp; AI Analysis...</div>
+          </div>
+        ) : (
         <>
           {/* Search Input & Date Filters Row */}
           <div className="search-date-combined-row">

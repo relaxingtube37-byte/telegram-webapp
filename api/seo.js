@@ -76,6 +76,13 @@ export default async function handler(req, res) {
     const idPart = match.fixture_id || match.id;
     const resolvedSlug = `${homeSlug}-vs-${awaySlug}-${idPart}`;
 
+    // If a human visitor directly navigated to /api/seo, redirect them to the rich SPA route
+    const userAgent = req.headers['user-agent'] || '';
+    const isBot = /(bot|crawler|spider|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|embedly|slackbot|discord|google|bing|yandex|duckduck|baidu|lighthouse)/i.test(userAgent);
+    if (!isBot && req.url && (req.url.startsWith('/api/seo') || req.url.startsWith('/api/'))) {
+      return res.redirect(302, `/match/${resolvedSlug}`);
+    }
+
     const title = `${matchTitle} Analysis, Odds & AI Match Preview | Ptin AI`;
     const description = match.ai_summary
       ? match.ai_summary.slice(0, 160).replace(/[\n\r]+/g, ' ').trim()
@@ -235,10 +242,16 @@ ${JSON.stringify(jsonLd, null, 2)}
       </main>
     </div>
 
-    <!-- Client Hydration State -->
+    <!-- Client Hydration State & Browser SPA Fallback -->
     <script>
       window.__INITIAL_PREDICTION__ = ${JSON.stringify(match)};
       window.__INITIAL_MATCH__ = ${JSON.stringify(match)};
+      (function() {
+        var isBot = /(bot|crawler|spider|slurp|google|bing|yandex|duckduck|baidu|preview|facebook|whatsapp|telegram|twitter|slack|discord)/i.test(navigator.userAgent || '');
+        if (!isBot && window.location.pathname.startsWith('/api/seo')) {
+          window.location.replace('/match/' + ${JSON.stringify(resolvedSlug)});
+        }
+      })();
     </script>
   </body>
 </html>`;

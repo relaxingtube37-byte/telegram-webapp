@@ -4,6 +4,13 @@
   "rewrites": [
     {
       "source": "/match/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawler|spider|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|embedly|slackbot|discord|google|bing|yandex|duckduck|baidu|lighthouse).*"
+        }
+      ],
       "destination": "/api/seo?match=:slug"
     },
     {
@@ -12,6 +19,11 @@
         {
           "type": "query",
           "key": "match"
+        },
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(bot|crawler|spider|crawling|slurp|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|embedly|slackbot|discord|google|bing|yandex|duckduck|baidu|lighthouse).*"
         }
       ],
       "destination": "/api/seo"
