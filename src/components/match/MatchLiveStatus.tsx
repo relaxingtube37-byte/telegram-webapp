@@ -23,17 +23,32 @@ export const MatchLiveStatus: React.FC<MatchLiveStatusProps> = ({ status, result
       </span>
     );
   }
+
   if (status === 'WON' || status === 'LOST') {
-    const finalScore = parsed?.setsScore || (status === 'WON' ? '2-0' : '0-2');
+    // Only show score if we actually have a real score — never fabricate
+    const finalScore = parsed?.setsScore;
     return (
       <span style={{ fontWeight: 700, color: status === 'WON' ? '#4ade80' : '#f87171' }}>
-        Final {finalScore}
+        {finalScore ? `Final ${finalScore}` : `Final`}
       </span>
     );
   }
-  if (status === 'VOID' || status === 'INTERRUPTED') {
-    return <span style={{ fontWeight: 700, color: '#fbbf24' }}>{status}</span>;
+
+  if (status === 'INTERRUPTED') {
+    return <span style={{ fontWeight: 700, color: '#fbbf24' }}>PAUSED</span>;
   }
+
+  if (status === 'POSTPONED') {
+    return <span style={{ fontWeight: 700, color: '#94a3b8' }}>POSTPONED</span>;
+  }
+
+  if (status === 'VOID') {
+    return <span style={{ fontWeight: 700, color: '#64748b' }}>VOID</span>;
+  }
+
+  // UPCOMING / default
   return <span style={{ fontWeight: 600 }}>Upcoming</span>;
 };
+
+
 

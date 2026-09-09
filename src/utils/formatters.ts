@@ -481,49 +481,27 @@ export function parseTennisScore(rawScore?: string, status?: string): ParsedTenn
   const isLive = status === 'LIVE';
   const clean = (rawScore || '').trim();
 
-  // If no score string provided, provide clean defaults based on status
+  // If no score string provided:
+  // - WON/LOST with no actual score: return null (don't fabricate scores)
+  // - LIVE with no real data: return null (don't fabricate dummy zeros)
+  // - Other statuses: return null
   if (!clean) {
-    if (status === 'WON') {
-      return {
-        isLive: false,
-        isFinished: true,
-        setsScore: '2-0',
-        homeSets: '2',
-        awaySets: '0',
-        summaryText: '2-0',
-      };
-    }
-    if (status === 'LOST') {
-      return {
-        isLive: false,
-        isFinished: true,
-        setsScore: '0-2',
-        homeSets: '0',
-        awaySets: '2',
-        summaryText: '0-2',
-      };
-    }
-    if (status === 'LIVE') {
-      return {
-        isLive: true,
-        isFinished: false,
-        setsScore: '0-0',
-        liveSets: '0-0',
-        liveGames: '0-0',
-        livePoints: '0-0',
-        homeSets: '0',
-        awaySets: '0',
-        homeGames: '0',
-        awayGames: '0',
-        homePoints: '0',
-        awayPoints: '0',
-        summaryText: '0-0   0-0    0-0',
-      };
-    }
     return null;
   }
 
+  // ── 0. SPECIAL LABELS: Walkover / Retirement ──
+  // These are single-word scores like "W/O" or "RET" set by the settler
+  if (/^(W\/O|WO|WALKOVER|RET|RETIREMENT)$/i.test(clean)) {
+    return {
+      isLive: false,
+      isFinished: true,
+      setsScore: clean.toUpperCase() === 'WO' ? 'W/O' : clean.toUpperCase(),
+      summaryText: clean.toUpperCase() === 'WO' ? 'W/O' : clean.toUpperCase(),
+    };
+  }
+
   // ── 1. LIVE MATCHES ──
+
   // Expected or user format: "1-0   15-30    4-3" or "1-0 | 15-30 | 4-3"
   if (isLive || clean.includes('   ') || clean.includes('  ')) {
     const parts = clean.split(/[\s|,]+/).filter(Boolean);

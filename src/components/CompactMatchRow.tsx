@@ -239,15 +239,20 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               </span>
             </div>
           ) : isFinished && parsedScore ? (
-            <div className="player-score-cells">
-              <span
-                className={`score-cell cell-final-set ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-winner' : ''}`}
-                title="Home Final Sets"
-              >
-                <span className="cell-sub">SET</span>
-                <span className="cell-num">{parsedScore.homeSets || '0'}</span>
-              </span>
-            </div>
+            // Walkover / Retirement: no individual sets — show summary label in row 1
+            parsedScore.homeSets === undefined ? (
+              <span className="score-walkover-label">{parsedScore.setsScore}</span>
+            ) : (
+              <div className="player-score-cells">
+                <span
+                  className={`score-cell cell-final-set ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-winner' : ''}`}
+                  title="Home Final Sets"
+                >
+                  <span className="cell-sub">SET</span>
+                  <span className="cell-num">{parsedScore.homeSets}</span>
+                </span>
+              </div>
+            )
           ) : (
             <span className="score-dash">—</span>
           )}
@@ -271,20 +276,26 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               </span>
             </div>
           ) : isFinished && parsedScore ? (
-            <div className="player-score-cells">
-              <span
-                className={`score-cell cell-final-set ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-winner' : ''}`}
-                title="Away Final Sets"
-              >
-                <span className="cell-sub">SET</span>
-                <span className="cell-num">{parsedScore.awaySets || '0'}</span>
-              </span>
-            </div>
+            // Walkover / Retirement: row 2 is empty (label shown in row 1)
+            parsedScore.awaySets === undefined ? (
+              <span className="score-dash">—</span>
+            ) : (
+              <div className="player-score-cells">
+                <span
+                  className={`score-cell cell-final-set ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-winner' : ''}`}
+                  title="Away Final Sets"
+                >
+                  <span className="cell-sub">SET</span>
+                  <span className="cell-num">{parsedScore.awaySets}</span>
+                </span>
+              </div>
+            )
           ) : (
             <span className="score-dash">—</span>
           )}
         </div>
       </div>
+
 
       {/* ── Column 3: AI Prediction & Win Probability ── */}
       <div className="match-col-ai">

@@ -38,9 +38,19 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   const isHomeWinner = match.predicted_winner === match.home_name;
   const isAwayWinner = match.predicted_winner === match.away_name;
 
-  const parsedScore = parseTennisScore(match.result_score, match.status);
-  const isLive = match.status === 'LIVE';
-  const isFinished = match.status === 'WON' || match.status === 'LOST';
+  const rawScore = (match.result_score || '').trim();
+  const rawDateStr = match.match_date || match.published_at;
+  const isMatchInFuture = rawDateStr ? new Date(rawDateStr).getTime() > Date.now() + 15 * 60 * 1000 : false;
+  const isZeroScore = !rawScore || rawScore === '0-0   0-0    0-0' || rawScore === '0-0' || rawScore === '0:0';
+
+  // Same safeguard as CompactMatchRow: unstarted matches with zero score must not show as LIVE
+  const effectiveStatus: Prediction['status'] = (match.status === 'LIVE' && isZeroScore && isMatchInFuture)
+    ? 'UPCOMING'
+    : match.status;
+
+  const parsedScore = parseTennisScore(match.result_score, effectiveStatus);
+  const isLive = effectiveStatus === 'LIVE';
+  const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST';
 
   return (
     <div className="match-card-header-hero">
@@ -91,7 +101,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             <Clock size={12} />
             <span>{formatMatchTime(match.match_date, selectedTimezone)}</span>
           </div>
-          <MatchLiveStatus status={match.status} resultScore={match.result_score} />
+          <MatchLiveStatus status={effectiveStatus} resultScore={match.result_score} />
         </div>
 
         {/* Arena Players & Center Score */}
