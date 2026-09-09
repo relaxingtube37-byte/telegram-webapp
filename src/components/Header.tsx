@@ -408,7 +408,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                   }}
                 >
                   <LogOut size={13} />
-                  <span>Log Out (خروج از حساب)</span>
+                  <span>Log Out</span>
                 </button>
               </div>
             )}
