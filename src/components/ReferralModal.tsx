@@ -35,7 +35,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   onClose,
   onVerified,
 }) => {
-  const isTgEnvironment = Boolean(
+  const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+  const isTgEnvironment = !isLoggedOut && Boolean(
     telegramId ||
     (typeof window !== 'undefined' && (
       window.Telegram?.WebApp?.initData ||
@@ -68,6 +69,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     enabled: false,
     onSuccess: (newToken, user) => {
       try {
+        localStorage.removeItem('ptin_user_logged_out');
         localStorage.setItem('ptin_web_verified', 'true');
         localStorage.setItem('ptin_partner_activated', 'true');
       } catch {}
@@ -107,6 +109,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
   const completeActivation = useCallback((siteId?: number) => {
     try {
+      localStorage.removeItem('ptin_user_logged_out');
       localStorage.setItem('ptin_web_verified', 'true');
       localStorage.setItem('ptin_partner_activated', 'true');
     } catch {}

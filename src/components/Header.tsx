@@ -4,7 +4,7 @@ import type { StatsOverviewData } from '../types';
 
 interface HeaderProps {
   stats: StatsOverviewData | null;
-  telegramUser?: { first_name?: string; username?: string; email?: string; avatar_url?: string } | null;
+  telegramUser?: { id?: number | string; first_name?: string; username?: string; email?: string; avatar_url?: string } | null;
   selectedTimezone: string;
   onTimezoneChange: (tz: string) => void;
   isVerified?: boolean;
@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
 
           {/* User Account / Profile Capsule & Trust Menu */}
           <div style={{ position: 'relative' }} ref={profileMenuRef}>
-            {telegramUser || isVerified ? (
+            {Boolean(telegramUser && (telegramUser.id || telegramUser.username || telegramUser.email || telegramUser.first_name)) ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                 {/* Pending Step 2 Quick CTA (if authenticated but not verified yet) */}
                 {!isVerified && accessMode !== 'FREE' && (

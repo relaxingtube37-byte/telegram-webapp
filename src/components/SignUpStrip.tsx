@@ -57,11 +57,12 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
 
   if (!registrationEnabled) return null;
 
-  const isTelegramEnv = Boolean(
+  const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+  const isTelegramEnv = !isLoggedOut && Boolean(
     typeof window !== 'undefined' &&
     (window.Telegram?.WebApp?.initData || window.Telegram?.WebApp?.initDataUnsafe?.user?.id)
   );
-  const effectiveLoggedIn = isLoggedIn || isTelegramEnv;
+  const effectiveLoggedIn = !isLoggedOut && (isLoggedIn || isTelegramEnv);
 
   const primary = sites[0];
   const directLink = primary
@@ -74,6 +75,7 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
   const handleStep2Click = (e: React.MouseEvent) => {
     e.preventDefault();
     try {
+      localStorage.removeItem('ptin_user_logged_out');
       localStorage.setItem('ptin_web_verified', 'true');
       localStorage.setItem('ptin_partner_activated', 'true');
     } catch {}

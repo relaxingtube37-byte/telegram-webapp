@@ -69,6 +69,9 @@ export function App() {
     auth_provider?: string;
   } | null>(() => {
     if (typeof window !== 'undefined') {
+      if (localStorage.getItem('ptin_user_logged_out') === 'true') {
+        return null;
+      }
       const unsafeUser = (window as any).Telegram?.WebApp?.initDataUnsafe?.user;
       if (unsafeUser?.id) {
         return {
@@ -103,6 +106,7 @@ export function App() {
   const [isVerified, setIsVerified] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
+        if (localStorage.getItem('ptin_user_logged_out') === 'true') return false;
         return (
           localStorage.getItem('ptin_web_verified') === 'true' ||
           localStorage.getItem('ptin_partner_activated') === 'true'
@@ -132,24 +136,31 @@ export function App() {
     return null;
   });
 
+  const isExplicitlyLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+
   const effectiveTrackingId = useMemo(() => {
+    if (isExplicitlyLoggedOut) return 'anonymous';
     if (telegramUser?.id && telegramUser.id > 0) return telegramUser.id;
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id) {
       return (window as any).Telegram.WebApp.initDataUnsafe.user.id;
     }
     if (webId) return webId;
     return 'anonymous';
-  }, [telegramUser, webId]);
+  }, [telegramUser, webId, isExplicitlyLoggedOut]);
 
-  const isUserRegistered = Boolean(
-    telegramUser?.id ||
-    telegramUser?.email ||
-    (typeof window !== 'undefined' && (
-      localStorage.getItem('ptin_web_verified') === 'true' ||
-      localStorage.getItem('ptin_partner_activated') === 'true'
-    ))
-  );
-  const effectiveVerified = isVerified || isUserRegistered;
+  const isUserRegistered = useMemo(() => {
+    if (isExplicitlyLoggedOut) return false;
+    return Boolean(
+      telegramUser?.id ||
+      telegramUser?.email ||
+      (typeof window !== 'undefined' && (
+        localStorage.getItem('ptin_web_verified') === 'true' ||
+        localStorage.getItem('ptin_partner_activated') === 'true'
+      ))
+    );
+  }, [telegramUser, isExplicitlyLoggedOut]);
+
+  const effectiveVerified = !isExplicitlyLoggedOut && (isVerified || isUserRegistered);
 
   const canSeeDeepAnalysis = accessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_ai_full;
   const canWatchLive =
@@ -158,6 +169,7 @@ export function App() {
 
   const handlePartnerActivation = (siteId?: number) => {
     try {
+      localStorage.removeItem('ptin_user_logged_out');
       localStorage.setItem('ptin_web_verified', 'true');
       localStorage.setItem('ptin_partner_activated', 'true');
     } catch {}
@@ -182,6 +194,7 @@ export function App() {
 
   const handleLogout = () => {
     try {
+      localStorage.setItem('ptin_user_logged_out', 'true');
       localStorage.removeItem('ptin_web_session');
       localStorage.removeItem('ptin_web_verified');
       localStorage.removeItem('ptin_partner_activated');
@@ -191,7 +204,8 @@ export function App() {
     setSessionToken(null);
     setTelegramUser(null);
     setIsVerified(false);
-    loadData();
+    setSelectedMatch(null);
+    loadData(false, null);
   };
 
   const handleOpenMatchPage = (pred: Prediction) => {
@@ -257,6 +271,22 @@ export function App() {
     try {
       localStorage.removeItem('ptin_web_uid');
     } catch {}
+
+    const isLoggedOutOnMount = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+    if (isLoggedOutOnMount) {
+      fetch(`${API_BASE}/config`)
+        .then(r => r.json())
+        .then(cfg => {
+          if (cfg?.bot_username) setBotUsername(cfg.bot_username);
+          if (cfg?.webapp_short_name) setWebappShortName(cfg.webapp_short_name);
+          if (cfg?.access_mode) setAccessMode(cfg.access_mode);
+          if (cfg?.content_layers) setContentLayers(prev => ({ ...prev, ...cfg.content_layers }));
+          if (cfg?.business_actions) setBusinessActions(prev => ({ ...prev, ...cfg.business_actions }));
+        })
+        .catch(() => {});
+      loadData(false, null);
+      return;
+    }
 
     const isTelegramEnv = Boolean(window.Telegram?.WebApp?.initData);
 
@@ -384,13 +414,16 @@ export function App() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (forcedVerified?: boolean, forcedToken?: string | null) => {
     setLoading(true);
     try {
-      const token = (() => {
-        try { return localStorage.getItem('ptin_web_session'); } catch { return sessionToken; }
-      })();
-      const headers = buildAuthHeaders(token || sessionToken);
+      const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+      const token = forcedToken !== undefined
+        ? forcedToken
+        : (!isLoggedOut ? (() => {
+            try { return localStorage.getItem('ptin_web_session'); } catch { return sessionToken; }
+          })() : null);
+      const headers = buildAuthHeaders(token);
 
       const [predRes, statsRes, refRes] = await Promise.all([
         fetch(`${API_BASE}/predictions`, { headers }).then(r => r.json()).catch(() => ({})),
@@ -403,20 +436,16 @@ export function App() {
         : (Array.isArray(predRes?.predictions) ? predRes.predictions : []);
       if (predRes?.content_layers) setContentLayers(prev => ({ ...prev, ...predRes.content_layers }));
 
-      const isClientVerified = Boolean(
-        isVerified ||
-        isUserRegistered ||
-        (typeof window !== 'undefined' && (
-          localStorage.getItem('ptin_web_verified') === 'true' ||
-          localStorage.getItem('ptin_partner_activated') === 'true'
-        ))
-      );
+      const isClientVerified = forcedVerified !== undefined
+        ? forcedVerified
+        : (!isLoggedOut && Boolean(
+            (typeof window !== 'undefined' && (
+              localStorage.getItem('ptin_web_verified') === 'true' ||
+              localStorage.getItem('ptin_partner_activated') === 'true'
+            ))
+          ));
 
-      if (isClientVerified) {
-        setIsVerified(true);
-      } else if (predRes?.verified !== undefined) {
-        setIsVerified(!!predRes.verified);
-      }
+      setIsVerified(isClientVerified);
       if (predRes?.access_mode) setAccessMode(predRes.access_mode);
 
       const finalPreds = loadedPreds.map(p => isClientVerified ? { ...p, content_locked: false } : p);
@@ -715,7 +744,7 @@ export function App() {
             </div>
 
             <button
-              onClick={loadData}
+              onClick={() => loadData()}
               disabled={loading}
               className="btn-refresh"
               title="Refresh Predictions"
@@ -854,6 +883,9 @@ export function App() {
           currentUser={telegramUser}
           onClose={() => setShowReferralModal(false)}
           onVerified={(newToken, user) => {
+            try {
+              localStorage.removeItem('ptin_user_logged_out');
+            } catch {}
             handlePartnerActivation();
             if (newToken) {
               setSessionToken(newToken);
