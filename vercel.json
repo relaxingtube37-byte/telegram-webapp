@@ -14,6 +14,10 @@
       "destination": "/api/seo?match=:slug"
     },
     {
+      "source": "/match/:slug",
+      "destination": "/index.html"
+    },
+    {
       "source": "/",
       "has": [
         {
