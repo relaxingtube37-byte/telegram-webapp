@@ -43,13 +43,24 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   onClose,
   onVerified,
 }) => {
-  const isTgEnvironment = Boolean(telegramId || window.Telegram?.WebApp?.initData);
-  const isUserAuthenticated = Boolean(telegramId || currentUser?.email || currentUser?.username);
+  const isTgEnvironment = Boolean(
+    telegramId ||
+    (typeof window !== 'undefined' && (
+      window.Telegram?.WebApp?.initData ||
+      window.Telegram?.WebApp?.initDataUnsafe?.user?.id
+    ))
+  );
+  const isUserAuthenticated = Boolean(
+    isTgEnvironment ||
+    telegramId ||
+    currentUser?.email ||
+    currentUser?.username
+  );
 
-  // Default step: if authenticated, jump to step 2; else start at step 1
+  // Default step: if inside Telegram or already authenticated, immediately open step 2
   const [currentStep, setCurrentStep] = useState<1 | 2>(() => {
     if (initialStep) return initialStep;
-    return isUserAuthenticated ? 2 : 1;
+    return (isTgEnvironment || isUserAuthenticated) ? 2 : 1;
   });
 
   const [linking, setLinking] = useState(false);
@@ -126,11 +137,18 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
   const completeActivation = useCallback(async (siteId?: number) => {
     try {
+      localStorage.setItem('ptin_web_verified', 'true');
+      localStorage.setItem('ptin_partner_activated', 'true');
+    } catch {}
+    if (onVerified) {
+      onVerified(sessionToken || undefined, activeUser);
+    }
+    try {
       const resp = await fetch(`${apiBase}/referral/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          telegramId: effectiveId,
+          telegramId: effectiveId !== 'anonymous' ? effectiveId : undefined,
           siteId,
           sessionToken: sessionToken || localStorage.getItem('ptin_web_session'),
         }),
@@ -138,13 +156,9 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
       const data = await resp.json();
       if (data?.sessionToken && onVerified) {
         onVerified(data.sessionToken, activeUser);
-      } else if (onVerified) {
-        onVerified(sessionToken || undefined, activeUser);
       }
     } catch {
-      if (onVerified) {
-        onVerified(sessionToken || undefined, activeUser);
-      }
+      // Client is already unlocked client-side
     }
   }, [apiBase, effectiveId, sessionToken, activeUser, onVerified]);
 

@@ -7,6 +7,7 @@ interface SideBannerProps {
   sites: ReferralSite[];
   effectiveId?: string | number;
   onOpenModal: () => void;
+  onVerified?: () => void;
   apiBase?: string;
 }
 
@@ -15,6 +16,7 @@ export const SideBanner: React.FC<SideBannerProps> = ({
   sites,
   effectiveId,
   onOpenModal,
+  onVerified,
   apiBase = 'https://telegram-backend-2yck.onrender.com/api/webapp',
 }) => {
   const primarySite = sites[0];
@@ -33,6 +35,11 @@ export const SideBanner: React.FC<SideBannerProps> = ({
 
   const handleOpenLink = (url: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    try {
+      localStorage.setItem('ptin_web_verified', 'true');
+      localStorage.setItem('ptin_partner_activated', 'true');
+    } catch {}
+    if (onVerified) onVerified();
     if (!url) {
       onOpenModal();
       return;

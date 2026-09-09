@@ -67,7 +67,24 @@ export function App() {
     email?: string;
     avatar_url?: string;
     auth_provider?: string;
-  } | null>(null);
+  } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const unsafeUser = (window as any).Telegram?.WebApp?.initDataUnsafe?.user;
+      if (unsafeUser?.id) {
+        return {
+          id: unsafeUser.id,
+          first_name: unsafeUser.first_name,
+          username: unsafeUser.username,
+          auth_provider: 'telegram',
+        };
+      }
+      try {
+        const stored = localStorage.getItem('ptin_telegram_user');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return null;
+  });
 
   const handleOpenRegistrationModal = (step: 1 | 2 = 1) => {
     setModalInitialStep(step);
@@ -83,7 +100,17 @@ export function App() {
   });
   const [botUsername, setBotUsername] = useState<string>('admdinbetbetforbot');
   const [webappShortName, setWebappShortName] = useState<string>('app');
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return (
+          localStorage.getItem('ptin_web_verified') === 'true' ||
+          localStorage.getItem('ptin_partner_activated') === 'true'
+        );
+      } catch {}
+    }
+    return false;
+  });
   const [accessMode, setAccessMode] = useState<'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED'>('REGISTRATION_REQUIRED');
   const [contentLayers, setContentLayers] = useState<ContentLayerFlags>(DEFAULT_CONTENT_LAYERS);
   const [businessActions, setBusinessActions] = useState({
@@ -117,7 +144,10 @@ export function App() {
   const isUserRegistered = Boolean(
     telegramUser?.id ||
     telegramUser?.email ||
-    (typeof window !== 'undefined' && localStorage.getItem('ptin_web_verified') === 'true')
+    (typeof window !== 'undefined' && (
+      localStorage.getItem('ptin_web_verified') === 'true' ||
+      localStorage.getItem('ptin_partner_activated') === 'true'
+    ))
   );
   const effectiveVerified = isVerified || isUserRegistered;
 
@@ -125,6 +155,30 @@ export function App() {
   const canWatchLive =
     (businessActions.watch_live_enabled !== false) &&
     (accessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_watch_live);
+
+  const handlePartnerActivation = (siteId?: number) => {
+    try {
+      localStorage.setItem('ptin_web_verified', 'true');
+      localStorage.setItem('ptin_partner_activated', 'true');
+    } catch {}
+    setIsVerified(true);
+
+    fetch(`${API_BASE}/referral/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegramId: effectiveTrackingId !== 'anonymous' ? effectiveTrackingId : undefined,
+        siteId: siteId || referralSites[0]?.id || 1,
+        sessionToken,
+      }),
+    }).catch(() => {});
+
+    setPredictions(prev => prev.map(p => ({ ...p, content_locked: false })));
+    if (selectedMatch) {
+      setSelectedMatch(prev => prev ? { ...prev, content_locked: false } : null);
+    }
+    setShowReferralModal(false);
+  };
 
   const handleOpenMatchPage = (pred: Prediction) => {
     setSelectedMatch(pred);
@@ -198,9 +252,22 @@ export function App() {
       tg.ready();
       tg.expand();
 
+      if (tg.initDataUnsafe?.user) {
+        const u = {
+          id: tg.initDataUnsafe.user.id,
+          first_name: tg.initDataUnsafe.user.first_name,
+          username: tg.initDataUnsafe.user.username,
+          auth_provider: 'telegram',
+        };
+        setTelegramUser(u);
+        try {
+          localStorage.setItem('ptin_telegram_user', JSON.stringify(u));
+        } catch {}
+      }
+
       const rawInitData = tg.initData;
       if (rawInitData) {
-        // Authenticate cryptographically using signed Telegram initData
+        // Authenticate cryptographically using signed Telegram initData in background
         fetch(`${API_BASE}/auth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -219,26 +286,24 @@ export function App() {
                 } catch {}
               }
               if (res.user) {
-                setTelegramUser({
+                const u = {
                   id: res.user.telegram_id,
                   first_name: res.user.first_name,
                   username: res.user.username,
                   auth_provider: 'telegram',
-                });
+                };
+                setTelegramUser(u);
                 try {
+                  localStorage.setItem('ptin_telegram_user', JSON.stringify(u));
                   localStorage.setItem('ptin_web_verified', 'true');
                 } catch {}
               }
-              // Immediately refresh data with the verified Telegram session
               loadData();
             }
           })
           .catch(err => {
             console.warn('[Telegram WebApp Auth Error]:', err);
           });
-      } else if (tg.initDataUnsafe?.user) {
-        // Fallback for local browser dev environment outside Telegram Webview
-        setTelegramUser(tg.initDataUnsafe.user);
       }
     }
 
@@ -323,12 +388,25 @@ export function App() {
         ? predRes
         : (Array.isArray(predRes?.predictions) ? predRes.predictions : []);
       if (predRes?.content_layers) setContentLayers(prev => ({ ...prev, ...predRes.content_layers }));
-      if (predRes?.verified !== undefined) {
-        setIsVerified(isUserRegistered ? true : !!predRes.verified);
+
+      const isClientVerified = Boolean(
+        isVerified ||
+        isUserRegistered ||
+        (typeof window !== 'undefined' && (
+          localStorage.getItem('ptin_web_verified') === 'true' ||
+          localStorage.getItem('ptin_partner_activated') === 'true'
+        ))
+      );
+
+      if (isClientVerified) {
+        setIsVerified(true);
+      } else if (predRes?.verified !== undefined) {
+        setIsVerified(!!predRes.verified);
       }
       if (predRes?.access_mode) setAccessMode(predRes.access_mode);
 
-      setPredictions(loadedPreds);
+      const finalPreds = loadedPreds.map(p => isClientVerified ? { ...p, content_locked: false } : p);
+      setPredictions(finalPreds);
       setStats(statsRes);
       setReferralSites(Array.isArray(refRes) ? refRes : []);
 
@@ -510,6 +588,7 @@ export function App() {
               sites={referralSites}
               effectiveId={effectiveTrackingId}
               onOpenModal={handleOpenRegistrationModal}
+              onVerified={handlePartnerActivation}
               apiBase={API_BASE}
               registrationEnabled={businessActions.registration_referral_enabled !== false}
               isLoggedIn={Boolean(telegramUser?.id || telegramUser?.username || telegramUser?.email)}
@@ -530,6 +609,7 @@ export function App() {
           businessActions={businessActions}
           onBack={handleBackToMatches}
           onUnlockClick={() => setShowReferralModal(true)}
+          onVerified={handlePartnerActivation}
         />
       ) : (
         <>
@@ -738,6 +818,7 @@ export function App() {
             sites={referralSites}
             effectiveId={effectiveTrackingId}
             onOpenModal={() => setShowReferralModal(true)}
+            onVerified={handlePartnerActivation}
             apiBase={API_BASE}
           />
         </aside>
@@ -757,6 +838,7 @@ export function App() {
           currentUser={telegramUser}
           onClose={() => setShowReferralModal(false)}
           onVerified={(newToken, user) => {
+            handlePartnerActivation();
             if (newToken) {
               setSessionToken(newToken);
               try {
@@ -773,12 +855,6 @@ export function App() {
                 auth_provider: user.auth_provider || 'google',
               });
             }
-            try {
-              localStorage.setItem('ptin_web_verified', 'true');
-            } catch {}
-            setIsVerified(true);
-            // Instantly refresh predictions & analytics with verified session
-            loadData();
           }}
         />
       )}

@@ -15,6 +15,7 @@ interface MatchBusinessActionsProps {
   isVerified: boolean;
   businessActions: BusinessActionsPublic;
   onRegisterInfoClick?: () => void;
+  onVerified?: () => void;
 }
 
 export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
@@ -25,6 +26,7 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
   isVerified,
   businessActions,
   onRegisterInfoClick,
+  onVerified,
 }) => {
   const primary = sites[0];
   const showRegister =
@@ -38,6 +40,13 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
 
   const go = (action: 'registration' | 'watch_live') => {
     if (!primary) return;
+    if (action === 'registration') {
+      try {
+        localStorage.setItem('ptin_web_verified', 'true');
+        localStorage.setItem('ptin_partner_activated', 'true');
+      } catch {}
+      if (onVerified) onVerified();
+    }
     const url = buildGoReferralUrl(apiBase, primary.id, trackingId, {
       action,
       matchId: match.id,

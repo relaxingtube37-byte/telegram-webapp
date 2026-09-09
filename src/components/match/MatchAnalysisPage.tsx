@@ -29,6 +29,7 @@ interface MatchAnalysisPageProps {
   referralSites?: ReferralSite[];
   trackingId?: string | number;
   businessActions?: BusinessActionsPublic;
+  onVerified?: () => void;
 }
 
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -50,18 +51,29 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     watch_live_enabled: true,
     payment_mode_placeholder_enabled: false,
   },
+  onVerified,
 }) => {
   const webApiBase = useMemo(() => resolveWebApiBase(webappApiBase), [webappApiBase]);
-  const [match, setMatch] = useState<Prediction>(seed);
+  const isClientVerified = Boolean(
+    isVerified ||
+    (typeof window !== 'undefined' && (
+      localStorage.getItem('ptin_web_verified') === 'true' ||
+      localStorage.getItem('ptin_partner_activated') === 'true'
+    ))
+  );
+
+  const [match, setMatch] = useState<Prediction>(() =>
+    isClientVerified ? { ...seed, content_locked: false } : seed
+  );
   const [analytics, setAnalytics] = useState<MappedDeepAnalytics | null>(null);
-  const [serverVerified, setServerVerified] = useState<boolean>(isVerified);
+  const [serverVerified, setServerVerified] = useState<boolean>(isClientVerified);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<SubTab>('all');
 
   useEffect(() => {
-    setMatch(seed);
-  }, [seed.id, seed.fixture_id]);
+    setMatch(isClientVerified ? { ...seed, content_locked: false } : seed);
+  }, [seed.id, seed.fixture_id, isClientVerified]);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,17 +98,23 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 
         if (matchesRes?.matches) {
           const found = findMatchInWebList(matchesRes.matches, seed);
-          if (found) setMatch(found);
-          if (typeof matchesRes.verified === 'boolean') setServerVerified(matchesRes.verified);
+          if (found) {
+            setMatch(isClientVerified ? { ...found, content_locked: false } : found);
+          }
+          if (typeof matchesRes.verified === 'boolean' && matchesRes.verified) {
+            setServerVerified(true);
+          }
         }
 
         if (deepRes) {
-          if (typeof deepRes.verified === 'boolean') setServerVerified(deepRes.verified);
+          if (typeof deepRes.verified === 'boolean' && deepRes.verified) {
+            setServerVerified(true);
+          }
           setAnalytics(
             mapDeepAnalyticsPayload({
-              content_locked: deepRes.content_locked,
-              guest_stats_level: deepRes.guest_stats_level,
-              verified: deepRes.verified,
+              content_locked: isClientVerified ? false : deepRes.content_locked,
+              guest_stats_level: isClientVerified ? 'full' : deepRes.guest_stats_level,
+              verified: isClientVerified ? true : deepRes.verified,
               data: deepRes.data,
             })
           );
@@ -115,7 +133,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [webApiBase, sessionToken, seed.home_name, seed.away_name, seed.surface, seed.match_date, seed.id, seed.fixture_id]);
+  }, [webApiBase, sessionToken, seed.home_name, seed.away_name, seed.surface, seed.match_date, seed.id, seed.fixture_id, isClientVerified]);
 
   // SEO document title
   useEffect(() => {
@@ -128,8 +146,8 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   }, [match.home_name, match.away_name]);
 
   const freeMode = accessMode === 'FREE';
-  const member = freeMode || serverVerified || isVerified;
-  const contentLocked = match.content_locked === true && !member;
+  const member = freeMode || isClientVerified || serverVerified;
+  const contentLocked = !member && match.content_locked === true;
   const canSeeFullAi = member || match.content_locked === false;
   const summary = shortInsightSummary(match.ai_summary);
 
@@ -172,6 +190,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         isVerified={member}
         businessActions={businessActions}
         onRegisterInfoClick={onUnlockClick}
+        onVerified={onVerified}
       />
 
       {/* ── Internal Match Card Sub-Tabs ── */}
