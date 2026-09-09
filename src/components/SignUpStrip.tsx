@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Key, CheckCircle, ChevronRight, Gift } from 'lucide-react';
+import { Sparkles, CheckCircle, ChevronRight, Gift, ArrowRight, UserCheck } from 'lucide-react';
 import type { ReferralSite } from '../types';
 import { buildGoReferralUrl, openExternalLink } from '../utils/referralLinks';
 
@@ -8,9 +8,11 @@ interface SignUpStripProps {
   accessMode?: 'FREE' | 'REGISTRATION_REQUIRED' | 'DEPOSIT_REQUIRED';
   sites: ReferralSite[];
   effectiveId?: string | number;
-  onOpenModal: () => void;
+  onOpenModal: (initialStep?: 1 | 2) => void;
   apiBase?: string;
   registrationEnabled?: boolean;
+  isLoggedIn?: boolean;
+  userName?: string;
 }
 
 export const SignUpStrip: React.FC<SignUpStripProps> = ({
@@ -21,6 +23,8 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
   onOpenModal,
   apiBase = 'https://telegram-backend-2yck.onrender.com/api/webapp',
   registrationEnabled = true,
+  isLoggedIn = false,
+  userName,
 }) => {
   if (accessMode === 'FREE') {
     return (
@@ -28,7 +32,7 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
         <div className="signup-strip-content">
           <Sparkles size={16} color="#4ade80" />
           <span className="strip-title-text">
-            <strong>Open Access Mode Active:</strong> All AI match analyses &amp; tactical dossiers are currently free to explore!
+            <strong>دسترسی آزاد فعال است:</strong> تمام تحلیل‌های تخصصی و شبیه‌سازی‌های هوش مصنوعی آزاد هستند.
           </span>
         </div>
       </div>
@@ -41,10 +45,10 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
         <div className="signup-strip-content">
           <CheckCircle size={16} color="#4ade80" />
           <span className="strip-title-text">
-            <strong>Member access:</strong> Full match analytics, form stats &amp; AI dossiers unlocked.
+            <strong>عضویت ویژه فعال است:</strong> دسترسی نامحدود به پیش‌بینی‌های ۹۰٪+، شبیه‌سازی و پخش زنده فعال شد.
           </span>
         </div>
-        <span className="strip-vip-pill">ACTIVE ✓</span>
+        <span className="strip-vip-pill">تایید شده ✓</span>
       </div>
     );
   }
@@ -59,10 +63,10 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
       })
     : '';
 
-  const handleRegisterClick = (e: React.MouseEvent) => {
+  const handleStep2Click = (e: React.MouseEvent) => {
     e.preventDefault();
     if (directLink) openExternalLink(directLink);
-    else onOpenModal();
+    else onOpenModal(2);
   };
 
   return (
@@ -70,30 +74,49 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
       <div className="strip-glow-accent" />
       <div className="strip-left-section">
         <div className="strip-icon-box">
-          <Gift size={20} color="#d4a843" />
+          {isLoggedIn ? <Gift size={20} color="#fbbf24" /> : <UserCheck size={20} color="#38bdf8" />}
         </div>
         <div className="strip-text-box">
           <div className="strip-badge-row">
             <span className="strip-badge-gold">
-              <Sparkles size={11} /> MEMBER ACCESS
+              <Sparkles size={11} /> {isLoggedIn ? 'گام ۲: فعال‌سازی نهایی' : 'ثبت‌نام ۲ مرحله‌ای'}
             </span>
-            <span className="strip-badge-green">Full analysis</span>
+            <span className={isLoggedIn ? 'strip-badge-green' : 'strip-badge-blue'}>
+              {isLoggedIn ? `✓ متصل به نام ${userName || 'شما'}` : '۱۰۰٪ رایگان'}
+            </span>
           </div>
           <h4 className="strip-headline">
-            Register with our partner to unlock deeper match analytics
+            {isLoggedIn
+              ? 'گام ۲: فعال‌سازی در وان‌وین و باز شدن مادام‌العمر تمام پیش‌بینی‌ها'
+              : 'مسیر فعال‌سازی دسترسی کامل: ۱. ورود با گوگل ➔ ۲. ثبت‌نام در اسپانسر'}
           </h4>
           <p className="strip-subtext">
-            Access form, surface, H2H and AI dossiers — no subscription fee on this site.
+            {isLoggedIn
+              ? 'با ثبت‌نام در 1WIN، بونوس ۵۰۰٪ دریافت کرده و تحلیل‌های پیشرفته به‌صورت خودکار باز می‌شوند.'
+              : 'ابتدا با ۱ کلیک هویت خود را با گوگل ثبت کنید و سپس دسترسی کامل را دریافت نمایید.'}
           </p>
         </div>
       </div>
       <div className="strip-action-section">
-        <button onClick={handleRegisterClick} className="strip-btn-primary" id="strip-register-cta-btn">
-          <Key size={14} /> Register for full analysis
-        </button>
-        <button onClick={onOpenModal} className="strip-btn-secondary" title="See step-by-step instructions">
-          How it works <ChevronRight size={13} />
-        </button>
+        {isLoggedIn ? (
+          <>
+            <button onClick={handleStep2Click} className="strip-btn-primary pulse-glow" id="strip-step2-cta-btn">
+              <Gift size={14} /> فعال‌سازی در 1WIN (+۵۰۰٪ بونوس)
+            </button>
+            <button onClick={() => onOpenModal(2)} className="strip-btn-secondary" title="مشاهده جزییات">
+              راهنما <ChevronRight size={13} />
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => onOpenModal(1)} className="strip-btn-primary" id="strip-step1-cta-btn" style={{ background: 'linear-gradient(135deg, #0284c7, #0ea5e9)' }}>
+              <ArrowRight size={14} /> ورود با گوگل (گام ۱)
+            </button>
+            <button onClick={() => onOpenModal(1)} className="strip-btn-secondary" title="مشاهده مراحل">
+              مراحل ۲ گانه <ChevronRight size={13} />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

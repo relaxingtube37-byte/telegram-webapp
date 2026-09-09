@@ -1,5 +1,5 @@
-import React from 'react';
-import { ExternalLink, CheckCircle2, ShieldCheck, Download, Sparkles, X, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { ExternalLink, CheckCircle2, ShieldCheck, Download, Sparkles, X, Send, Gift, ArrowRight, UserCheck, Lock } from 'lucide-react';
 import type { ReferralSite } from '../types';
 import { buildPartnerRegisterUrl, openExternalLink } from '../utils/referralLinks';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
@@ -18,6 +18,14 @@ interface ReferralModalProps {
   botUsername?: string;
   webappShortName?: string;
   apiBase?: string;
+  initialStep?: 1 | 2;
+  currentUser?: {
+    first_name?: string;
+    username?: string;
+    email?: string;
+    avatar_url?: string;
+    auth_provider?: string;
+  } | null;
   onClose: () => void;
   onVerified?: (newToken?: string, user?: any) => void;
 }
@@ -30,15 +38,26 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   botUsername = 'admdinbetbetforbot',
   webappShortName = 'app',
   apiBase = 'https://telegram-backend-2yck.onrender.com/api/webapp',
+  initialStep,
+  currentUser,
   onClose,
   onVerified,
 }) => {
-  const [linking, setLinking] = React.useState(false);
-  const [linkError, setLinkError] = React.useState<string | null>(null);
-  const widgetContainerRef = React.useRef<HTMLDivElement>(null);
-  const googleBtnRef = React.useRef<HTMLDivElement>(null);
-
   const isTgEnvironment = Boolean(telegramId || window.Telegram?.WebApp?.initData);
+  const isUserAuthenticated = Boolean(telegramId || currentUser?.email || currentUser?.username);
+
+  // Default step: if authenticated, jump to step 2; else start at step 1
+  const [currentStep, setCurrentStep] = useState<1 | 2>(() => {
+    if (initialStep) return initialStep;
+    return isUserAuthenticated ? 2 : 1;
+  });
+
+  const [linking, setLinking] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [justConnectedUser, setJustConnectedUser] = useState<any | null>(null);
+
+  const widgetContainerRef = useRef<HTMLDivElement>(null);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
 
   const { renderGoogleButton } = useGoogleAuth({
     apiBase,
@@ -47,6 +66,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     onSuccess: (newToken, user) => {
       setLinking(false);
       setLinkError(null);
+      setJustConnectedUser(user);
+      setCurrentStep(2); // Auto-advance to Step 2 (1WIN Partner Activation)
       if (onVerified) {
         onVerified(newToken, user);
       }
@@ -57,17 +78,20 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     },
   });
 
-  // Determine user tracking ID: verified Telegram ID takes precedence, then verified/session webId
-  const effectiveId = React.useMemo(() => {
+  // Effective tracking ID: verified user numeric ID, telegram ID, or session webId
+  const effectiveId = useMemo(() => {
     if (telegramId && telegramId > 0) return telegramId;
+    if (justConnectedUser?.telegram_id) return justConnectedUser.telegram_id;
     if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
       return window.Telegram.WebApp.initDataUnsafe.user.id;
     }
     if (webId) return webId;
     return 'anonymous';
-  }, [telegramId, webId]);
+  }, [telegramId, justConnectedUser, webId]);
 
-  const handleTelegramWidgetAuth = React.useCallback(
+  const activeUser = currentUser || justConnectedUser;
+
+  const handleTelegramWidgetAuth = useCallback(
     async (widgetUser: any) => {
       setLinking(true);
       setLinkError(null);
@@ -82,14 +106,16 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         });
         const data = await resp.json();
         if (data.success) {
+          setJustConnectedUser(data.telegramUser);
+          setCurrentStep(2);
           if (onVerified) {
             onVerified(data.sessionToken, data.telegramUser);
           }
         } else {
-          setLinkError(data.error || 'Failed to verify Telegram ownership');
+          setLinkError(data.error || 'Failed to verify Telegram login');
         }
       } catch {
-        setLinkError('Network error during Telegram verification');
+        setLinkError('Network error connecting to Telegram auth');
       } finally {
         setLinking(false);
       }
@@ -97,8 +123,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     [apiBase, sessionToken, onVerified]
   );
 
-  React.useEffect(() => {
-    if (isTgEnvironment || telegramId) return;
+  useEffect(() => {
+    if (isTgEnvironment || isUserAuthenticated || currentStep !== 1) return;
 
     window.onTelegramAuth = (user: any) => {
       handleTelegramWidgetAuth(user);
@@ -124,13 +150,13 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         container.innerHTML = '';
       }
     };
-  }, [botUsername, isTgEnvironment, telegramId, handleTelegramWidgetAuth]);
+  }, [botUsername, isTgEnvironment, isUserAuthenticated, currentStep, handleTelegramWidgetAuth]);
 
-  React.useEffect(() => {
-    if (!isTgEnvironment && !telegramId && googleBtnRef.current) {
+  useEffect(() => {
+    if (!isTgEnvironment && !isUserAuthenticated && currentStep === 1 && googleBtnRef.current) {
       renderGoogleButton(googleBtnRef.current);
     }
-  }, [isTgEnvironment, telegramId, renderGoogleButton]);
+  }, [isTgEnvironment, isUserAuthenticated, currentStep, renderGoogleButton]);
 
   return (
     <div
@@ -142,16 +168,17 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
       <div
         className="referral-modal-card"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 540 }}
       >
         {/* Top Header */}
         <div className="ref-modal-header">
           <div className="ref-modal-title-group">
             <div className="ref-modal-icon-badge">
-              <Sparkles size={18} color="#38bdf8" />
+              <Sparkles size={18} color="#d4a843" />
             </div>
             <div>
-              <h2 className="ref-modal-title">Member Access &amp; Full Dossier</h2>
-              <p className="ref-modal-subtitle">Connect your account for complete AI predictive model insights</p>
+              <h2 className="ref-modal-title">مسیر فعال‌سازی دسترسی کامل (۲ گام ساده)</h2>
+              <p className="ref-modal-subtitle">2-Step Official Access &amp; Partner Activation</p>
             </div>
           </div>
           <button onClick={onClose} className="ref-modal-close-btn" aria-label="Close modal">
@@ -159,92 +186,237 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
           </button>
         </div>
 
-        {/* 3-Step Visual Progress Guide */}
-        <div className="ref-steps-container">
-          <div className="ref-step-item">
-            <div className="ref-step-num">1</div>
-            <div className="ref-step-text">
-              <strong>Connect Account</strong>
-              <span>Google or Telegram 1-click</span>
+        {/* 2-Step Interactive Stepper Bar */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          alignItems: 'center',
+          gap: '0.6rem',
+          margin: '0.5rem 0 1.25rem 0',
+          padding: '0.6rem 0.85rem',
+          background: 'rgba(0, 0, 0, 0.35)',
+          borderRadius: 12,
+          border: '1px solid rgba(212, 168, 67, 0.15)',
+        }}>
+          {/* Step 1 Pill */}
+          <button
+            type="button"
+            onClick={() => setCurrentStep(1)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.45rem 0.65rem',
+              background: currentStep === 1
+                ? 'rgba(56, 189, 248, 0.15)'
+                : isUserAuthenticated
+                ? 'rgba(74, 222, 128, 0.1)'
+                : 'transparent',
+              border: `1px solid ${currentStep === 1 ? '#38bdf8' : isUserAuthenticated ? '#4ade80' : 'rgba(255,255,255,0.1)'}`,
+              borderRadius: 8,
+              cursor: 'pointer',
+              color: 'inherit',
+              textAlign: 'right',
+            }}
+          >
+            <div style={{
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              background: isUserAuthenticated ? '#4ade80' : currentStep === 1 ? '#38bdf8' : '#27272a',
+              color: isUserAuthenticated || currentStep === 1 ? '#09090b' : '#a1a1aa',
+            }}>
+              {isUserAuthenticated ? '✓' : '۱'}
             </div>
-          </div>
-          <div className="ref-step-arrow">→</div>
-          <div className="ref-step-item">
-            <div className="ref-step-num">2</div>
-            <div className="ref-step-text">
-              <strong>Auto Link</strong>
-              <span>ID attached automatically</span>
+            <div style={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 700, color: currentStep === 1 ? '#38bdf8' : isUserAuthenticated ? '#4ade80' : '#d4d4d8' }}>
+                گام ۱: ورود هویت
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+                {isUserAuthenticated ? 'متصل شد ✓' : 'Google / Telegram'}
+              </div>
             </div>
-          </div>
-          <div className="ref-step-arrow">→</div>
-          <div className="ref-step-item">
-            <div className="ref-step-num">3</div>
-            <div className="ref-step-text">
-              <strong>Full Access</strong>
-              <span>Instant dossier unlocked</span>
+          </button>
+
+          {/* Stepper Arrow */}
+          <div style={{ color: 'rgba(212, 168, 67, 0.5)', fontWeight: 'bold' }}>➔</div>
+
+          {/* Step 2 Pill */}
+          <button
+            type="button"
+            onClick={() => setCurrentStep(2)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0.45rem 0.65rem',
+              background: currentStep === 2
+                ? 'rgba(212, 168, 67, 0.18)'
+                : 'transparent',
+              border: `1px solid ${currentStep === 2 ? '#fbbf24' : 'rgba(255,255,255,0.1)'}`,
+              borderRadius: 8,
+              cursor: 'pointer',
+              color: 'inherit',
+              textAlign: 'right',
+            }}
+          >
+            <div style={{
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              background: currentStep === 2 ? '#fbbf24' : '#27272a',
+              color: currentStep === 2 ? '#09090b' : '#a1a1aa',
+            }}>
+              ۲
             </div>
-          </div>
+            <div style={{ fontSize: '0.75rem', lineHeight: 1.2 }}>
+              <div style={{ fontWeight: 700, color: currentStep === 2 ? '#fbbf24' : '#d4d4d8' }}>
+                گام ۲: فعال‌سازی 1WIN
+              </div>
+              <div style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+                ۵۰۰٪ بونوس + آنلاک کامل
+              </div>
+            </div>
+          </button>
         </div>
 
-        {/* Tracking ID Badge */}
-        <div className="ref-tracking-badge">
-          <ShieldCheck size={14} color="#4ade80" />
-          <span>Tracking ID: <code>{effectiveId}</code> (Auto-synced)</span>
-        </div>
+        {/* ── STEP 1 CONTENT: IDENTITY / SIGN IN ── */}
+        {currentStep === 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {isUserAuthenticated ? (
+              <div style={{
+                background: 'rgba(74, 222, 128, 0.08)',
+                border: '1px solid rgba(74, 222, 128, 0.3)',
+                borderRadius: 12,
+                padding: '1.25rem',
+                textAlign: 'center',
+              }}>
+                <div style={{ display: 'inline-flex', padding: '0.5rem', background: 'rgba(74, 222, 128, 0.15)', borderRadius: '50%', marginBottom: '0.5rem' }}>
+                  <CheckCircle2 size={32} color="#4ade80" />
+                </div>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#4ade80', margin: '0 0 0.4rem 0' }}>
+                  گام ۱ با موفقیت انجام شده است!
+                </h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  حساب شما با نام <strong>{activeUser?.first_name || activeUser?.username || 'کاربر گرامی'}</strong> ({activeUser?.email || `ID: ${effectiveId}`}) متصل است.
+                </p>
 
-        {/* Secure Sign-in Section for Web Users */}
-        {!isTgEnvironment && (
-          <div className="ref-tg-link-box">
-            {telegramId ? (
-              <div className="ref-tg-linked">
-                <CheckCircle2 size={16} color="#4ade80" />
-                <span>Active Member Account Connected (ID: {telegramId})</span>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  background: 'rgba(0,0,0,0.4)',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: 20,
+                  fontSize: '0.75rem',
+                  color: '#fbbf24',
+                  marginTop: '0.85rem',
+                }}>
+                  <ShieldCheck size={14} color="#4ade80" />
+                  <span>کد ردیابی اختصاصی شما: <code>{effectiveId}</code></span>
+                </div>
+
+                <div style={{ marginTop: '1.2rem' }}>
+                  <button
+                    onClick={() => setCurrentStep(2)}
+                    style={{
+                      width: '100%',
+                      padding: '0.8rem 1.2rem',
+                      background: 'linear-gradient(135deg, #d4a843, #e8c060)',
+                      color: '#000',
+                      border: 'none',
+                      borderRadius: 10,
+                      fontWeight: 800,
+                      fontSize: '0.92rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <span>رفتن به گام ۲: فعال‌سازی در وان‌وین (+۵۰۰٪ بونوس)</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
               </div>
             ) : (
-              <div>
-                <label className="ref-tg-label">
-                  Connect Your Account:
-                </label>
-                <p className="ref-tg-desc">
-                  Sign in with Google or Telegram to sync full match analyses across all your devices.
+              <div style={{
+                background: 'rgba(18, 24, 20, 0.7)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 12,
+                padding: '1.25rem',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                  <UserCheck size={18} color="#38bdf8" />
+                  <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
+                    گام ۱ از ۲: ورود با اکانت گوگل یا تلگرام
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1rem 0', lineHeight: 1.5 }}>
+                  برای اینکه سیستم بتواند کد پیگیری اختصاصی بسازد و پس از ثبت‌نام در اسپانسر، قفل تحلیل‌های هوش مصنوعی را برای همیشه برای شما باز نگه دارد، ابتدا با ۱ کلیک وارد شوید:
                 </p>
 
                 {linkError && (
-                  <div className="ref-error-box">
+                  <div style={{
+                    background: 'rgba(244, 63, 94, 0.12)',
+                    border: '1px solid rgba(244, 63, 94, 0.3)',
+                    color: '#fb7185',
+                    padding: '0.6rem 0.8rem',
+                    borderRadius: 8,
+                    fontSize: '0.8rem',
+                    marginBottom: '0.8rem',
+                    textAlign: 'center',
+                  }}>
                     {linkError}
                   </div>
                 )}
 
                 {linking && (
-                  <div className="ref-status-text">
-                    Verifying authentication...
+                  <div style={{ textAlign: 'center', color: '#38bdf8', fontSize: '0.82rem', marginBottom: '0.8rem' }}>
+                    در حال اتصال و تایید حساب گوگل...
                   </div>
                 )}
 
-                {/* Google One-Click Button */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0.8rem 0' }}>
-                  <div ref={googleBtnRef} style={{ minHeight: 40, display: 'flex', justifyContent: 'center' }} />
+                {/* Google 1-Click Button Container */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0.5rem 0' }}>
+                  <div ref={googleBtnRef} style={{ minHeight: 44, display: 'flex', justifyContent: 'center' }} />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', margin: '0.6rem 0', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', margin: '0.85rem 0', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
                   <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
-                  <span>or with Telegram</span>
+                  <span>یا ورود از طریق تلگرام</span>
                   <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
                 </div>
 
-                <div className="ref-tg-widget-wrap">
-                  <div
-                    ref={widgetContainerRef}
-                    style={{ minHeight: 38, display: 'flex', justifyContent: 'center' }}
-                  />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
+                  <div ref={widgetContainerRef} style={{ minHeight: 38, display: 'flex', justifyContent: 'center' }} />
 
                   <a
                     href={`https://t.me/${botUsername}/${webappShortName}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ref-tg-miniapp-link"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      color: '#38bdf8',
+                      fontSize: '0.78rem',
+                      textDecoration: 'none',
+                      marginTop: 4,
+                    }}
                   >
-                    <Send size={12} /> Or open directly in Telegram Mini App →
+                    <Send size={12} /> باز کردن مستقیم در مینی‌اپ تلگرام →
                   </a>
                 </div>
               </div>
@@ -252,89 +424,150 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
           </div>
         )}
 
-        {/* Partner Sites List */}
-        <div className="ref-partners-list">
-          {sites.length > 0 ? (
-            sites.map((site) => {
-              const tid = effectiveId;
-              const trackingUrl = buildPartnerRegisterUrl({
-                apiBase,
-                sites: [site],
-                trackingId: tid || 'anonymous',
-                page: 'referral_modal',
-              });
+        {/* ── STEP 2 CONTENT: 1WIN PARTNER ACTIVATION ── */}
+        {currentStep === 2 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Step 1 Completion Summary Bar */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: isUserAuthenticated ? 'rgba(74, 222, 128, 0.08)' : 'rgba(245, 158, 11, 0.1)',
+              border: `1px solid ${isUserAuthenticated ? 'rgba(74, 222, 128, 0.25)' : 'rgba(245, 158, 11, 0.3)'}`,
+              borderRadius: 10,
+              padding: '0.6rem 0.85rem',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem' }}>
+                {isUserAuthenticated ? (
+                  <>
+                    <CheckCircle2 size={16} color="#4ade80" />
+                    <span style={{ color: '#4ade80', fontWeight: 700 }}>گام ۱ متصل شد:</span>
+                    <span style={{ color: '#fff' }}>{activeUser?.first_name || activeUser?.email || 'حساب کاربری'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock size={15} color="#fbbf24" />
+                    <span style={{ color: '#fbbf24', fontWeight: 700 }}>گام ۱ هنوز انجام نشده است:</span>
+                    <span style={{ color: '#a1a1aa' }}>بهتر است ابتدا وارد شوید</span>
+                  </>
+                )}
+              </div>
 
-              let appTrackingUrl = site.app_url || '';
-              if (appTrackingUrl && tid && tid !== 'anonymous') {
-                const sep = appTrackingUrl.includes('?') ? '&' : '?';
-                appTrackingUrl = `${appTrackingUrl}${sep}subid=${tid}&sub1=${tid}`;
-              }
-
-              const handleOpenWeb = (e: React.MouseEvent) => {
-                e.preventDefault();
-                if (!trackingUrl) return;
-                openExternalLink(trackingUrl);
-              };
-
-              const handleOpenApp = (e: React.MouseEvent) => {
-                e.preventDefault();
-                if (window.Telegram?.WebApp?.openLink) {
-                  window.Telegram.WebApp.openLink(appTrackingUrl);
-                } else {
-                  window.open(appTrackingUrl, '_blank', 'noopener,noreferrer');
-                }
-              };
-
-              return (
-                <div key={site.id} className="ref-partner-card">
-                  <div className="ref-partner-top">
-                    <div>
-                      <span className="ref-partner-title">
-                        {site.name.toUpperCase()}
-                      </span>
-                      <span className="ref-verified-pill">
-                        ✓ Verified Partner
-                      </span>
-                    </div>
-                    <div className="ref-bonus-tag">
-                      🎁 500% Welcome Bonus
-                    </div>
-                  </div>
-
-                  <p className="ref-partner-perks">
-                    Register with zero fees to unlock complete AI predictions, real-time value odds &amp; game models.
-                  </p>
-
-                  <div className="ref-partner-actions">
-                    <button
-                      onClick={handleOpenWeb}
-                      className="ref-btn-register pulse-glow"
-                    >
-                      <ExternalLink size={14} /> Register with {site.name} (Free)
-                    </button>
-                    {appTrackingUrl && (
-                      <button
-                        onClick={handleOpenApp}
-                        className="ref-btn-app"
-                      >
-                        <Download size={14} /> App Download
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="ref-empty-state">
-              No active referral partners available at the moment.
+              {!isUserAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#38bdf8',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  ورود با گوگل ➔
+                </button>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Tracking ID Connection Badge */}
+            <div className="ref-tracking-badge" style={{ margin: 0 }}>
+              <ShieldCheck size={14} color="#4ade80" />
+              <span>شناسه اتصال اختصاصی شما: <code>{effectiveId}</code> (متصل به لینک رفرال)</span>
+            </div>
+
+            {/* Partner Site 1WIN Card */}
+            <div className="ref-partners-list" style={{ margin: 0 }}>
+              {sites.length > 0 ? (
+                sites.map((site) => {
+                  const trackingUrl = buildPartnerRegisterUrl({
+                    apiBase,
+                    sites: [site],
+                    trackingId: effectiveId || 'anonymous',
+                    page: 'referral_modal_step2',
+                  });
+
+                  let appTrackingUrl = site.app_url || '';
+                  if (appTrackingUrl && effectiveId && effectiveId !== 'anonymous') {
+                    const sep = appTrackingUrl.includes('?') ? '&' : '?';
+                    appTrackingUrl = `${appTrackingUrl}${sep}subid=${effectiveId}&sub1=${effectiveId}`;
+                  }
+
+                  const handleOpenWeb = (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    if (!trackingUrl) return;
+                    openExternalLink(trackingUrl);
+                  };
+
+                  const handleOpenApp = (e: React.MouseEvent) => {
+                    e.preventDefault();
+                    if (window.Telegram?.WebApp?.openLink) {
+                      window.Telegram.WebApp.openLink(appTrackingUrl);
+                    } else {
+                      window.open(appTrackingUrl, '_blank', 'noopener,noreferrer');
+                    }
+                  };
+
+                  return (
+                    <div key={site.id} className="ref-partner-card" style={{ border: '1px solid rgba(212, 168, 67, 0.4)', background: 'rgba(15, 30, 20, 0.85)' }}>
+                      <div className="ref-partner-top">
+                        <div>
+                          <span className="ref-partner-title" style={{ fontSize: '1.1rem', color: '#fbbf24' }}>
+                            {site.name.toUpperCase()}
+                          </span>
+                          <span className="ref-verified-pill" style={{ marginRight: 6 }}>
+                            ✓ اسپانسر رسمی
+                          </span>
+                        </div>
+                        <div className="ref-bonus-tag" style={{ background: 'linear-gradient(135deg, #d4a843, #fbbf24)', color: '#09090b', fontWeight: 800 }}>
+                          🎁 ۵۰۰٪ بونوس خوش‌آمدگویی
+                        </div>
+                      </div>
+
+                      <p className="ref-partner-perks" style={{ margin: '0.6rem 0 1rem 0', lineHeight: 1.5, fontSize: '0.84rem' }}>
+                        با کلیک روی دکمه زیر، مستقیماً با کد تخفیف و بونوس ۵۰۰٪ وارد سایت <strong>{site.name}</strong> می‌شوید. به محض ثبت‌نام یا واریز، اکانت شما به صورت خودکار شناسایی شده و قفل تمام پیش‌بینی‌های ۹۰٪+، شبیه‌سازی هوش مصنوعی و پخش زنده مسابقات برای همیشه باز می‌شود.
+                      </p>
+
+                      <div className="ref-partner-actions">
+                        <button
+                          onClick={handleOpenWeb}
+                          className="ref-btn-register pulse-glow"
+                          style={{
+                            fontSize: '0.95rem',
+                            padding: '0.85rem 1.2rem',
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            fontWeight: 800,
+                          }}
+                        >
+                          <Gift size={16} /> ثبت‌نام در {site.name} و دریافت ۵۰۰٪ بونوس
+                        </button>
+                        {appTrackingUrl && (
+                          <button
+                            onClick={handleOpenApp}
+                            className="ref-btn-app"
+                          >
+                            <Download size={14} /> دانلود اپلیکیشن
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="ref-empty-state">
+                  در حال حاضر شریک رفرال فعالی ثبت نشده است.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Footer Guarantee */}
         <div className="ref-modal-footer">
           <CheckCircle2 size={15} color="#4ade80" />
-          <span>Instant auto-verification • No credit card required • 100% Free</span>
+          <span>تایید خودکار با Tracking ID • بدون هزینه اشتراک • ۱۰۰٪ ایمن و رایگان</span>
         </div>
       </div>
     </div>

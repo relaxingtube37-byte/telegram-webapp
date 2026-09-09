@@ -56,6 +56,17 @@ export function useGoogleAuth({
           }),
         });
 
+        if (!res.ok) {
+          const rawText = await res.text().catch(() => '');
+          let msg = `Server returned ${res.status}`;
+          try {
+            const parsed = JSON.parse(rawText);
+            if (parsed.error) msg = parsed.error;
+          } catch {}
+          onError?.(msg);
+          return;
+        }
+
         const data = await res.json();
         if (data.success && data.sessionToken) {
           localStorage.setItem('ptin_web_session', data.sessionToken);

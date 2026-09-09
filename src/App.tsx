@@ -59,7 +59,20 @@ export function App() {
   const [referralSites, setReferralSites] = useState<ReferralSite[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReferralModal, setShowReferralModal] = useState(false);
-  const [telegramUser, setTelegramUser] = useState<{ id?: number; first_name?: string; username?: string } | null>(null);
+  const [modalInitialStep, setModalInitialStep] = useState<1 | 2>(1);
+  const [telegramUser, setTelegramUser] = useState<{
+    id?: number;
+    first_name?: string;
+    username?: string;
+    email?: string;
+    avatar_url?: string;
+    auth_provider?: string;
+  } | null>(null);
+
+  const handleOpenRegistrationModal = (step: 1 | 2 = 1) => {
+    setModalInitialStep(step);
+    setShowReferralModal(true);
+  };
   const [webId, setWebId] = useState<string | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(() => {
     try {
@@ -437,7 +450,7 @@ export function App() {
         onTimezoneChange={handleTimezoneChange}
         isVerified={isVerified}
         accessMode={accessMode}
-        onOpenVipModal={() => setShowReferralModal(true)}
+        onOpenVipModal={handleOpenRegistrationModal}
         genderFilter={genderFilter}
         onGenderFilterChange={setGenderFilter}
         searchQuery={searchQuery}
@@ -475,9 +488,11 @@ export function App() {
               accessMode={accessMode}
               sites={referralSites}
               effectiveId={effectiveTrackingId}
-              onOpenModal={() => setShowReferralModal(true)}
+              onOpenModal={handleOpenRegistrationModal}
               apiBase={API_BASE}
               registrationEnabled={businessActions.registration_referral_enabled !== false}
+              isLoggedIn={Boolean(telegramUser?.id || telegramUser?.username || telegramUser?.email)}
+              userName={telegramUser?.first_name || telegramUser?.username}
             />
           )}
 
@@ -707,7 +722,7 @@ export function App() {
         </aside>
       </div>
 
-      {/* Referral Partner Registration Modal */}
+      {/* Referral Partner Registration Modal (2-Step Funnel) */}
       {showReferralModal && (
         <ReferralModal
           sites={referralSites}
@@ -717,9 +732,10 @@ export function App() {
           botUsername={botUsername}
           webappShortName={webappShortName}
           apiBase={API_BASE}
+          initialStep={modalInitialStep}
+          currentUser={telegramUser}
           onClose={() => setShowReferralModal(false)}
           onVerified={(newToken, user) => {
-            setIsVerified(true);
             if (newToken) {
               setSessionToken(newToken);
               try {
@@ -729,11 +745,16 @@ export function App() {
             if (user) {
               setTelegramUser({
                 id: user.telegram_id || user.id,
-                first_name: user.first_name,
+                first_name: user.first_name || user.name,
                 username: user.username,
+                email: user.email,
+                avatar_url: user.avatar_url || user.picture,
+                auth_provider: user.auth_provider || 'google',
               });
+              if (user.is_verified) {
+                setIsVerified(true);
+              }
             }
-            setShowReferralModal(false);
           }}
         />
       )}
