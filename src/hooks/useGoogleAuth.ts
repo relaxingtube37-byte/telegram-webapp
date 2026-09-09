@@ -26,7 +26,7 @@ interface UseGoogleAuthProps {
 
 export function useGoogleAuth({
   apiBase,
-  clientId = '454807489816-sample.apps.googleusercontent.com', // Replaceable via VITE_GOOGLE_CLIENT_ID
+  clientId = '173985810977-b1g3ggoaj4trki4q94pmcb6qnamfobit.apps.googleusercontent.com', // Replaceable via VITE_GOOGLE_CLIENT_ID
   sessionToken,
   enabled = true,
   onSuccess,
