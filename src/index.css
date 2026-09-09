@@ -748,8 +748,8 @@ body {
 }
 
 .col-legend-score {
-  width: 84px;
-  min-width: 80px;
+  width: 96px;
+  min-width: 90px;
   flex-shrink: 0;
   text-align: center;
 }
@@ -1025,104 +1025,124 @@ body {
   font-family: var(--font-mono, monospace);
 }
 
-/* ── Dedicated Results Column (ستون نتایج - عمودی) ── */
+/* ── Dedicated Results Column (Aligned 1-to-1 with Player Rows) ── */
 .match-col-score {
-  width: 84px;
-  min-width: 80px;
+  width: 96px;
+  min-width: 90px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  gap: 5px; /* Exactly matches .match-col-players gap */
+  justify-content: center;
+  align-items: center;
+}
+
+.player-score-row {
+  display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* Vertical stack for Live: 1 row sets, 1 row points, 1 row games */
-.score-col-vertical-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  height: 22px; /* Exactly matches .player-row 22px height */
   width: 100%;
-  max-width: 80px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 77, 77, 0.35);
-  border-radius: 6px;
-  padding: 2px 4px;
-  box-shadow: 0 0 10px rgba(255, 77, 77, 0.12);
 }
 
-.score-v-row {
-  display: flex;
+.player-score-cells {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  line-height: 1.15;
-  padding: 0 2px;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
 }
 
-.score-v-row .v-tag {
-  font-size: 0.5rem;
+.score-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 1px 4px;
+  min-width: 27px;
+  height: 20px;
+  box-sizing: border-box;
+}
+
+.score-cell .cell-sub {
+  font-size: 0.46rem;
   font-weight: 800;
-  color: #94a3b8;
-  letter-spacing: 0.04em;
+  color: #64748b;
+  letter-spacing: 0.02em;
+  user-select: none;
+  line-height: 1;
 }
 
-.score-v-row .v-val {
+.score-cell .cell-num {
   font-family: var(--font-mono, monospace);
   font-size: 0.72rem;
   font-weight: 800;
   color: #f1f5f9;
-  letter-spacing: 0.03em;
+  line-height: 1;
 }
 
-.score-v-row.points-v-row .v-tag {
+/* Cell Types */
+.score-cell.cell-set {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.score-cell.cell-point {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+.score-cell.cell-point .cell-sub {
   color: #38bdf8;
 }
-
-.score-v-row.points-v-row .v-val {
+.score-cell.cell-point .cell-num.pts-accent {
   color: #38bdf8;
   text-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
 }
 
-.score-v-row.games-v-row .v-tag {
+.score-cell.cell-game {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+.score-cell.cell-game .cell-sub {
+  color: #fbbf24;
+}
+.score-cell.cell-game .cell-num {
   color: #fbbf24;
 }
 
-.score-v-row.games-v-row .v-val {
-  color: #fbbf24;
+/* Finished Match Set Score Cell */
+.score-cell.cell-final-set {
+  min-width: 44px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  gap: 4px;
 }
 
-/* Finished Match Set Score Box (Only sets count, e.g. 2-0, 3-1) */
-.score-col-final-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
-  padding: 4px 10px;
-  min-width: 54px;
-}
-
-.final-set-num-badge {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.95rem;
-  font-weight: 900;
-  color: #4ade80;
-  letter-spacing: 0.05em;
-  line-height: 1.1;
-}
-
-.final-set-subtag {
-  font-size: 0.5rem;
-  font-weight: 800;
+.score-cell.cell-final-set .cell-sub {
   color: #94a3b8;
-  letter-spacing: 0.06em;
 }
 
-.score-col-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.score-cell.cell-final-set .cell-num {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.score-cell.cell-final-set.is-winner {
+  background: rgba(74, 222, 128, 0.14);
+  border-color: rgba(74, 222, 128, 0.45);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.15);
+}
+
+.score-cell.cell-final-set.is-winner .cell-sub {
+  color: #4ade80;
+}
+
+.score-cell.cell-final-set.is-winner .cell-num {
+  color: #4ade80;
+  font-weight: 900;
 }
 
 .score-dash {

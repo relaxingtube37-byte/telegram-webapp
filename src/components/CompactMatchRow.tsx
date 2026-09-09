@@ -195,33 +195,71 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         </div>
       </div>
 
-      {/* ── Column 3: Dedicated Results Column (ستون نتایج - عمودی) ── */}
+      {/* ── Column 3: Dedicated Results Column (Aligned with each player's row: Home on top, Away on bottom) ── */}
       <div className="match-col-score">
-        {isLive && parsedScore ? (
-          <div className="score-col-vertical-stack" title="Live Tennis Score (Sets / Points / Games)">
-            <div className="score-v-row sets-v-row">
-              <span className="v-tag">SET</span>
-              <span className="v-val">{parsedScore.liveSets || '0-0'}</span>
+        {/* Row 1: Home Player Score (aligned with Home Player name) */}
+        <div className="player-score-row" title={`Home Player Score: ${formatPlayerDisplayName(prediction.home_name)}`}>
+          {isLive && parsedScore ? (
+            <div className="player-score-cells">
+              <span className="score-cell cell-set" title="Home Sets">
+                <span className="cell-sub">SET</span>
+                <span className="cell-num">{parsedScore.homeSets || '0'}</span>
+              </span>
+              <span className="score-cell cell-point" title="Home Game Points">
+                <span className="cell-sub">PTS</span>
+                <span className="cell-num pts-accent">{parsedScore.homePoints || '0'}</span>
+              </span>
+              <span className="score-cell cell-game" title="Home Set Games">
+                <span className="cell-sub">GMS</span>
+                <span className="cell-num">{parsedScore.homeGames || '0'}</span>
+              </span>
             </div>
-            <div className="score-v-row points-v-row">
-              <span className="v-tag">PTS</span>
-              <span className="v-val pts-accent">{parsedScore.livePoints || '0-0'}</span>
+          ) : isFinished && parsedScore ? (
+            <div className="player-score-cells">
+              <span
+                className={`score-cell cell-final-set ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-winner' : ''}`}
+                title="Home Final Sets"
+              >
+                <span className="cell-sub">SET</span>
+                <span className="cell-num">{parsedScore.homeSets || '0'}</span>
+              </span>
             </div>
-            <div className="score-v-row games-v-row">
-              <span className="v-tag">GMS</span>
-              <span className="v-val">{parsedScore.liveGames || '0-0'}</span>
-            </div>
-          </div>
-        ) : isFinished && parsedScore ? (
-          <div className="score-col-final-box" title="Final Sets">
-            <span className="final-set-num-badge">{parsedScore.setsScore}</span>
-            <span className="final-set-subtag">SETS</span>
-          </div>
-        ) : (
-          <div className="score-col-empty">
+          ) : (
             <span className="score-dash">—</span>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Row 2: Away Player Score (aligned with Away Player name) */}
+        <div className="player-score-row" title={`Away Player Score: ${formatPlayerDisplayName(prediction.away_name)}`}>
+          {isLive && parsedScore ? (
+            <div className="player-score-cells">
+              <span className="score-cell cell-set" title="Away Sets">
+                <span className="cell-sub">SET</span>
+                <span className="cell-num">{parsedScore.awaySets || '0'}</span>
+              </span>
+              <span className="score-cell cell-point" title="Away Game Points">
+                <span className="cell-sub">PTS</span>
+                <span className="cell-num pts-accent">{parsedScore.awayPoints || '0'}</span>
+              </span>
+              <span className="score-cell cell-game" title="Away Set Games">
+                <span className="cell-sub">GMS</span>
+                <span className="cell-num">{parsedScore.awayGames || '0'}</span>
+              </span>
+            </div>
+          ) : isFinished && parsedScore ? (
+            <div className="player-score-cells">
+              <span
+                className={`score-cell cell-final-set ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-winner' : ''}`}
+                title="Away Final Sets"
+              >
+                <span className="cell-sub">SET</span>
+                <span className="cell-num">{parsedScore.awaySets || '0'}</span>
+              </span>
+            </div>
+          ) : (
+            <span className="score-dash">—</span>
+          )}
+        </div>
       </div>
 
       {/* ── Column 3: AI Prediction & Win Probability ── */}
