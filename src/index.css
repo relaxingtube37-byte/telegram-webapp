@@ -867,6 +867,19 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.28);
 }
 
+.tennis-status-badge.badge-interrupted {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
+}
+
+.tennis-status-badge.badge-postponed {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
 .live-ping-dot {
   width: 6px;
   height: 6px;

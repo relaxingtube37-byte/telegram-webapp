@@ -2,7 +2,7 @@ import React from 'react';
 import type { ContentLayerFlags, Prediction, ReferralSite } from '../types';
 import {
   Clock, CheckCircle2, XCircle, ChevronRight,
-  Tv, Sparkles, Lock, Trophy
+  Tv, Sparkles, Lock, Trophy, PauseCircle
 } from 'lucide-react';
 import {
   formatMatchTime,
@@ -71,14 +71,22 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   const winProb = prediction.win_probability || 65;
 
   const rawScore = (prediction.result_score || '').trim();
-  const parsedScore = parseTennisScore(prediction.result_score, prediction.status);
+  const isMatchInFuture = rawDateStr ? new Date(rawDateStr).getTime() > Date.now() + 15 * 60 * 1000 : false;
+  const isZeroScore = !rawScore || rawScore === '0-0   0-0    0-0' || rawScore === '0-0' || rawScore === '0:0';
+
+  // Safeguard: Matches that have not started yet are strictly classified as UPCOMING
+  const effectiveStatus = (prediction.status === 'LIVE' && isZeroScore && isMatchInFuture)
+    ? 'UPCOMING'
+    : prediction.status;
+
+  const parsedScore = parseTennisScore(prediction.result_score, effectiveStatus);
 
   const homeAvatarUrl = getPlayerImageUrl(prediction.home_image, prediction.home_name, prediction.home_id, apiBase);
   const awayAvatarUrl = getPlayerImageUrl(prediction.away_image, prediction.away_name, prediction.away_id, apiBase);
 
   // Status Badge
   const renderStatus = () => {
-    if (prediction.status === 'WON') {
+    if (effectiveStatus === 'WON') {
       return (
         <span className="tennis-status-badge badge-won">
           <CheckCircle2 size={11} />
@@ -86,7 +94,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         </span>
       );
     }
-    if (prediction.status === 'LOST') {
+    if (effectiveStatus === 'LOST') {
       return (
         <span className="tennis-status-badge badge-lost">
           <XCircle size={11} />
@@ -94,7 +102,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         </span>
       );
     }
-    if (prediction.status === 'LIVE') {
+    if (effectiveStatus === 'LIVE') {
       return (
         <span className="tennis-status-badge badge-live">
           <span className="live-dot-pulse" />
@@ -102,7 +110,23 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         </span>
       );
     }
-    if (prediction.status === 'VOID') {
+    if (effectiveStatus === 'INTERRUPTED') {
+      return (
+        <span className="tennis-status-badge badge-interrupted" title="Match Interrupted / Rain Delay">
+          <PauseCircle size={11} />
+          <span>PAUSED</span>
+        </span>
+      );
+    }
+    if (effectiveStatus === 'POSTPONED') {
+      return (
+        <span className="tennis-status-badge badge-postponed" title="Match Postponed">
+          <Clock size={11} />
+          <span>POSTPONED</span>
+        </span>
+      );
+    }
+    if (effectiveStatus === 'VOID') {
       return <span className="tennis-status-badge badge-void">VOID</span>;
     }
     return (
@@ -114,9 +138,9 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
     );
   };
 
-  const showWatch = canWatchLive && shouldShowWatchLive(prediction.status, rawDateStr);
-  const isFinished = prediction.status === 'WON' || prediction.status === 'LOST';
-  const isLive = prediction.status === 'LIVE';
+  const showWatch = canWatchLive && shouldShowWatchLive(effectiveStatus, rawDateStr);
+  const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST';
+  const isLive = effectiveStatus === 'LIVE';
 
   return (
     <div

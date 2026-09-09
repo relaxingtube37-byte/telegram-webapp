@@ -48,7 +48,7 @@ export interface Prediction {
   alt_bet_rationale?: string;
   alt_bet_risk?: string;
   ai_summary?: string;
-  status: 'UPCOMING' | 'LIVE' | 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED';
+  status: 'UPCOMING' | 'LIVE' | 'WON' | 'LOST' | 'VOID' | 'INTERRUPTED' | 'POSTPONED';
   result_score?: string;
   match_date?: string;
   published_at: string;

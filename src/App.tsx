@@ -494,11 +494,11 @@ export function App() {
 
   // Filtered Predictions
   const activePredictions = useMemo(() => {
-    return predictions.filter(p => p.status === 'UPCOMING' || p.status === 'LIVE');
+    return predictions.filter(p => p.status === 'UPCOMING' || p.status === 'LIVE' || p.status === 'INTERRUPTED');
   }, [predictions]);
 
   const historyPredictions = useMemo(() => {
-    return predictions.filter(p => p.status !== 'UPCOMING' && p.status !== 'LIVE');
+    return predictions.filter(p => p.status !== 'UPCOMING' && p.status !== 'LIVE' && p.status !== 'INTERRUPTED');
   }, [predictions]);
 
   // Dynamic category counts for sidebars & header (100% real active data)
@@ -509,9 +509,14 @@ export function App() {
     let wta = 0;
 
     activePredictions.forEach(p => {
-      if (p.status === 'LIVE') live++;
-      const dStr = p.match_date || p.published_at;
-      if (matchMatchesDateFilter(dStr, 'today', selectedTimezone)) today++;
+      const rawScore = (p.result_score || '').trim();
+      const rawDateStr = p.match_date || p.published_at;
+      const isMatchInFuture = rawDateStr ? new Date(rawDateStr).getTime() > Date.now() + 15 * 60 * 1000 : false;
+      const isZeroScore = !rawScore || rawScore === '0-0   0-0    0-0' || rawScore === '0-0' || rawScore === '0:0';
+      const isTrulyLive = p.status === 'LIVE' && (!isZeroScore || !isMatchInFuture);
+
+      if (isTrulyLive) live++;
+      if (matchMatchesDateFilter(rawDateStr, 'today', selectedTimezone)) today++;
 
       const g = getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name);
       if (g === 'women') wta++;
