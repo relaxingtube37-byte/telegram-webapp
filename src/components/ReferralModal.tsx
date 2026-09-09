@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { CheckCircle2, ShieldCheck, Sparkles, X, Gift, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Sparkles, X, Gift, ArrowRight, UserCheck, ShieldCheck } from 'lucide-react';
 import type { ReferralSite } from '../types';
 import { buildPartnerRegisterUrl, openExternalLink } from '../utils/referralLinks';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
@@ -30,6 +30,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   webId,
   sessionToken,
   apiBase = 'https://telegram-backend-2yck.onrender.com/api/webapp',
+  initialStep,
   currentUser,
   onClose,
   onVerified,
@@ -41,6 +42,22 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
       window.Telegram?.WebApp?.initDataUnsafe?.user?.id
     ))
   );
+
+  const [justConnectedUser, setJustConnectedUser] = useState<any | null>(null);
+  const activeUser = currentUser || justConnectedUser;
+
+  const isUserAuthenticated = Boolean(
+    isTgEnvironment ||
+    telegramId ||
+    activeUser?.email ||
+    activeUser?.username
+  );
+
+  // Default to step 2 if already authenticated, else step 1
+  const [currentStep, setCurrentStep] = useState<1 | 2>(() => {
+    if (initialStep) return initialStep;
+    return isUserAuthenticated ? 2 : 1;
+  });
 
   const [isCompleted, setIsCompleted] = useState(false);
   const googleBtnRef = useRef<HTMLDivElement>(null);
@@ -54,10 +71,12 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         localStorage.setItem('ptin_web_verified', 'true');
         localStorage.setItem('ptin_partner_activated', 'true');
       } catch {}
+      setJustConnectedUser(user);
       if (onVerified) {
         onVerified(newToken, user);
       }
-      setIsCompleted(true);
+      // Auto-advance smoothly to Step 2 (1WIN Partner Activation)
+      setCurrentStep(2);
     },
     onError: (err) => {
       console.warn('[Google Auth Error]:', err);
@@ -66,14 +85,14 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
   const effectiveId = useMemo(() => {
     if (telegramId && telegramId > 0) return telegramId;
+    if (justConnectedUser?.telegram_id) return justConnectedUser.telegram_id;
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
       return window.Telegram.WebApp.initDataUnsafe.user.id;
     }
     if (webId) return webId;
     return 'anonymous';
-  }, [telegramId, webId]);
+  }, [telegramId, justConnectedUser, webId]);
 
-  const activeUser = currentUser;
   const primarySite = sites[0];
 
   const trackingUrl = useMemo(() => {
@@ -82,7 +101,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
       apiBase,
       sites: [primarySite],
       trackingId: effectiveId || 'anonymous',
-      page: 'referral_modal',
+      page: 'referral_modal_step2',
     });
   }, [apiBase, primarySite, effectiveId]);
 
@@ -118,14 +137,14 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   const handleDirectUnlock = (e: React.MouseEvent) => {
     e.preventDefault();
     completeActivation(primarySite?.id);
-    onClose();
+    setIsCompleted(true);
   };
 
   useEffect(() => {
-    if (!isTgEnvironment && !currentUser?.email && googleBtnRef.current) {
+    if (!isTgEnvironment && !isUserAuthenticated && currentStep === 1 && googleBtnRef.current) {
       renderGoogleButton(googleBtnRef.current);
     }
-  }, [isTgEnvironment, currentUser, renderGoogleButton]);
+  }, [isTgEnvironment, isUserAuthenticated, currentStep, renderGoogleButton]);
 
   return (
     <div
@@ -137,23 +156,126 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
       <div
         className="referral-modal-card"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: 460, padding: '1.4rem' }}
+        style={{ maxWidth: 480, padding: '1.4rem' }}
       >
-        {/* Top Header */}
+        {/* Modal Header */}
         <div className="ref-modal-header" style={{ marginBottom: '1rem' }}>
           <div className="ref-modal-title-group">
             <div className="ref-modal-icon-badge">
               <Sparkles size={18} color="#d4a843" />
             </div>
             <div>
-              <h2 className="ref-modal-title">Unlock Full AI Predictions</h2>
-              <p className="ref-modal-subtitle">Free &amp; Instant Access via Official Partner</p>
+              <h2 className="ref-modal-title">Unlock Pro AI Predictions</h2>
+              <p className="ref-modal-subtitle">2-Step Access: 1. Sign In ➔ 2. Activate Partner</p>
             </div>
           </div>
           <button onClick={onClose} className="ref-modal-close-btn" aria-label="Close modal">
             <X size={18} />
           </button>
         </div>
+
+        {/* ── 2-Step Modern Stepper Tabs ── */}
+        {!isCompleted && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr auto 1fr',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1.1rem',
+            background: 'rgba(0, 0, 0, 0.35)',
+            padding: '0.45rem 0.65rem',
+            borderRadius: 10,
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+          }}>
+            {/* Step 1 Tab Button */}
+            <button
+              type="button"
+              onClick={() => setCurrentStep(1)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.4rem 0.6rem',
+                background: currentStep === 1
+                  ? 'rgba(56, 189, 248, 0.16)'
+                  : isUserAuthenticated
+                  ? 'rgba(74, 222, 128, 0.1)'
+                  : 'transparent',
+                border: `1px solid ${currentStep === 1 ? '#38bdf8' : isUserAuthenticated ? '#4ade80' : 'rgba(255,255,255,0.08)'}`,
+                borderRadius: 8,
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <div style={{
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                background: isUserAuthenticated ? '#4ade80' : currentStep === 1 ? '#38bdf8' : '#27272a',
+                color: isUserAuthenticated || currentStep === 1 ? '#09090b' : '#a1a1aa',
+              }}>
+                {isUserAuthenticated ? '✓' : '1'}
+              </div>
+              <div style={{ lineHeight: 1.2 }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: currentStep === 1 ? '#38bdf8' : isUserAuthenticated ? '#4ade80' : '#d4d4d8' }}>
+                  Step 1: Account
+                </div>
+                <div style={{ fontSize: '0.66rem', color: 'var(--text-secondary)' }}>
+                  {isUserAuthenticated ? 'Connected ✓' : 'Google Sign In'}
+                </div>
+              </div>
+            </button>
+
+            <span style={{ color: 'rgba(212, 168, 67, 0.6)', fontWeight: 800 }}>➔</span>
+
+            {/* Step 2 Tab Button */}
+            <button
+              type="button"
+              onClick={() => setCurrentStep(2)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.4rem 0.6rem',
+                background: currentStep === 2
+                  ? 'rgba(212, 168, 67, 0.18)'
+                  : 'transparent',
+                border: `1px solid ${currentStep === 2 ? '#fbbf24' : 'rgba(255,255,255,0.08)'}`,
+                borderRadius: 8,
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <div style={{
+                width: 20,
+                height: 20,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                background: currentStep === 2 ? '#fbbf24' : '#27272a',
+                color: currentStep === 2 ? '#09090b' : '#a1a1aa',
+              }}>
+                2
+              </div>
+              <div style={{ lineHeight: 1.2 }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: currentStep === 2 ? '#fbbf24' : '#d4d4d8' }}>
+                  Step 2: 1WIN
+                </div>
+                <div style={{ fontSize: '0.66rem', color: 'var(--text-secondary)' }}>
+                  500% Bonus
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
 
         {isCompleted ? (
           /* Activation Success Celebration */
@@ -177,7 +299,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               🎉 Predictions Unlocked!
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
-              Your account is verified. All 90%+ confidence AI predictions, value odds &amp; tactical simulations are now permanently unlocked.
+              Your account is registered and verified. All 90%+ confidence AI predictions, value odds &amp; tactical simulations are now permanently unlocked.
             </p>
             <button
               type="button"
@@ -202,16 +324,115 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               <ArrowRight size={16} />
             </button>
           </div>
+        ) : currentStep === 1 ? (
+          /* ── STEP 1: SIGN IN WITH GOOGLE ── */
+          <div style={{
+            background: 'rgba(18, 24, 20, 0.85)',
+            border: '1px solid rgba(56, 189, 248, 0.25)',
+            borderRadius: 12,
+            padding: '1.25rem',
+          }}>
+            {isUserAuthenticated ? (
+              /* Already authenticated info */
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', padding: '0.4rem', background: 'rgba(74, 222, 128, 0.15)', borderRadius: '50%', marginBottom: '0.5rem' }}>
+                  <CheckCircle2 size={28} color="#4ade80" />
+                </div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#4ade80', margin: '0 0 0.35rem 0' }}>
+                  Step 1 Completed!
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1rem 0' }}>
+                  Connected as <strong>{activeUser?.first_name || activeUser?.username || activeUser?.email || 'Member'}</strong>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(2)}
+                  className="ref-btn-register pulse-glow"
+                  style={{
+                    width: '100%',
+                    padding: '0.8rem 1rem',
+                    fontSize: '0.9rem',
+                    fontWeight: 800,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    borderRadius: 10,
+                    background: 'linear-gradient(135deg, #d4a843, #e8c060)',
+                    color: '#000',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span>Proceed to Step 2: Activate 1WIN</span>
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            ) : (
+              /* Unauthenticated Google prompt */
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem' }}>
+                  <UserCheck size={18} color="#38bdf8" />
+                  <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
+                    Step 1 of 2: Sign in with Google
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1.25rem 0', lineHeight: 1.45 }}>
+                  Sign in in 1-click to auto-link your dedicated tracking ID, then activate your 500% bonus in Step 2.
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                  <div ref={googleBtnRef} style={{ minHeight: 44, display: 'flex', justifyContent: 'center' }} />
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '0.8rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(2)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-secondary)',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer',
+                      textDecoration: 'underline',
+                    }}
+                  >
+                    Skip to Step 2 (Direct Partner Activation) ➔
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
-          /* 1-Click Unified Partner Unlock Card */
+          /* ── STEP 2: ACTIVATE 1WIN PARTNER ── */
           <div>
             <div style={{
               background: 'rgba(15, 30, 20, 0.9)',
               border: '1px solid rgba(212, 168, 67, 0.35)',
               borderRadius: 12,
-              padding: '1.1rem',
-              marginBottom: '1rem',
+              padding: '1.15rem',
             }}>
+              {/* Step 1 summary pill */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'rgba(0, 0, 0, 0.35)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 8,
+                padding: '0.4rem 0.65rem',
+                marginBottom: '0.9rem',
+                fontSize: '0.76rem',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <CheckCircle2 size={14} color="#4ade80" />
+                  <span style={{ color: '#4ade80', fontWeight: 700 }}>Step 1:</span>
+                  <span style={{ color: '#e4e4e7' }}>{activeUser?.first_name || activeUser?.email || (isTgEnvironment ? 'Telegram Connected' : 'Ready')}</span>
+                </div>
+                <span style={{ color: '#fbbf24', fontWeight: 700 }}>➔ Step 2: Final Step</span>
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fbbf24' }}>
@@ -225,7 +446,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               </div>
 
               {/* Concise Perks */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.82rem', color: '#e4e4e7', marginBottom: '1.1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.82rem', color: '#e4e4e7', marginBottom: '1.15rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
                   <span>Instant access to <strong>90%+ AI predictions</strong> &amp; tactical dossiers</span>
@@ -240,7 +461,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 </div>
               </div>
 
-              {/* 1-Click Main Button */}
+              {/* Step 2 Action Button */}
               <button
                 type="button"
                 onClick={handleRegisterAndUnlock}
@@ -263,7 +484,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 }}
               >
                 <Gift size={16} />
-                <span>Register on 1WIN &amp; Unlock Predictions</span>
+                <span>Step 2: Register on 1WIN &amp; Unlock</span>
               </button>
 
               {/* Direct Unlock Alternative */}
@@ -284,20 +505,6 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 </button>
               </div>
             </div>
-
-            {/* Google 1-Click Connect (Only on Web) */}
-            {!isTgEnvironment && !currentUser?.email && (
-              <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0.5rem 0 0.85rem 0', color: 'var(--text-secondary)', fontSize: '0.74rem' }}>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
-                  <span>or connect with Google</span>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <div ref={googleBtnRef} style={{ minHeight: 40, display: 'flex', justifyContent: 'center' }} />
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>

@@ -87,37 +87,37 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
       <div className="strip-glow-accent" />
       <div className="strip-left-section">
         <div className="strip-icon-box">
-          {effectiveLoggedIn ? <Gift size={20} color="#fbbf24" /> : <Sparkles size={20} color="#38bdf8" />}
+          {effectiveLoggedIn ? <Gift size={20} color="#fbbf24" /> : <UserCheck size={20} color="#38bdf8" />}
         </div>
         <div className="strip-text-box">
           <div className="strip-badge-row">
             <span className="strip-badge-gold">
-              <Gift size={11} /> {effectiveLoggedIn ? '1WIN OFFICIAL SPONSOR' : 'FREE SPONSOR ACCESS'}
+              <Sparkles size={11} /> {effectiveLoggedIn ? 'STEP 2: PARTNER ACTIVATION' : '2-STEP REGISTRATION'}
             </span>
             <span className={effectiveLoggedIn ? 'strip-badge-green' : 'strip-badge-blue'}>
-              {effectiveLoggedIn ? `✓ @${userName || 'Telegram'}` : '100% Free'}
+              {effectiveLoggedIn ? `✓ Connected as @${userName || 'Telegram'}` : '100% Free'}
             </span>
           </div>
           <h4 className="strip-headline">
             {effectiveLoggedIn
-              ? 'Unlock All AI Predictions (Free 1WIN Registration)'
-              : 'Unlock All AI Match Predictions & Tactical Dossiers'}
+              ? 'Step 2: Activate 1WIN to permanently unlock all AI predictive models'
+              : 'Step 1: Sign in with Google ➔ Step 2: Activate 1WIN (+500% Bonus)'}
           </h4>
           <p className="strip-subtext">
             {effectiveLoggedIn
-              ? 'Register on 1WIN to claim your 500% welcome bonus and permanently unlock all daily 90%+ AI models.'
-              : 'Sponsored by 1WIN. Activate partner or connect your account to permanently unlock full AI models.'}
+              ? 'Register on 1WIN to claim your 500% welcome bonus and auto-unlock full AI tactical dossiers.'
+              : 'Connect with Google in 1 click, then activate partner 1WIN to unlock full predictive models.'}
           </p>
         </div>
       </div>
       <div className="strip-action-section">
         {effectiveLoggedIn ? (
           <button onClick={handleStep2Click} className="strip-btn-primary pulse-glow" id="strip-step2-cta-btn">
-            <Gift size={15} /> Unlock Predictions (+500% Bonus)
+            <Gift size={14} /> Step 2: Activate 1WIN (+500% Bonus)
           </button>
         ) : (
-          <button onClick={() => onOpenModal()} className="strip-btn-primary pulse-glow" id="strip-step1-cta-btn" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-            <Sparkles size={15} /> Unlock Full Predictions
+          <button onClick={() => onOpenModal(1)} className="strip-btn-primary" id="strip-step1-cta-btn" style={{ background: 'linear-gradient(135deg, #0284c7, #0ea5e9)' }}>
+            <ArrowRight size={14} /> Step 1: Sign in with Google
           </button>
         )}
       </div>
