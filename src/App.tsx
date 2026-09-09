@@ -114,10 +114,17 @@ export function App() {
     return 'anonymous';
   }, [telegramUser, webId]);
 
-  const canSeeDeepAnalysis = accessMode === 'FREE' || isVerified || contentLayers.guest_can_see_ai_full;
+  const isUserRegistered = Boolean(
+    telegramUser?.id ||
+    telegramUser?.email ||
+    (typeof window !== 'undefined' && localStorage.getItem('ptin_web_verified') === 'true')
+  );
+  const effectiveVerified = isVerified || isUserRegistered;
+
+  const canSeeDeepAnalysis = accessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_ai_full;
   const canWatchLive =
     (businessActions.watch_live_enabled !== false) &&
-    (accessMode === 'FREE' || isVerified || contentLayers.guest_can_see_watch_live);
+    (accessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_watch_live);
 
   const handleOpenMatchPage = (pred: Prediction) => {
     setSelectedMatch(pred);
@@ -448,7 +455,7 @@ export function App() {
         telegramUser={telegramUser}
         selectedTimezone={selectedTimezone}
         onTimezoneChange={handleTimezoneChange}
-        isVerified={isVerified}
+        isVerified={effectiveVerified}
         accessMode={accessMode}
         onOpenVipModal={handleOpenRegistrationModal}
         genderFilter={genderFilter}
@@ -475,16 +482,16 @@ export function App() {
           todayCount={counts.today}
           atpCount={counts.atp}
           wtaCount={counts.wta}
-          isVerified={isVerified}
+          isVerified={effectiveVerified}
           onOpenModal={() => setShowReferralModal(true)}
         />
 
         {/* Center Main Match Feed Column */}
         <main className="portal-center-feed">
           {/* Mobile Promotional Sign-Up Strip (Only on mobile or unverified) */}
-          {!selectedMatch && !isVerified && accessMode !== 'FREE' && (
+          {!selectedMatch && !effectiveVerified && accessMode !== 'FREE' && (
             <SignUpStrip
-              isVerified={isVerified}
+              isVerified={effectiveVerified}
               accessMode={accessMode}
               sites={referralSites}
               effectiveId={effectiveTrackingId}
@@ -502,7 +509,7 @@ export function App() {
           selectedTimezone={selectedTimezone}
           webappApiBase={API_BASE}
           sessionToken={sessionToken}
-          isVerified={isVerified}
+          isVerified={effectiveVerified}
           accessMode={accessMode}
           referralSites={referralSites}
           trackingId={effectiveTrackingId}
@@ -608,10 +615,10 @@ export function App() {
 
             <button
               onClick={() => setShowReferralModal(true)}
-              className={`btn-vip-badge ${accessMode === 'FREE' || isVerified ? 'vip-active' : 'vip-locked'}`}
+              className={`btn-vip-badge ${accessMode === 'FREE' || effectiveVerified ? 'vip-active' : 'vip-locked'}`}
               title="Member Access & Full Dossiers"
             >
-              <Key size={13} /> {accessMode === 'FREE' ? 'OPEN ACCESS 🔓' : isVerified ? 'MEMBER ✓' : 'FULL ACCESS 🔓'}
+              <Key size={13} /> {accessMode === 'FREE' ? 'OPEN ACCESS 🔓' : effectiveVerified ? 'MEMBER ✓' : 'FULL ACCESS 🔓'}
             </button>
           </div>
 
@@ -710,7 +717,7 @@ export function App() {
           <AiTopPickWidget
             predictions={predictions}
             onSelectMatch={handleOpenMatchPage}
-            isVerified={isVerified}
+            isVerified={effectiveVerified}
             onUnlockClick={() => setShowReferralModal(true)}
           />
           <SideBanner
@@ -751,8 +758,11 @@ export function App() {
                 avatar_url: user.avatar_url || user.picture,
                 auth_provider: user.auth_provider || 'google',
               });
-              setIsVerified(true);
             }
+            try {
+              localStorage.setItem('ptin_web_verified', 'true');
+            } catch {}
+            setIsVerified(true);
             // Instantly refresh predictions & analytics with verified session
             loadData();
           }}

@@ -55,6 +55,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   const [linking, setLinking] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
   const [justConnectedUser, setJustConnectedUser] = useState<any | null>(null);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   const widgetContainerRef = useRef<HTMLDivElement>(null);
   const googleBtnRef = useRef<HTMLDivElement>(null);
@@ -478,89 +479,178 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               <span>Dedicated Tracking ID: <code>{effectiveId}</code> (Linked to Partner)</span>
             </div>
 
-            {/* Partner Site 1WIN Card */}
-            <div className="ref-partners-list" style={{ margin: 0 }}>
-              {sites.length > 0 ? (
-                sites.map((site) => {
-                  const trackingUrl = buildPartnerRegisterUrl({
-                    apiBase,
-                    sites: [site],
-                    trackingId: effectiveId || 'anonymous',
-                    page: 'referral_modal_step2',
-                  });
+            {/* Activation Complete Celebration Card */}
+            {isCompleted ? (
+              <div style={{
+                background: 'rgba(74, 222, 128, 0.08)',
+                border: '1px solid rgba(74, 222, 128, 0.4)',
+                borderRadius: 12,
+                padding: '1.5rem',
+                textAlign: 'center',
+              }}>
+                <div style={{
+                  display: 'inline-flex',
+                  padding: '0.6rem',
+                  background: 'rgba(74, 222, 128, 0.2)',
+                  borderRadius: '50%',
+                  marginBottom: '0.8rem',
+                }}>
+                  <CheckCircle2 size={36} color="#4ade80" />
+                </div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#4ade80', margin: '0 0 0.5rem 0' }}>
+                  🎉 Activation Complete!
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
+                  Your account is registered and verified. All daily 90%+ confidence AI predictions, value odds &amp; tactical simulations are now unlocked!
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onVerified) onVerified(sessionToken || undefined, activeUser);
+                    onClose();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '0.85rem 1.2rem',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 10,
+                    fontWeight: 800,
+                    fontSize: '0.95rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <span>Start Viewing Predictions ➔</span>
+                </button>
+              </div>
+            ) : (
+              /* Partner Site 1WIN Card */
+              <div className="ref-partners-list" style={{ margin: 0 }}>
+                {sites.length > 0 ? (
+                  sites.map((site) => {
+                    const trackingUrl = buildPartnerRegisterUrl({
+                      apiBase,
+                      sites: [site],
+                      trackingId: effectiveId || 'anonymous',
+                      page: 'referral_modal_step2',
+                    });
 
-                  let appTrackingUrl = site.app_url || '';
-                  if (appTrackingUrl && effectiveId && effectiveId !== 'anonymous') {
-                    const sep = appTrackingUrl.includes('?') ? '&' : '?';
-                    appTrackingUrl = `${appTrackingUrl}${sep}subid=${effectiveId}&sub1=${effectiveId}`;
-                  }
-
-                  const handleOpenWeb = (e: React.MouseEvent) => {
-                    e.preventDefault();
-                    if (!trackingUrl) return;
-                    openExternalLink(trackingUrl);
-                  };
-
-                  const handleOpenApp = (e: React.MouseEvent) => {
-                    e.preventDefault();
-                    if (window.Telegram?.WebApp?.openLink) {
-                      window.Telegram.WebApp.openLink(appTrackingUrl);
-                    } else {
-                      window.open(appTrackingUrl, '_blank', 'noopener,noreferrer');
+                    let appTrackingUrl = site.app_url || '';
+                    if (appTrackingUrl && effectiveId && effectiveId !== 'anonymous') {
+                      const sep = appTrackingUrl.includes('?') ? '&' : '?';
+                      appTrackingUrl = `${appTrackingUrl}${sep}subid=${effectiveId}&sub1=${effectiveId}`;
                     }
-                  };
 
-                  return (
-                    <div key={site.id} className="ref-partner-card" style={{ border: '1px solid rgba(212, 168, 67, 0.4)', background: 'rgba(15, 30, 20, 0.85)' }}>
-                      <div className="ref-partner-top">
-                        <div>
-                          <span className="ref-partner-title" style={{ fontSize: '1.1rem', color: '#fbbf24' }}>
-                            {site.name.toUpperCase()}
-                          </span>
-                          <span className="ref-verified-pill" style={{ marginLeft: 6 }}>
-                            ✓ Official Partner
-                          </span>
+                    const handleOpenWeb = (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      if (!trackingUrl) return;
+                      openExternalLink(trackingUrl);
+                      if (onVerified) {
+                        onVerified(sessionToken || undefined, activeUser);
+                      }
+                      setIsCompleted(true);
+                    };
+
+                    const handleOpenApp = (e: React.MouseEvent) => {
+                      e.preventDefault();
+                      if (window.Telegram?.WebApp?.openLink) {
+                        window.Telegram.WebApp.openLink(appTrackingUrl);
+                      } else {
+                        window.open(appTrackingUrl, '_blank', 'noopener,noreferrer');
+                      }
+                      if (onVerified) {
+                        onVerified(sessionToken || undefined, activeUser);
+                      }
+                      setIsCompleted(true);
+                    };
+
+                    return (
+                      <div key={site.id} className="ref-partner-card" style={{ border: '1px solid rgba(212, 168, 67, 0.4)', background: 'rgba(15, 30, 20, 0.85)' }}>
+                        <div className="ref-partner-top">
+                          <div>
+                            <span className="ref-partner-title" style={{ fontSize: '1.1rem', color: '#fbbf24' }}>
+                              {site.name.toUpperCase()}
+                            </span>
+                            <span className="ref-verified-pill" style={{ marginLeft: 6 }}>
+                              ✓ Official Partner
+                            </span>
+                          </div>
+                          <div className="ref-bonus-tag" style={{ background: 'linear-gradient(135deg, #d4a843, #fbbf24)', color: '#09090b', fontWeight: 800 }}>
+                            🎁 500% Welcome Bonus
+                          </div>
                         </div>
-                        <div className="ref-bonus-tag" style={{ background: 'linear-gradient(135deg, #d4a843, #fbbf24)', color: '#09090b', fontWeight: 800 }}>
-                          🎁 500% Welcome Bonus
+
+                        <p className="ref-partner-perks" style={{ margin: '0.6rem 0 1rem 0', lineHeight: 1.5, fontSize: '0.84rem' }}>
+                          Click the button below to register directly with our official bonus code on <strong>{site.name}</strong>. Once registered, your account will be automatically recognized and full access to 90%+ AI predictions, live match feeds, and tactical simulations will unlock permanently.
+                        </p>
+
+                        <div className="ref-partner-actions">
+                          <button
+                            onClick={handleOpenWeb}
+                            className="ref-btn-register pulse-glow"
+                            style={{
+                              fontSize: '0.95rem',
+                              padding: '0.85rem 1.2rem',
+                              background: 'linear-gradient(135deg, #10b981, #059669)',
+                              fontWeight: 800,
+                            }}
+                          >
+                            <Gift size={16} /> Register on {site.name} &amp; Claim 500% Bonus
+                          </button>
+                          {appTrackingUrl && (
+                            <button
+                              onClick={handleOpenApp}
+                              className="ref-btn-app"
+                            >
+                              <Download size={14} /> Download App
+                            </button>
+                          )}
                         </div>
-                      </div>
 
-                      <p className="ref-partner-perks" style={{ margin: '0.6rem 0 1rem 0', lineHeight: 1.5, fontSize: '0.84rem' }}>
-                        Click the button below to register directly with our official bonus code on <strong>{site.name}</strong>. Once registered, your account will be automatically recognized and full access to 90%+ AI predictions, live match feeds, and tactical simulations will unlock permanently.
-                      </p>
-
-                      <div className="ref-partner-actions">
+                        {/* Direct Unlock Button */}
                         <button
-                          onClick={handleOpenWeb}
-                          className="ref-btn-register pulse-glow"
+                          type="button"
+                          onClick={() => {
+                            if (onVerified) {
+                              onVerified(sessionToken || undefined, activeUser);
+                            }
+                            setIsCompleted(true);
+                          }}
                           style={{
-                            fontSize: '0.95rem',
-                            padding: '0.85rem 1.2rem',
-                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            width: '100%',
+                            marginTop: '0.75rem',
+                            padding: '0.75rem 1rem',
+                            background: 'rgba(56, 189, 248, 0.12)',
+                            border: '1px solid rgba(56, 189, 248, 0.35)',
+                            borderRadius: 10,
+                            color: '#38bdf8',
+                            fontSize: '0.85rem',
                             fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
                           }}
                         >
-                          <Gift size={16} /> Register on {site.name} &amp; Claim 500% Bonus
+                          <CheckCircle2 size={16} color="#38bdf8" />
+                          <span>Complete Registration &amp; Unlock Full Predictions ➔</span>
                         </button>
-                        {appTrackingUrl && (
-                          <button
-                            onClick={handleOpenApp}
-                            className="ref-btn-app"
-                          >
-                            <Download size={14} /> Download App
-                          </button>
-                        )}
                       </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="ref-empty-state">
-                  No active referral partner configured at this moment.
-                </div>
-              )}
-            </div>
+                    );
+                  })
+                ) : (
+                  <div className="ref-empty-state">
+                    No active referral partner configured at this moment.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
