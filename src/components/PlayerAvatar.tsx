@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface PlayerAvatarProps {
   name: string;
@@ -17,6 +17,11 @@ export const PlayerAvatar: React.FC<PlayerAvatarProps> = React.memo(({
 }) => {
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+    setImgLoaded(false);
+  }, [imageUrl]);
 
   const initial = (name || 'P')
     .trim()
