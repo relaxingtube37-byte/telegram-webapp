@@ -338,7 +338,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                   </div>
                   <p style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
                     {isVerified
-                      ? 'Full 90%+ AI models, tactical simulation dossiers & live feeds permanently unlocked.'
+                      ? 'Full AI models, tactical simulation dossiers & live feeds permanently unlocked.'
                       : 'Activate 1WIN partner to claim your 500% bonus and auto-unlock full AI predictive models.'}
                   </p>
                   {!isVerified && (
@@ -367,10 +367,6 @@ export const Header: React.FC<HeaderProps> = React.memo(({
 
                 {/* Trust & Unlocked Features Checklist */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.68rem', color: '#d4d4d8', padding: '0.2rem 0.2rem 0.4rem 0.2rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
-                    <span>90%+ Win Probability Models (Active)</span>
-                  </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
                     <span>Deep Tactical Head-to-Head Dossiers</span>

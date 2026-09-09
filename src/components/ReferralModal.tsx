@@ -299,7 +299,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               🎉 Predictions Unlocked!
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
-              Your account is registered and verified. All 90%+ confidence AI predictions, value odds &amp; tactical simulations are now permanently unlocked.
+              Your account is registered and verified. All AI match predictions, value odds &amp; tactical simulations are now permanently unlocked.
             </p>
             <button
               type="button"
@@ -449,7 +449,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.82rem', color: '#e4e4e7', marginBottom: '1.15rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
-                  <span>Instant access to <strong>90%+ AI predictions</strong> &amp; tactical dossiers</span>
+                  <span>Instant access to <strong>AI match predictions</strong> &amp; tactical dossiers</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                   <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
