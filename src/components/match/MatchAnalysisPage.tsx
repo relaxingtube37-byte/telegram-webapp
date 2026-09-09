@@ -54,7 +54,8 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   onVerified,
 }) => {
   const webApiBase = useMemo(() => resolveWebApiBase(webappApiBase), [webappApiBase]);
-  const isClientVerified = Boolean(
+  const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+  const isClientVerified = !isLoggedOut && Boolean(
     isVerified ||
     (typeof window !== 'undefined' && (
       localStorage.getItem('ptin_web_verified') === 'true' ||
@@ -62,9 +63,10 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     ))
   );
 
-  const [match, setMatch] = useState<Prediction>(() =>
-    isClientVerified ? { ...seed, content_locked: false } : seed
-  );
+  const [match, setMatch] = useState<Prediction>(() => ({
+    ...seed,
+    content_locked: !isClientVerified,
+  }));
   const [analytics, setAnalytics] = useState<MappedDeepAnalytics | null>(null);
   const [serverVerified, setServerVerified] = useState<boolean>(isClientVerified);
   const [loadState, setLoadState] = useState<LoadState>('loading');
@@ -72,7 +74,12 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   const [activeTab, setActiveTab] = useState<SubTab>('all');
 
   useEffect(() => {
-    setMatch(isClientVerified ? { ...seed, content_locked: false } : seed);
+    setMatch(prev => ({
+      ...seed,
+      ...prev,
+      content_locked: !isClientVerified,
+    }));
+    setServerVerified(isClientVerified);
   }, [seed.id, seed.fixture_id, isClientVerified]);
 
   useEffect(() => {
@@ -99,22 +106,26 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         if (matchesRes?.matches) {
           const found = findMatchInWebList(matchesRes.matches, seed);
           if (found) {
-            setMatch(isClientVerified ? { ...found, content_locked: false } : found);
+            setMatch({
+              ...found,
+              content_locked: !isClientVerified,
+            });
           }
-          if (typeof matchesRes.verified === 'boolean' && matchesRes.verified) {
-            setServerVerified(true);
+          if (typeof matchesRes.verified === 'boolean') {
+            setServerVerified(!isLoggedOut && matchesRes.verified);
           }
         }
 
         if (deepRes) {
-          if (typeof deepRes.verified === 'boolean' && deepRes.verified) {
-            setServerVerified(true);
+          const verifiedFlag = !isLoggedOut && (isClientVerified || !!deepRes.verified);
+          if (typeof deepRes.verified === 'boolean') {
+            setServerVerified(verifiedFlag);
           }
           setAnalytics(
             mapDeepAnalyticsPayload({
-              content_locked: isClientVerified ? false : deepRes.content_locked,
-              guest_stats_level: isClientVerified ? 'full' : deepRes.guest_stats_level,
-              verified: isClientVerified ? true : deepRes.verified,
+              content_locked: !verifiedFlag,
+              guest_stats_level: verifiedFlag ? 'full' : (deepRes.guest_stats_level || 'none'),
+              verified: verifiedFlag,
               data: deepRes.data,
             })
           );
@@ -133,7 +144,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [webApiBase, sessionToken, seed.home_name, seed.away_name, seed.surface, seed.match_date, seed.id, seed.fixture_id, isClientVerified]);
+  }, [webApiBase, sessionToken, seed.home_name, seed.away_name, seed.surface, seed.match_date, seed.id, seed.fixture_id, isClientVerified, isLoggedOut]);
 
   // SEO document title
   useEffect(() => {
@@ -145,10 +156,11 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     };
   }, [match.home_name, match.away_name]);
 
-  const freeMode = accessMode === 'FREE';
-  const member = freeMode || isClientVerified || serverVerified;
-  const contentLocked = !member && match.content_locked === true;
-  const canSeeFullAi = member || match.content_locked === false;
+  const effectiveMode = isLoggedOut ? 'REGISTRATION_REQUIRED' : accessMode;
+  const freeMode = effectiveMode === 'FREE';
+  const member = !isLoggedOut && (freeMode || isClientVerified || serverVerified);
+  const contentLocked = !member;
+  const canSeeFullAi = member;
   const summary = shortInsightSummary(match.ai_summary);
 
   const handleShare = () => {

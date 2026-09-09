@@ -40,7 +40,10 @@ function resolveApiBase(): string {
 
 const API_BASE = resolveApiBase();
 
-function buildAuthHeaders(sessionToken: string | null): HeadersInit {
+function buildAuthHeaders(sessionToken: string | null, isExplicitlyLoggedOut: boolean = false): HeadersInit {
+  if (isExplicitlyLoggedOut) {
+    return {};
+  }
   const headers: Record<string, string> = {};
   if (sessionToken) {
     // Authorization alone — live Render CORS currently allows this header.
@@ -162,10 +165,16 @@ export function App() {
 
   const effectiveVerified = !isExplicitlyLoggedOut && (isVerified || isUserRegistered);
 
-  const canSeeDeepAnalysis = accessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_ai_full;
+  const effectiveAccessMode = isExplicitlyLoggedOut ? 'REGISTRATION_REQUIRED' : accessMode;
+
+  const canSeeDeepAnalysis = !isExplicitlyLoggedOut && (
+    effectiveAccessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_ai_full
+  );
   const canWatchLive =
     (businessActions.watch_live_enabled !== false) &&
-    (accessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_watch_live);
+    (!isExplicitlyLoggedOut
+      ? (effectiveAccessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_watch_live)
+      : contentLayers.guest_can_see_watch_live);
 
   const handlePartnerActivation = (siteId?: number) => {
     try {
@@ -205,6 +214,7 @@ export function App() {
     setTelegramUser(null);
     setIsVerified(false);
     setSelectedMatch(null);
+    setPredictions(prev => prev.map(p => ({ ...p, content_locked: true })));
     loadData(false, null);
   };
 
@@ -423,7 +433,7 @@ export function App() {
         : (!isLoggedOut ? (() => {
             try { return localStorage.getItem('ptin_web_session'); } catch { return sessionToken; }
           })() : null);
-      const headers = buildAuthHeaders(token);
+      const headers = buildAuthHeaders(token, isLoggedOut);
 
       const [predRes, statsRes, refRes] = await Promise.all([
         fetch(`${API_BASE}/predictions`, { headers }).then(r => r.json()).catch(() => ({})),
@@ -448,7 +458,10 @@ export function App() {
       setIsVerified(isClientVerified);
       if (predRes?.access_mode) setAccessMode(predRes.access_mode);
 
-      const finalPreds = loadedPreds.map(p => isClientVerified ? { ...p, content_locked: false } : p);
+      const finalPreds = loadedPreds.map(p => ({
+        ...p,
+        content_locked: !isClientVerified ? true : false,
+      }));
       setPredictions(finalPreds);
       setStats(statsRes);
       setReferralSites(Array.isArray(refRes) ? refRes : []);
@@ -626,10 +639,10 @@ export function App() {
         {/* Center Main Match Feed Column */}
         <main className="portal-center-feed">
           {/* Mobile Promotional Sign-Up Strip (Only on mobile or unverified) */}
-          {!selectedMatch && !effectiveVerified && accessMode !== 'FREE' && (
+          {!selectedMatch && !effectiveVerified && effectiveAccessMode !== 'FREE' && (
             <SignUpStrip
               isVerified={effectiveVerified}
-              accessMode={accessMode}
+              accessMode={effectiveAccessMode}
               sites={referralSites}
               effectiveId={effectiveTrackingId}
               onOpenModal={handleOpenRegistrationModal}
@@ -648,7 +661,7 @@ export function App() {
           webappApiBase={API_BASE}
           sessionToken={sessionToken}
           isVerified={effectiveVerified}
-          accessMode={accessMode}
+          accessMode={effectiveAccessMode}
           referralSites={referralSites}
           trackingId={effectiveTrackingId}
           businessActions={businessActions}

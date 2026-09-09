@@ -13,6 +13,10 @@ export function resolveWebApiBase(webappApiBase: string): string {
 
 export function buildAuthHeaders(sessionToken: string | null | undefined): HeadersInit {
   const headers: Record<string, string> = { Accept: 'application/json' };
+  const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+  if (isLoggedOut) {
+    return headers;
+  }
   if (sessionToken) {
     // Authorization alone works with currently deployed Render CORS.
     headers.Authorization = `Bearer ${sessionToken}`;
