@@ -8,6 +8,8 @@ import {
   getSurfaceEmoji,
 } from '../../utils/formatters';
 import { MatchLiveStatus } from './MatchLiveStatus';
+import { PlayerAvatar } from '../PlayerAvatar';
+import { getPlayerImageUrl } from '../../utils/playerImage';
 
 interface MatchHeaderProps {
   match: Prediction;
@@ -96,6 +98,13 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
         <div className="arena-players-grid">
           {/* Home Player */}
           <div className={`arena-player-card home-player ${isHomeWinner ? 'is-favored' : ''}`}>
+            <PlayerAvatar
+              name={match.home_name}
+              imageUrl={getPlayerImageUrl(match.home_image, match.home_name, match.home_id)}
+              size={42}
+              isWinner={isHomeWinner}
+              className="arena-player-avatar"
+            />
             <div className="arena-player-name">
               {formatPlayerDisplayName(match.home_name)}
             </div>
@@ -125,6 +134,13 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
 
           {/* Away Player */}
           <div className={`arena-player-card away-player ${isAwayWinner ? 'is-favored' : ''}`}>
+            <PlayerAvatar
+              name={match.away_name}
+              imageUrl={getPlayerImageUrl(match.away_image, match.away_name, match.away_id)}
+              size={42}
+              isWinner={isAwayWinner}
+              className="arena-player-avatar"
+            />
             <div className="arena-player-name">
               {formatPlayerDisplayName(match.away_name)}
             </div>

@@ -12,6 +12,8 @@ import {
   getMatchGender
 } from '../utils/formatters';
 import { buildPartnerWatchUrl, openExternalLink, shouldShowWatchLive } from '../utils/referralLinks';
+import { PlayerAvatar } from './PlayerAvatar';
+import { getPlayerImageUrl } from '../utils/playerImage';
 
 export interface CompactMatchRowProps {
   prediction: Prediction;
@@ -70,6 +72,9 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   const rawScore = (prediction.result_score || '').trim();
   const compactScore = rawScore ? rawScore.split('(')[0].trim() : '';
 
+  const homeAvatarUrl = getPlayerImageUrl(prediction.home_image, prediction.home_name, prediction.home_id, apiBase);
+  const awayAvatarUrl = getPlayerImageUrl(prediction.away_image, prediction.away_name, prediction.away_id, apiBase);
+
   // Status Badge
   const renderStatus = () => {
     if (prediction.status === 'WON') {
@@ -91,8 +96,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
     if (prediction.status === 'LIVE') {
       return (
         <span className="tennis-status-badge badge-live">
-          <span className="live-ping-dot" />
-          <span>LIVE</span>
+          <span className="live-dot-pulse" />
+          <span>LIVE {compactScore}</span>
         </span>
       );
     }
@@ -100,13 +105,11 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       return <span className="tennis-status-badge badge-void">VOID</span>;
     }
     return (
-      <div className="tennis-time-stack">
-        <span className="tennis-match-time">
-          <Clock size={11} />
-          <span>{matchTimeStr}</span>
-        </span>
-        {matchDateLabel && <span className="tennis-match-date">{matchDateLabel}</span>}
-      </div>
+      <span className="tennis-status-badge badge-upcoming">
+        <Clock size={11} />
+        <span className="match-time-text">{matchTimeStr}</span>
+        <span className="match-day-sub">{matchDateLabel}</span>
+      </span>
     );
   };
 
@@ -139,6 +142,12 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         {/* Home Player */}
         <div className={`player-row ${isHomeWinner ? 'player-is-winner' : ''}`}>
           <div className="player-info">
+            <PlayerAvatar
+              name={prediction.home_name}
+              imageUrl={homeAvatarUrl}
+              size={22}
+              isWinner={isHomeWinner}
+            />
             <span className="player-name-text">
               {formatPlayerDisplayName(prediction.home_name)}
             </span>
@@ -156,6 +165,12 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         {/* Away Player */}
         <div className={`player-row ${isAwayWinner ? 'player-is-winner' : ''}`}>
           <div className="player-info">
+            <PlayerAvatar
+              name={prediction.away_name}
+              imageUrl={awayAvatarUrl}
+              size={22}
+              isWinner={isAwayWinner}
+            />
             <span className="player-name-text">
               {formatPlayerDisplayName(prediction.away_name)}
             </span>
