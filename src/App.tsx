@@ -751,10 +751,10 @@ export function App() {
                 avatar_url: user.avatar_url || user.picture,
                 auth_provider: user.auth_provider || 'google',
               });
-              if (user.is_verified) {
-                setIsVerified(true);
-              }
+              setIsVerified(true);
             }
+            // Instantly refresh predictions & analytics with verified session
+            loadData();
           }}
         />
       )}
