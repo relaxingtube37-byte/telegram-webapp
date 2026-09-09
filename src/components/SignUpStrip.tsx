@@ -44,7 +44,7 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
             <strong>Member access:</strong> Full match analytics, form stats &amp; AI dossiers unlocked.
           </span>
         </div>
-        <span className="strip-vip-pill">VIP ✓</span>
+        <span className="strip-vip-pill">ACTIVE ✓</span>
       </div>
     );
   }

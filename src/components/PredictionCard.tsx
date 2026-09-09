@@ -73,14 +73,14 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
             🔒 PREDICTION LOCKED
           </h4>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.9rem', lineHeight: 1.4 }}>
-            Register on our partner platform to instantly unlock all daily AI match predictions & deep tactical insights!
+            Connect your account to access all daily AI match predictions & deep tactical insights!
           </p>
           <button
             onClick={onUnlockClick}
             className="btn-primary"
             style={{ width: '100%', fontSize: '0.82rem', padding: '0.65rem' }}
           >
-            <Key size={14} /> Register & Unlock VIP Access
+            <Key size={14} /> Connect Account & Unlock Analysis
           </button>
         </div>
       ) : (

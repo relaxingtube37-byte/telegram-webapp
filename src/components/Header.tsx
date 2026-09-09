@@ -128,17 +128,17 @@ export const Header: React.FC<HeaderProps> = React.memo(({
           ) : isVerified ? (
             <div className="header-vip-pill header-vip-verified">
               <CheckCircle size={12} />
-              <span>VIP ACTIVE ✓</span>
+              <span>MEMBER ACTIVE ✓</span>
             </div>
           ) : (
             <button
               onClick={onOpenVipModal}
-              className="header-signup-btn pulse-glow"
-              title="Sign Up to Unlock All VIP Predictions"
+              className="header-signup-btn"
+              title="Connect Account for Full Member Access"
               id="header-signup-cta-btn"
             >
               <Key size={13} className="header-btn-key" />
-              <span className="header-btn-text">Sign Up / VIP</span>
+              <span className="header-btn-text">Member Access</span>
               <span className="header-btn-tag">FREE</span>
             </button>
           )}

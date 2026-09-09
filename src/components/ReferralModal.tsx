@@ -2,6 +2,7 @@ import React from 'react';
 import { ExternalLink, CheckCircle2, ShieldCheck, Download, Sparkles, X, Send } from 'lucide-react';
 import type { ReferralSite } from '../types';
 import { buildPartnerRegisterUrl, openExternalLink } from '../utils/referralLinks';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
 
 declare global {
   interface Window {
@@ -35,8 +36,26 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   const [linking, setLinking] = React.useState(false);
   const [linkError, setLinkError] = React.useState<string | null>(null);
   const widgetContainerRef = React.useRef<HTMLDivElement>(null);
+  const googleBtnRef = React.useRef<HTMLDivElement>(null);
 
   const isTgEnvironment = Boolean(telegramId || window.Telegram?.WebApp?.initData);
+
+  const { renderGoogleButton } = useGoogleAuth({
+    apiBase,
+    sessionToken,
+    enabled: false,
+    onSuccess: (newToken, user) => {
+      setLinking(false);
+      setLinkError(null);
+      if (onVerified) {
+        onVerified(newToken, user);
+      }
+    },
+    onError: (err) => {
+      setLinking(false);
+      setLinkError(err);
+    },
+  });
 
   // Determine user tracking ID: verified Telegram ID takes precedence, then verified/session webId
   const effectiveId = React.useMemo(() => {
@@ -107,6 +126,12 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     };
   }, [botUsername, isTgEnvironment, telegramId, handleTelegramWidgetAuth]);
 
+  React.useEffect(() => {
+    if (!isTgEnvironment && !telegramId && googleBtnRef.current) {
+      renderGoogleButton(googleBtnRef.current);
+    }
+  }, [isTgEnvironment, telegramId, renderGoogleButton]);
+
   return (
     <div
       className="modal-backdrop"
@@ -122,11 +147,11 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         <div className="ref-modal-header">
           <div className="ref-modal-title-group">
             <div className="ref-modal-icon-badge">
-              <Sparkles size={18} color="#d4a843" />
+              <Sparkles size={18} color="#38bdf8" />
             </div>
             <div>
-              <h2 className="ref-modal-title">VIP Membership &amp; Free Unlock</h2>
-              <p className="ref-modal-subtitle">Follow 3 simple steps to access all AI predictions</p>
+              <h2 className="ref-modal-title">Member Access &amp; Full Dossier</h2>
+              <p className="ref-modal-subtitle">Connect your account for complete AI predictive model insights</p>
             </div>
           </div>
           <button onClick={onClose} className="ref-modal-close-btn" aria-label="Close modal">
@@ -139,8 +164,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
           <div className="ref-step-item">
             <div className="ref-step-num">1</div>
             <div className="ref-step-text">
-              <strong>Register Free</strong>
-              <span>Click partner link below</span>
+              <strong>Connect Account</strong>
+              <span>Google or Telegram 1-click</span>
             </div>
           </div>
           <div className="ref-step-arrow">→</div>
@@ -155,8 +180,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
           <div className="ref-step-item">
             <div className="ref-step-num">3</div>
             <div className="ref-step-text">
-              <strong>VIP Unlocked</strong>
-              <span>Instant full access</span>
+              <strong>Full Access</strong>
+              <span>Instant dossier unlocked</span>
             </div>
           </div>
         </div>
@@ -167,21 +192,21 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
           <span>Tracking ID: <code>{effectiveId}</code> (Auto-synced)</span>
         </div>
 
-        {/* Secure Telegram Linkage Section for Web Users */}
+        {/* Secure Sign-in Section for Web Users */}
         {!isTgEnvironment && (
           <div className="ref-tg-link-box">
             {telegramId ? (
               <div className="ref-tg-linked">
                 <CheckCircle2 size={16} color="#4ade80" />
-                <span>Verified Telegram Linked: ID {telegramId}</span>
+                <span>Active Member Account Connected (ID: {telegramId})</span>
               </div>
             ) : (
               <div>
                 <label className="ref-tg-label">
-                  Link Telegram Account:
+                  Connect Your Account:
                 </label>
                 <p className="ref-tg-desc">
-                  Log in securely with Telegram to sync VIP access across all your devices.
+                  Sign in with Google or Telegram to sync full match analyses across all your devices.
                 </p>
 
                 {linkError && (
@@ -192,9 +217,20 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
 
                 {linking && (
                   <div className="ref-status-text">
-                    Verifying Telegram authentication...
+                    Verifying authentication...
                   </div>
                 )}
+
+                {/* Google One-Click Button */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0.8rem 0' }}>
+                  <div ref={googleBtnRef} style={{ minHeight: 40, display: 'flex', justifyContent: 'center' }} />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', margin: '0.6rem 0', color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
+                  <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                  <span>or with Telegram</span>
+                  <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                </div>
 
                 <div className="ref-tg-widget-wrap">
                   <div

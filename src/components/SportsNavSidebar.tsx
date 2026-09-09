@@ -173,10 +173,10 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
         </div>
         <div className="nav-sponsor-title">1WIN BOOKMAKER</div>
         <div className="nav-sponsor-desc">
-          {isVerified ? '✓ VIP Access Verified' : 'Free Registration to Unlock All Predictions'}
+          {isVerified ? '✓ Member Access Verified' : 'Sign In to Unlock Full Tactical Dossiers'}
         </div>
         <button className="nav-sponsor-action">
-          {isVerified ? 'VIP Member ✓' : 'Register Free ↗'}
+          {isVerified ? 'Member Active ✓' : 'Connect Account ↗'}
         </button>
       </div>
     </nav>

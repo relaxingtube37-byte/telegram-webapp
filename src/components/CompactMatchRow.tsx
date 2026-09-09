@@ -218,7 +218,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         )}
 
         {isLocked && (
-          <span className="row-locked-icon" title="VIP Analysis Locked">
+          <span className="row-locked-icon" title="Full Analysis Gated">
             <Lock size={12} />
           </span>
         )}

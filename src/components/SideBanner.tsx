@@ -58,7 +58,7 @@ export const SideBanner: React.FC<SideBannerProps> = ({
 
         <div className="side-bonus-pill">
           <Flame size={14} color="#f87171" />
-          <span>+500% Deposit Bonus &amp; VIP Unlocked</span>
+          <span>+500% Deposit Bonus &amp; Full Access Unlocked</span>
         </div>
 
         <p className="side-sponsor-desc">

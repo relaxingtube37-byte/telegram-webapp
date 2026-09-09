@@ -593,10 +593,10 @@ export function App() {
 
             <button
               onClick={() => setShowReferralModal(true)}
-              className={`btn-vip-badge ${accessMode === 'FREE' || isVerified ? 'vip-active' : 'vip-locked pulse-glow'}`}
-              title="Unlock All VIP AI Intelligence"
+              className={`btn-vip-badge ${accessMode === 'FREE' || isVerified ? 'vip-active' : 'vip-locked'}`}
+              title="Member Access & Full Dossiers"
             >
-              <Key size={13} /> {accessMode === 'FREE' ? 'FREE 🔓' : isVerified ? 'VIP ✓' : 'UNLOCK VIP 🔓'}
+              <Key size={13} /> {accessMode === 'FREE' ? 'OPEN ACCESS 🔓' : isVerified ? 'MEMBER ✓' : 'FULL ACCESS 🔓'}
             </button>
           </div>
 
