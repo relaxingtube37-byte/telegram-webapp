@@ -6,36 +6,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Core palette */
-  --bg-primary:       #060f0a;
-  --bg-secondary:     #0a1810;
-  --bg-card:          rgba(10, 24, 14, 0.82);
-  --bg-card-hover:    rgba(14, 32, 18, 0.95);
-  --bg-drawer:        rgba(5, 14, 8, 0.88);
+  /* Core palette (Vercel/Linear style neutral dark) */
+  --bg-primary:       #09090b;
+  --bg-secondary:     #18181b;
+  --bg-card:          #18181b;
+  --bg-card-hover:    #27272a;
+  --bg-drawer:        #09090b;
 
   /* Borders */
-  --border:           rgba(212, 168, 67, 0.12);
-  --border-focus:     rgba(212, 168, 67, 0.45);
+  --border:           rgba(255, 255, 255, 0.08);
+  --border-focus:     rgba(255, 255, 255, 0.2);
 
   /* Text */
-  --text-primary:     #f0f4f1;
-  --text-secondary:   #7a9580;
-  --text-muted:       #4a6455;
+  --text-primary:     #fafafa;
+  --text-secondary:   #a1a1aa;
+  --text-muted:       #71717a;
 
   /* Accents */
-  --gold:             #d4a843;
-  --gold-bright:      #e8c060;
-  --gold-dim:         rgba(212, 168, 67, 0.18);
-  --green-accent:     #4ade80;
-  --green-dim:        rgba(74, 222, 128, 0.15);
-  --red-accent:       #f87171;
-  --red-dim:          rgba(248, 113, 113, 0.15);
-  --emerald:          #34d399;
+  --gold:             #eab308;
+  --gold-bright:      #fde047;
+  --gold-dim:         rgba(234, 179, 8, 0.1);
+  --green-accent:     #22c55e;
+  --green-dim:        rgba(34, 197, 94, 0.1);
+  --red-accent:       #ef4444;
+  --red-dim:          rgba(239, 68, 68, 0.1);
+  --emerald:          #10b981;
 
-  /* Glows */
-  --glow-gold:        0 0 20px rgba(212, 168, 67, 0.25);
-  --glow-green:       0 0 16px rgba(74, 222, 128, 0.2);
-  --shadow-card:      0 4px 24px rgba(0, 0, 0, 0.5);
+  /* Glows (Muted) */
+  --glow-gold:        0 0 0px transparent;
+  --glow-green:       0 0 0px transparent;
+  --shadow-card:      0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -54,9 +54,6 @@ html, body {
 
 body {
   background-color: var(--bg-primary);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(20, 60, 30, 0.5) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(10, 35, 20, 0.3) 0%, transparent 60%);
   color: var(--text-primary);
   min-height: 100vh;
   padding-bottom: 2.5rem;
@@ -100,10 +97,8 @@ body {
 /* ─── Glass Base ─────────────────────────────────────────── */
 .glass {
   background: var(--bg-card);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -112,10 +107,7 @@ body {
 .full-width-header {
   width: 100%;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(10, 28, 16, 0.98) 0%, rgba(6, 15, 10, 0.95) 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  background: var(--bg-primary);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -141,13 +133,12 @@ body {
 .header-logo-icon {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1a3d1f 0%, #0d2010 100%);
-  border: 2px solid var(--gold);
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 14px rgba(212, 168, 67, 0.4);
   flex-shrink: 0;
 }
 
@@ -210,21 +201,21 @@ body {
 }
 
 .tour-nav-btn.active {
-  background: rgba(212, 168, 67, 0.15);
-  color: var(--gold-bright);
-  border: 1px solid rgba(212, 168, 67, 0.3);
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border: 1px solid var(--border-focus);
 }
 
 .tour-nav-btn.btn-atp.active {
-  background: rgba(56, 189, 248, 0.18);
+  background: rgba(56, 189, 248, 0.1);
   color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 .tour-nav-btn.btn-wta.active {
-  background: rgba(251, 113, 133, 0.18);
+  background: rgba(251, 113, 133, 0.1);
   color: #fb7185;
-  border: 1px solid rgba(251, 113, 133, 0.4);
+  border: 1px solid rgba(251, 113, 133, 0.2);
 }
 
 .tour-count-pill {
@@ -247,10 +238,10 @@ body {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(6, 15, 10, 0.8);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   padding: 0.3rem 0.6rem;
-  border-radius: 20px;
+  border-radius: 8px;
 }
 
 @media (max-width: 600px) {
@@ -277,23 +268,20 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: linear-gradient(135deg, #d4a843 0%, #4ade80 100%);
-  color: #060f0a;
+  background: var(--text-primary);
+  color: var(--bg-primary);
   border: none;
   padding: 0.42rem 0.9rem;
-  border-radius: 20px;
+  border-radius: 8px;
   font-size: 0.76rem;
-  font-weight: 900;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(212, 168, 67, 0.3);
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .header-signup-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
-  box-shadow: 0 6px 20px rgba(212, 168, 67, 0.45);
+  background: #e4e4e7; /* zinc-200 */
 }
 
 .header-btn-tag {
@@ -334,8 +322,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  background: rgba(0, 0, 0, 0.25);
-  border-top: 1px solid rgba(212, 168, 67, 0.08);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   padding: 0.32rem 1.25rem;
   font-size: 0.68rem;
 }
@@ -370,10 +359,10 @@ body {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background: rgba(10, 24, 14, 0.8);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   padding: 0.22rem 0.5rem;
-  border-radius: 20px;
+  border-radius: 8px;
   flex-shrink: 0;
 }
 
@@ -402,9 +391,9 @@ body {
 
 .stat-card {
   text-align: center;
-  background: rgba(8, 20, 12, 0.9);
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0.6rem 0.4rem;
   position: relative;
   overflow: hidden;
@@ -480,9 +469,9 @@ body {
 
 .search-input {
   width: 100%;
-  background: rgba(10, 24, 14, 0.85);
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0.52rem 1.5rem 0.52rem 1.9rem;
   color: white;
   font-size: 0.78rem;
@@ -514,9 +503,9 @@ body {
   display: flex;
   gap: 0.2rem;
   flex-shrink: 0;
-  background: rgba(10, 24, 14, 0.85);
+  background: var(--bg-card);
   padding: 0.18rem;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border);
 }
 
@@ -534,8 +523,9 @@ body {
 }
 
 .date-filter-btn.active {
-  background: var(--gold);
-  color: #0a1810;
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-radius: 6px;
 }
 
 /* ─── Filter Chips ─────────────────────────────────────── */
@@ -553,11 +543,11 @@ body {
 
 .filter-chip {
   white-space: nowrap;
-  background: rgba(10, 24, 14, 0.7);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   padding: 0.26rem 0.6rem;
-  border-radius: 20px;
+  border-radius: 8px;
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
@@ -566,10 +556,10 @@ body {
 }
 
 .filter-chip.active {
-  background: var(--gold-dim);
-  border-color: var(--gold);
-  color: var(--gold-bright);
-  font-weight: 700;
+  background: var(--bg-card-hover);
+  border-color: var(--border-focus);
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -586,9 +576,9 @@ body {
 .nav-tabs {
   display: flex;
   flex: 1;
-  background: rgba(8, 20, 12, 0.9);
+  background: var(--bg-card);
   padding: 0.22rem;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   gap: 0.2rem;
 }
@@ -597,9 +587,9 @@ body {
   flex: 1;
   text-align: center;
   padding: 0.48rem 0.4rem;
-  border-radius: 9px;
+  border-radius: 6px;
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-secondary);
   background: transparent;
   border: none;
@@ -609,17 +599,17 @@ body {
 }
 
 .nav-tab.active {
-  background: linear-gradient(135deg, #c9a227 0%, #a07818 100%);
-  color: #060f0a;
-  box-shadow: 0 2px 10px rgba(212, 168, 67, 0.35);
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 .btn-refresh {
-  background: rgba(10, 24, 14, 0.9);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   padding: 0.5rem;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -635,10 +625,10 @@ body {
 
 .btn-vip-badge {
   padding: 0.48rem 0.65rem;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -648,14 +638,14 @@ body {
 }
 
 .vip-active {
-  background: rgba(74, 222, 128, 0.12);
-  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: var(--green-dim);
+  border: 1px solid rgba(34, 197, 94, 0.3);
   color: var(--green-accent);
 }
 
 .vip-locked {
   background: var(--gold-dim);
-  border: 1px solid rgba(212, 168, 67, 0.4);
+  border: 1px solid rgba(234, 179, 8, 0.3);
   color: var(--gold);
 }
 
@@ -674,7 +664,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 0.4rem 0.5rem 0.45rem 0.5rem;
-  border-bottom: 1px solid rgba(212, 168, 67, 0.1);
+  border-bottom: 1px solid var(--border);
   margin-bottom: 0.5rem;
   width: 100%;
   transition: background 0.15s ease;
@@ -693,7 +683,7 @@ body {
 }
 
 .tourn-name {
-  color: #d0e8d5;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -707,13 +697,13 @@ body {
 
 .tourn-count {
   font-size: 0.68rem;
-  background: var(--gold-dim);
-  color: var(--gold);
+  background: var(--bg-card);
+  color: var(--text-secondary);
   padding: 0.05rem 0.4rem;
-  border-radius: 10px;
-  font-weight: 700;
+  border-radius: 6px;
+  font-weight: 600;
   flex-shrink: 0;
-  border: 1px solid rgba(212, 168, 67, 0.2);
+  border: 1px solid var(--border);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -776,12 +766,9 @@ body {
   gap: 0.75rem;
   padding: 0.65rem 0.95rem;
   margin-bottom: 0.45rem;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -790,10 +777,8 @@ body {
 }
 
 .tennis-match-row:hover {
-  background: rgba(30, 41, 59, 0.92);
-  border-color: rgba(56, 189, 248, 0.45);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.15);
-  transform: translateY(-1px);
+  background: var(--bg-card-hover);
+  border-color: var(--border-focus);
 }
 
 .tennis-match-row:active {
@@ -812,9 +797,8 @@ body {
 
 /* Row actively selected / opened */
 .tennis-match-row.row-active-selected {
-  background: rgba(56, 189, 248, 0.12) !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.3) !important;
+  background: var(--bg-secondary) !important;
+  border-color: var(--text-primary) !important;
 }
 
 /* ── Column 1: Time / Status ── */
@@ -842,22 +826,21 @@ body {
 }
 
 .tennis-status-badge.badge-won {
-  background: rgba(34, 197, 94, 0.16);
-  color: #4ade80;
-  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: var(--green-dim);
+  color: var(--green-accent);
+  border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .tennis-status-badge.badge-lost {
-  background: rgba(239, 68, 68, 0.16);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: var(--red-dim);
+  color: var(--red-accent);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .tennis-status-badge.badge-live {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ff4d4d;
-  border: 1px solid rgba(255, 77, 77, 0.4);
-  box-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+  background: var(--red-dim);
+  color: var(--red-accent);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   animation: pulse-live 1.6s infinite;
 }
 
@@ -961,8 +944,7 @@ body {
 }
 
 .player-avatar-wrap.avatar-is-winner {
-  border-color: rgba(74, 222, 128, 0.55);
-  box-shadow: 0 0 6px rgba(74, 222, 128, 0.25);
+  border-color: var(--green-accent);
 }
 
 .player-avatar-img {
@@ -991,12 +973,10 @@ body {
 .arena-player-avatar {
   margin-bottom: 0.4rem;
   border: 1.5px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 
 .arena-player-avatar.avatar-is-winner {
-  border-color: #4ade80;
-  box-shadow: 0 0 14px rgba(74, 222, 128, 0.35);
+  border-color: var(--green-accent);
 }
 
 .player-name-text {
@@ -1029,9 +1009,9 @@ body {
 .player-odds-tag {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #facc15;
-  background: rgba(250, 204, 21, 0.08);
-  border: 1px solid rgba(250, 204, 21, 0.25);
+  color: var(--text-secondary);
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
   padding: 1px 5px;
   border-radius: 4px;
   flex-shrink: 0;
@@ -1071,8 +1051,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  background: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 1px 4px;
   min-width: 27px;
@@ -1099,15 +1079,15 @@ body {
 
 /* Cell Types */
 .score-cell.cell-set {
-  border-color: rgba(255, 255, 255, 0.14);
+  border-color: var(--border);
 }
 
 .score-cell.cell-point {
-  background: rgba(56, 189, 248, 0.1);
-  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-focus);
 }
 .score-cell.cell-point .cell-sub {
-  color: #38bdf8;
+  color: var(--text-primary);
 }
 .score-cell.cell-point .cell-num.pts-accent {
   color: #38bdf8;
