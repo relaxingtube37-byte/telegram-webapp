@@ -36,12 +36,11 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   onVerified,
 }) => {
   const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+  const hasTelegramInitData = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.initData);
   const isTgEnvironment = !isLoggedOut && Boolean(
     telegramId ||
-    (typeof window !== 'undefined' && (
-      window.Telegram?.WebApp?.initData ||
-      window.Telegram?.WebApp?.initDataUnsafe?.user?.id
-    ))
+    hasTelegramInitData ||
+    (typeof window !== 'undefined' && window.Telegram?.WebApp?.initDataUnsafe?.user?.id)
   );
 
   const [justConnectedUser, setJustConnectedUser] = useState<any | null>(null);
@@ -53,6 +52,38 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     activeUser?.email ||
     activeUser?.username
   );
+
+  const [isReconnectingTg, setIsReconnectingTg] = useState(false);
+
+  const handleTelegramReconnect = async () => {
+    try {
+      setIsReconnectingTg(true);
+      localStorage.removeItem('ptin_user_logged_out');
+      const rawInitData = window.Telegram?.WebApp?.initData;
+      if (rawInitData) {
+        const res = await fetch(`${apiBase}/auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            initData: rawInitData,
+            start_param: (window.Telegram?.WebApp as any)?.initDataUnsafe?.start_param || undefined,
+          }),
+        }).then(r => r.json());
+        if (res?.success && res.user) {
+          localStorage.setItem('ptin_web_verified', 'true');
+          localStorage.setItem('ptin_telegram_user', JSON.stringify(res.user));
+          if (res.sessionToken) localStorage.setItem('ptin_web_session', res.sessionToken);
+          setJustConnectedUser(res.user);
+          if (onVerified) onVerified(res.sessionToken, res.user);
+          setCurrentStep(2);
+        }
+      }
+    } catch (err) {
+      console.warn('[Telegram Reconnect Error]:', err);
+    } finally {
+      setIsReconnectingTg(false);
+    }
+  };
 
   // Default to step 2 if already authenticated, else step 1
   const [currentStep, setCurrentStep] = useState<1 | 2>(() => {
@@ -338,8 +369,19 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
             {isUserAuthenticated ? (
               /* Already authenticated info */
               <div style={{ textAlign: 'center' }}>
-                <div style={{ display: 'inline-flex', padding: '0.4rem', background: 'rgba(74, 222, 128, 0.15)', borderRadius: '50%', marginBottom: '0.5rem' }}>
-                  <CheckCircle2 size={28} color="#4ade80" />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.65rem', marginBottom: '0.5rem' }}>
+                  {activeUser?.avatar_url ? (
+                    <img
+                      src={activeUser.avatar_url}
+                      alt="User avatar"
+                      style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #4ade80', objectFit: 'cover' }}
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div style={{ display: 'inline-flex', padding: '0.4rem', background: 'rgba(74, 222, 128, 0.15)', borderRadius: '50%' }}>
+                      <CheckCircle2 size={28} color="#4ade80" />
+                    </div>
+                  )}
                 </div>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#4ade80', margin: '0 0 0.35rem 0' }}>
                   Step 1 Completed!
@@ -372,17 +414,52 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 </button>
               </div>
             ) : (
-              /* Unauthenticated Google prompt */
+              /* Unauthenticated prompt */
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem' }}>
                   <UserCheck size={18} color="#38bdf8" />
                   <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
-                    Step 1 of 2: Sign in with Google
+                    Step 1 of 2: Sign in
                   </span>
                 </div>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1.25rem 0', lineHeight: 1.45 }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1.15rem 0', lineHeight: 1.45 }}>
                   Sign in in 1-click to auto-link your dedicated tracking ID, then activate your 500% bonus in Step 2.
                 </p>
+
+                {hasTelegramInitData && (
+                  <div style={{ marginBottom: '1rem' }}>
+                    <button
+                      type="button"
+                      onClick={handleTelegramReconnect}
+                      disabled={isReconnectingTg}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem',
+                        borderRadius: 10,
+                        border: 'none',
+                        background: 'linear-gradient(135deg, #0284c7, #0ea5e9)',
+                        color: '#fff',
+                        fontWeight: 800,
+                        fontSize: '0.88rem',
+                        cursor: isReconnectingTg ? 'wait' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+                      }}
+                    >
+                      <Sparkles size={16} />
+                      <span>{isReconnectingTg ? 'Connecting Telegram...' : 'Connect Telegram Account (1-Click)'}</span>
+                    </button>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0.85rem 0', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem' }}>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                      <span>OR CONTINUE WITH GOOGLE</span>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
                   <div ref={googleBtnRef} style={{ minHeight: 44, display: 'flex', justifyContent: 'center' }} />

@@ -291,7 +291,16 @@ export function App() {
       localStorage.removeItem('ptin_web_uid');
     } catch {}
 
-    const isLoggedOutOnMount = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
+    const isTelegramEnv = Boolean(window.Telegram?.WebApp?.initData);
+
+    // If opening natively inside Telegram, auto-clear any past logout lock so user seamlessly re-authenticates
+    if (isTelegramEnv) {
+      try {
+        localStorage.removeItem('ptin_user_logged_out');
+      } catch {}
+    }
+
+    const isLoggedOutOnMount = !isTelegramEnv && typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
     if (isLoggedOutOnMount) {
       fetch(`${API_BASE}/config`)
         .then(r => r.json())
@@ -307,8 +316,6 @@ export function App() {
       return;
     }
 
-    const isTelegramEnv = Boolean(window.Telegram?.WebApp?.initData);
-
     // Initialize Telegram WebApp SDK
     if (window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp;
@@ -321,6 +328,7 @@ export function App() {
           first_name: tg.initDataUnsafe.user.first_name,
           username: tg.initDataUnsafe.user.username,
           auth_provider: 'telegram',
+          avatar_url: `${API_BASE}/users/${tg.initDataUnsafe.user.id}/avatar`,
         };
         setTelegramUser(u);
         try {
@@ -334,7 +342,10 @@ export function App() {
         fetch(`${API_BASE}/auth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: rawInitData }),
+          body: JSON.stringify({
+            initData: rawInitData,
+            start_param: (tg as any).initDataUnsafe?.start_param || undefined,
+          }),
         })
           .then(r => r.json())
           .then(res => {
@@ -354,6 +365,7 @@ export function App() {
                   first_name: res.user.first_name,
                   username: res.user.username,
                   auth_provider: 'telegram',
+                  avatar_url: res.user.avatar_url || `${API_BASE}/users/${res.user.telegram_id}/avatar`,
                 };
                 setTelegramUser(u);
                 try {

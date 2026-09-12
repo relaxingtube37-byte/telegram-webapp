@@ -38,7 +38,12 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   effectiveTrackingId,
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [telegramUser?.avatar_url]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -184,11 +189,12 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 >
                   {/* Avatar with Online Dot */}
                   <div style={{ position: 'relative', width: 26, height: 26 }}>
-                    {telegramUser?.avatar_url ? (
+                    {telegramUser?.avatar_url && !avatarError ? (
                       <img
                         src={telegramUser.avatar_url}
                         alt={userName}
                         style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }}
+                        onError={() => setAvatarError(true)}
                       />
                     ) : (
                       <div style={{
@@ -276,8 +282,13 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 {/* Profile Identity Card */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.9rem' }}>
                   <div style={{ width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--gold)', flexShrink: 0 }}>
-                    {telegramUser?.avatar_url ? (
-                      <img src={telegramUser.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {telegramUser?.avatar_url && !avatarError ? (
+                      <img
+                        src={telegramUser.avatar_url}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={() => setAvatarError(true)}
+                      />
                     ) : (
                       <div style={{
                         width: '100%',
