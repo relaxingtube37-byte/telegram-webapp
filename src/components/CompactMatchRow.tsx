@@ -7,6 +7,7 @@ import {
 import {
   formatMatchTime,
   getCompactDateLabel,
+  formatMatchSubLabel,
   getSurfaceEmoji,
   formatPlayerDisplayName,
   getMatchGender,
@@ -121,8 +122,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
     if (effectiveStatus === 'POSTPONED') {
       return (
         <span className="tennis-status-badge badge-postponed" title="Match Postponed">
-          <Clock size={11} />
-          <span>POSTPONED</span>
+          <Clock size={10} className="status-clock-icon" />
+          <span>POSTP.</span>
         </span>
       );
     }
@@ -130,10 +131,9 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       return <span className="tennis-status-badge badge-void">VOID</span>;
     }
     return (
-      <span className="tennis-status-badge badge-upcoming">
-        <Clock size={11} />
+      <span className="tennis-status-badge badge-upcoming" title={matchTimeStr !== '--:--' ? `Time: ${matchTimeStr}` : 'Upcoming Match'}>
+        <Clock size={10} className="status-clock-icon" />
         <span className="match-time-text">{matchTimeStr}</span>
-        <span className="match-day-sub">{matchDateLabel}</span>
       </span>
     );
   };
@@ -141,6 +141,10 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   const showWatch = canWatchLive && shouldShowWatchLive(effectiveStatus, rawDateStr);
   const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST';
   const isLive = effectiveStatus === 'LIVE';
+  const subLabelInfo = formatMatchSubLabel(
+    isFinished || isLive ? '' : matchDateLabel,
+    prediction.round_name
+  );
 
   return (
     <div
@@ -159,8 +163,10 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       {/* ── Column 1: Time / Status ── */}
       <div className="match-col-status">
         {renderStatus()}
-        {prediction.round_name && (
-          <span className="match-round-tag">{prediction.round_name}</span>
+        {subLabelInfo.text && (
+          <span className="match-round-tag" title={subLabelInfo.fullTitle}>
+            {subLabelInfo.text}
+          </span>
         )}
       </div>
 

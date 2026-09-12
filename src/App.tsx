@@ -12,6 +12,8 @@ import { DEFAULT_CONTENT_LAYERS } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority } from './utils/formatters';
 import { buildMatchSlug, parseMatchParamFromUrl, findMatchByParam } from './utils/seo';
+import { Analytics } from '@vercel/analytics/react';
+import { track } from '@vercel/analytics';
 
 const PRODUCTION_API_BASE = 'https://telegram-backend-2yck.onrender.com/api/webapp';
 const LOCAL_API_BASE = 'http://localhost:8080/api/webapp';
@@ -228,6 +230,13 @@ export function App() {
         : `/match/${slug}`;
       window.history.pushState({ matchId: pred.fixture_id || pred.id, slug }, '', newUrl);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Vercel Web Analytics custom event telemetry
+      track('view_match_dossier', {
+        slug,
+        fixture_id: pred.fixture_id || pred.id,
+        tournament: pred.tournament_name || 'ATP/WTA Tour',
+        match_title: `${pred.home_name} vs ${pred.away_name}`,
+      });
     } catch {}
   };
 
@@ -841,14 +850,6 @@ export function App() {
                   {/* Match Rows (Shown when not collapsed) */}
                   {!isCollapsed && (
                     <div className="tournament-matches-list">
-                      {/* Columnar Header Legend */}
-                      <div className="tournament-column-legend">
-                        <span className="col-legend-status">Status / Time</span>
-                        <span className="col-legend-players">Players &amp; Odds</span>
-                        <span className="col-legend-score">Result / Score</span>
-                        <span className="col-legend-ai">AI Win Forecast</span>
-                        <span className="col-legend-action">Open</span>
-                      </div>
                       {tournData.items.map((p) => (
                         <CompactMatchRow
                           key={p.id}
@@ -941,6 +942,9 @@ export function App() {
           }}
         />
       )}
+
+      {/* Vercel Web Analytics tracker component */}
+      <Analytics />
     </div>
   );
 }

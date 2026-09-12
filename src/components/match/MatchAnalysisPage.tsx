@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { Prediction, ReferralSite } from '../../types';
-import { mapDeepAnalyticsPayload, shortInsightSummary, type MappedDeepAnalytics } from '../../match/mapDeepAnalytics';
+import { mapDeepAnalyticsPayload, type MappedDeepAnalytics } from '../../match/mapDeepAnalytics';
 import {
   fetchDeepAnalytics,
   fetchWebMatches,
@@ -10,7 +10,6 @@ import {
 import type { BusinessActionsPublic } from '../../utils/referralLinks';
 import { MatchHeader } from './MatchHeader';
 import { MatchPredictionPanel } from './MatchPredictionPanel';
-import { MatchInsightSummary } from './MatchInsightSummary';
 import { MatchAnalyticsGrid } from './MatchAnalyticsGrid';
 import { MatchDeepAnalysis } from './MatchDeepAnalysis';
 import { MatchBusinessActions } from './MatchBusinessActions';
@@ -161,7 +160,6 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   const member = !isLoggedOut && (freeMode || isClientVerified || serverVerified);
   const contentLocked = !member;
   const canSeeFullAi = member;
-  const summary = shortInsightSummary(match.ai_summary);
 
   const handleShare = () => {
     const url = window.location.href;
@@ -247,7 +245,6 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         {(activeTab === 'all' || activeTab === 'tactical') && (
           <>
             <MatchPredictionPanel match={match} />
-            <MatchInsightSummary summary={summary} loading={loadState === 'loading' && !summary} />
             <MatchDeepAnalysis
               match={match}
               analytics={analytics}

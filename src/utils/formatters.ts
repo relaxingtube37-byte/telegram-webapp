@@ -79,6 +79,42 @@ export const getCompactDateLabel = (dateStr?: string, timeZone: string = 'UTC'):
   }
 };
 
+export const formatMatchSubLabel = (
+  dateLabel?: string,
+  roundName?: string
+): { text: string; fullTitle: string } => {
+  const cleanRound = (roundName || '').trim();
+  const cleanDate = (dateLabel || '').trim();
+
+  if (!cleanDate && !cleanRound) return { text: '', fullTitle: '' };
+  if (!cleanDate) return { text: cleanRound, fullTitle: cleanRound };
+  if (!cleanRound) return { text: cleanDate, fullTitle: cleanDate };
+
+  const fullTitle = `${cleanDate} • ${cleanRound}`;
+
+  // If match is today, round name takes priority as date is self-evident
+  if (cleanDate === 'Today') {
+    return { text: cleanRound, fullTitle };
+  }
+
+  // Abbreviate common tennis rounds when combined with date to prevent overflow
+  let shortRound = cleanRound;
+  if (/semi/i.test(cleanRound)) shortRound = 'SF';
+  else if (/quarter/i.test(cleanRound)) shortRound = 'QF';
+  else if (/round of 16/i.test(cleanRound) || /1\/8/i.test(cleanRound)) shortRound = 'R16';
+  else if (/round of 32/i.test(cleanRound) || /1\/16/i.test(cleanRound)) shortRound = 'R32';
+  else if (/round of 64/i.test(cleanRound)) shortRound = 'R64';
+  else if (/round of 128/i.test(cleanRound)) shortRound = 'R128';
+  else if (/qualification/i.test(cleanRound) || /qualifying/i.test(cleanRound)) shortRound = 'Q';
+  else if (shortRound.length > 8) shortRound = shortRound.slice(0, 6) + '..';
+
+  const shortDate = cleanDate === 'Tomorrow' ? 'Tmrw' : cleanDate;
+  return {
+    text: `${shortDate} • ${shortRound}`,
+    fullTitle,
+  };
+};
+
 export const matchMatchesDateFilter = (
   dateStr?: string,
   filter: 'all' | 'today' | 'tomorrow' | 'week' = 'all',
@@ -382,78 +418,101 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
     .replace(/\s*([🧠💡]?\s*Tactical (?:Match Dossier|Dossier):?)/gi, '\n\n$1')
     .replace(/\s*(⚠️\s*(?:Critical Upset Scenario|Critical upset scenario to monitor|Devils Advocate):?)/gi, '\n\n$1');
 
-  const blocks = normalized
+  const rawBlocks = normalized
     .split(/\n\s*\n|\r\n\s*\r\n/)
     .map(b => b.trim())
     .filter(Boolean);
 
-  return blocks.map((block, bIdx) => {
+  const sections: AgentDossierSection[] = [];
+
+  for (let bIdx = 0; bIdx < rawBlocks.length; bIdx++) {
+    const block = rawBlocks[bIdx];
     let type: AgentDossierSection['type'] = bIdx === 0 ? 'overview' : 'general';
     let icon = bIdx === 0 ? '🌐' : '📝';
     let title = bIdx === 0 ? 'Executive Match Overview' : 'Tactical Insight';
     let color = '#38bdf8';
-    let bg = 'rgba(15, 23, 42, 0.65)';
-    let border = 'rgba(56, 189, 248, 0.25)';
+    let bg = 'rgba(255, 255, 255, 0.02)';
+    let border = 'rgba(255, 255, 255, 0.07)';
     let body = block;
 
     if (/^[📊📈]|\bStatistical & Surface Dynamics\b/i.test(block)) {
       type = 'statistical';
       icon = '📊';
-      color = '#38bdf8'; // cyan
-      bg = 'rgba(14, 165, 233, 0.08)';
-      border = 'rgba(56, 189, 248, 0.35)';
+      color = '#38bdf8';
+      bg = 'rgba(56, 189, 248, 0.03)';
+      border = 'rgba(56, 189, 248, 0.16)';
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📊📈]\s*/, '').trim() : 'Statistical & Surface Dynamics';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
     } else if (/^[🏃]|\bPhysical Conditioning\b/i.test(block)) {
       type = 'physical';
       icon = '🏃';
-      color = '#34d399'; // emerald
-      bg = 'rgba(52, 211, 153, 0.08)';
-      border = 'rgba(52, 211, 153, 0.35)';
+      color = '#34d399';
+      bg = 'rgba(52, 211, 153, 0.03)';
+      border = 'rgba(52, 211, 153, 0.16)';
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🏃‍♂️🏃‍♀️🏃]\s*/, '').trim() : 'Physical Conditioning & Fatigue Analysis';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
     } else if (/^[📜]|\bHistorical Matchup\b/i.test(block)) {
       type = 'historical';
       icon = '📜';
-      color = '#a78bfa'; // purple
-      bg = 'rgba(167, 139, 250, 0.08)';
-      border = 'rgba(167, 139, 250, 0.35)';
+      color = '#a78bfa';
+      bg = 'rgba(167, 139, 250, 0.03)';
+      border = 'rgba(167, 139, 250, 0.16)';
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📜🏛️]\s*/, '').trim() : 'Historical Matchup & Mental Fortitude';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
     } else if (/^[🎯]|\bStrategic (?:Projection|Consensus)\b/i.test(block)) {
       type = 'verdict';
       icon = '🎯';
-      color = '#fbbf24'; // amber
-      bg = 'rgba(251, 191, 36, 0.08)';
-      border = 'rgba(251, 191, 36, 0.35)';
+      color = '#fbbf24';
+      bg = 'rgba(251, 191, 36, 0.03)';
+      border = 'rgba(251, 191, 36, 0.16)';
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🎯🏆]\s*/, '').trim() : 'Strategic Consensus Verdict';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
     } else if (/^[🧠]|\bTactical Dossier\b/i.test(block)) {
       type = 'tactical';
       icon = '🧠';
-      color = '#818cf8'; // indigo
-      bg = 'rgba(129, 140, 248, 0.08)';
-      border = 'rgba(129, 140, 248, 0.35)';
+      color = '#818cf8';
+      bg = 'rgba(129, 140, 248, 0.03)';
+      border = 'rgba(129, 140, 248, 0.16)';
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🧠💡]\s*/, '').trim() : 'Tactical Match Dossier';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
     } else if (/^⚠️|\bCritical (?:Upset|upset)\b/i.test(block)) {
       type = 'risk';
       icon = '⚠️';
-      color = '#f87171'; // rose / red
-      bg = 'rgba(239, 68, 68, 0.08)';
-      border = 'rgba(239, 68, 68, 0.35)';
+      color = '#f87171';
+      bg = 'rgba(239, 68, 68, 0.03)';
+      border = 'rgba(239, 68, 68, 0.16)';
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^⚠️\s*/, '').trim() : 'Critical Upset Scenario';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
     }
 
-    return { type, icon, title, color, bg, border, body };
-  });
+    // Clean body text: remove leading symbols/diamonds like ◆ or •
+    body = body.replace(/^[\s◆•\-_*:]+/, '').trim();
+
+    // Discard empty or meaningless phantom blocks
+    if (!body || body.length < 6 || /^[\s◆•\-_*.]+$/.test(body)) {
+      continue;
+    }
+
+    // Deduplicate identical section titles: merge text if same title repeats
+    const normTitle = title.toLowerCase().trim();
+    const existing = sections.find(s => s.title.toLowerCase().trim() === normTitle);
+    if (existing) {
+      if (!existing.body.includes(body)) {
+        existing.body = `${existing.body} ${body}`.trim();
+      }
+      continue;
+    }
+
+    sections.push({ type, icon, title, color, bg, border, body });
+  }
+
+  return sections;
 }
 
 export interface ParsedTennisScore {

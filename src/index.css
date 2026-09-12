@@ -803,26 +803,53 @@ body {
 
 /* ── Column 1: Time / Status ── */
 .match-col-status {
-  width: 72px;
-  min-width: 72px;
+  width: 76px;
+  min-width: 76px;
+  max-width: 76px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   gap: 3px;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .tennis-status-badge {
   font-size: 0.65rem;
   font-weight: 800;
-  padding: 0.18rem 0.45rem;
-  border-radius: 6px;
+  padding: 0.16rem 0.42rem;
+  border-radius: 5px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.tennis-status-badge.badge-upcoming {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 0.14rem 0.38rem;
+}
+
+.status-clock-icon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.match-time-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
 }
 
 .tennis-status-badge.badge-won {
@@ -899,7 +926,9 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 68px;
+  max-width: 100%;
+  display: block;
+  line-height: 1.2;
 }
 
 /* ── Column 2: Players & Odds ── */
@@ -909,6 +938,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  overflow: hidden;
 }
 
 .player-row {
@@ -1412,16 +1442,16 @@ body {
 }
 
 .card-subtab-btn.active {
-  background: rgba(56, 189, 248, 0.14);
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.35);
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+  background: var(--bg-card);
+  color: #ffffff;
+  border-color: var(--border-focus);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .match-card-body-stack {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.9rem;
 }
 
 .match-card-preview-notice {
@@ -1429,6 +1459,380 @@ body {
   color: #64748b;
   text-align: center;
   padding: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AI VERDICT CARD (Modern Sleek Prediction Header)
+   ═══════════════════════════════════════════════════════════ */
+.ai-verdict-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease;
+}
+
+.ai-verdict-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ai-verdict-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.ai-sparkle-cyan {
+  color: #38bdf8;
+}
+
+.ai-confidence-pill {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.ai-confidence-pill.conf-high {
+  background: rgba(74, 222, 128, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.ai-confidence-pill.conf-moderate {
+  background: rgba(250, 204, 21, 0.12);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.ai-confidence-pill.conf-low {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.ai-verdict-main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ai-winner-focus {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ai-winner-caption {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ai-winner-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ai-winner-name {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.ai-winner-odds {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.ai-prob-number-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.ai-prob-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #38bdf8;
+  line-height: 1;
+}
+
+.ai-prob-caption {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 3px;
+}
+
+.ai-verdict-bar-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  position: relative;
+}
+
+.ai-verdict-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #38bdf8 0%, #4ade80 100%);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-verdict-metrics-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ai-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.22rem 0.6rem;
+  border-radius: 6px;
+  color: var(--text-secondary);
+}
+
+.ai-metric-pill .metric-icon {
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.ai-metric-pill .metric-val {
+  color: #ffffff;
+  font-weight: 800;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TACTICAL MATCH DOSSIER CARDS
+   ═══════════════════════════════════════════════════════════ */
+.dossier-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dossier-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dossier-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dossier-card {
+  padding: 1rem 1.15rem;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.dossier-card:hover {
+  border-color: var(--border-focus);
+}
+
+.dossier-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.dossier-card-icon {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.dossier-card-title {
+  color: #f1f5f9;
+}
+
+.dossier-card-body {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.dossier-factors-card {
+  padding: 1rem 1.15rem;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.dossier-factors-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #4ade80;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.6rem;
+}
+
+.dossier-factors-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dossier-factors-list li::marker {
+  color: #4ade80;
+}
+
+.dossier-risk-card {
+  padding: 0.9rem 1.15rem;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.04);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.dossier-risk-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #f87171;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+
+.dossier-risk-body {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #fca5a5;
+}
+
+/* Dossier Gate */
+.dossier-gate-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  min-height: 220px;
+}
+
+.dossier-gate-blur-bg {
+  filter: blur(5px);
+  pointer-events: none;
+  opacity: 0.35;
+  user-select: none;
+}
+
+.dossier-gate-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(10, 15, 28, 0.5) 0%, rgba(10, 15, 28, 0.96) 100%);
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.dossier-gate-lock-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  color: #38bdf8;
+}
+
+.dossier-gate-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.dossier-gate-subtitle {
+  margin: 0 auto 1.1rem;
+  max-width: 380px;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.dossier-gate-btn {
+  padding: 0.6rem 1.35rem;
+  font-weight: 700;
+  font-size: 0.84rem;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1705,8 +2109,9 @@ body {
     gap: 0.5rem;
   }
   .match-col-status {
-    width: 62px;
-    min-width: 62px;
+    width: 68px;
+    min-width: 68px;
+    max-width: 68px;
   }
   .arena-players-grid {
     gap: 0.5rem;
