@@ -72,7 +72,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             <img
               src="/logo.png"
               alt="PTIN AI Logo"
-              style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 4 }}
+              style={{ width: 34, height: 34, objectFit: 'contain', borderRadius: '50%' }}
             />
           </div>
           <div>
