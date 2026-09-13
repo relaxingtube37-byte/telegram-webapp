@@ -194,7 +194,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
           <div className="player-row-right">
             {prediction.home_odds && prediction.home_odds !== 'N/A' && (
-              <span className="player-odds-tag">@{prediction.home_odds}</span>
+              <span className="player-odds-tag">{prediction.home_odds}</span>
             )}
           </div>
         </div>
@@ -220,7 +220,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
           <div className="player-row-right">
             {prediction.away_odds && prediction.away_odds !== 'N/A' && (
-              <span className="player-odds-tag">@{prediction.away_odds}</span>
+              <span className="player-odds-tag">{prediction.away_odds}</span>
             )}
           </div>
         </div>
@@ -232,16 +232,13 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         <div className="player-score-row" title={`Home Player Score: ${formatPlayerDisplayName(prediction.home_name)}`}>
           {isLive && parsedScore ? (
             <div className="player-score-cells">
-              <span className="score-cell cell-set" title="Home Sets">
-                <span className="cell-sub">SET</span>
+              <span className="score-cell cell-set" title="Sets Won">
                 <span className="cell-num">{parsedScore.homeSets || '0'}</span>
               </span>
-              <span className="score-cell cell-point" title="Home Game Points">
-                <span className="cell-sub">PTS</span>
+              <span className="score-cell cell-point" title="Current Game Points">
                 <span className="cell-num pts-accent">{parsedScore.homePoints || '0'}</span>
               </span>
-              <span className="score-cell cell-game" title="Home Set Games">
-                <span className="cell-sub">GMS</span>
+              <span className="score-cell cell-game" title="Current Set Games">
                 <span className="cell-num">{parsedScore.homeGames || '0'}</span>
               </span>
             </div>
@@ -253,9 +250,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <div className="player-score-cells">
                 <span
                   className={`score-cell cell-final-set ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-winner' : ''}`}
-                  title="Home Final Sets"
+                  title="Final Sets Won"
                 >
-                  <span className="cell-sub">SET</span>
                   <span className="cell-num">{parsedScore.homeSets}</span>
                 </span>
               </div>
@@ -269,16 +265,13 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         <div className="player-score-row" title={`Away Player Score: ${formatPlayerDisplayName(prediction.away_name)}`}>
           {isLive && parsedScore ? (
             <div className="player-score-cells">
-              <span className="score-cell cell-set" title="Away Sets">
-                <span className="cell-sub">SET</span>
+              <span className="score-cell cell-set" title="Sets Won">
                 <span className="cell-num">{parsedScore.awaySets || '0'}</span>
               </span>
-              <span className="score-cell cell-point" title="Away Game Points">
-                <span className="cell-sub">PTS</span>
+              <span className="score-cell cell-point" title="Current Game Points">
                 <span className="cell-num pts-accent">{parsedScore.awayPoints || '0'}</span>
               </span>
-              <span className="score-cell cell-game" title="Away Set Games">
-                <span className="cell-sub">GMS</span>
+              <span className="score-cell cell-game" title="Current Set Games">
                 <span className="cell-num">{parsedScore.awayGames || '0'}</span>
               </span>
             </div>
@@ -290,9 +283,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <div className="player-score-cells">
                 <span
                   className={`score-cell cell-final-set ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-winner' : ''}`}
-                  title="Away Final Sets"
+                  title="Final Sets Won"
                 >
-                  <span className="cell-sub">SET</span>
                   <span className="cell-num">{parsedScore.awaySets}</span>
                 </span>
               </div>
@@ -334,8 +326,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             </div>
 
             <div className="ai-meta-subrow">
-              <span className="ai-winner-name" style={{ color: '#fbbf24', fontSize: '0.68rem', fontWeight: 700 }}>
-                2-Step Unlock ➔
+              <span className="ai-winner-name ai-unlock-cta" style={{ color: '#fbbf24', fontSize: '0.68rem', fontWeight: 700 }}>
+                Unlock Analysis ➔
               </span>
             </div>
           </div>
@@ -387,11 +379,24 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           </button>
         )}
 
-        {isLocked && (
-          <span className="row-locked-icon" title="Full Analysis Gated">
-            <Lock size={12} />
+        {/* Mobile-visible prediction indicator */}
+        {isRowLocked ? (
+          <span
+            className="mobile-vip-indicator"
+            title="VIP Prediction Locked"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUnlockClick?.();
+            }}
+          >
+            <Lock size={10} />
+            <span>VIP</span>
           </span>
-        )}
+        ) : winProb ? (
+          <span className="mobile-winprob-indicator" title={`AI Model Win Probability: ${winProb}%`}>
+            {winProb}%
+          </span>
+        ) : null}
 
         <div className="row-open-cta" title="Open Full Match Intelligence">
           <ChevronRight size={18} className="chevron-open-icon" />

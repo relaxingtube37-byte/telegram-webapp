@@ -165,19 +165,23 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
         </div>
       </div>
 
-      {/* ── SECTION 4: SPONSOR PARTNER BADGE ── */}
-      <div className="nav-sponsor-card" onClick={onOpenModal}>
-        <div className="nav-sponsor-top">
-          <ShieldCheck size={14} color="#4ade80" />
-          <span className="nav-sponsor-label">Official Sponsor</span>
+      {/* ── SECTION 4: AI ENGINE STATUS ── */}
+      <div className="nav-ai-status-card">
+        <div className="nav-ai-status-top">
+          <div className="nav-ai-status-indicator">
+            <span className="ai-live-beacon" />
+            <span className="nav-ai-status-label">PREDICTIVE AI v3.2</span>
+          </div>
+          <span className="nav-ai-status-badge">77 KPIs Active</span>
         </div>
-        <div className="nav-sponsor-title">1WIN BOOKMAKER</div>
-        <div className="nav-sponsor-desc">
-          {isVerified ? '✓ Member Access Verified' : 'Sign In to Unlock Full Tactical Dossiers'}
+        <div className="nav-ai-status-title">5-Agent Neural Pipeline</div>
+        <div className="nav-ai-status-desc">
+          Continuous Bayesian updating for physical stamina, court ELO &amp; tactical simulations.
         </div>
-        <button className="nav-sponsor-action">
-          {isVerified ? 'Member Active ✓' : 'Connect Account ↗'}
-        </button>
+        <div className="nav-ai-status-footer">
+          <span className="ai-footer-dot" />
+          <span>Real-time odds &amp; injury feeds active</span>
+        </div>
       </div>
     </nav>
   );

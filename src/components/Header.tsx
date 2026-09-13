@@ -109,22 +109,8 @@ export const Header: React.FC<HeaderProps> = React.memo(({
           </button>
         </div>
 
-        {/* Right actions: Search, Timezone, VIP Register / Profile */}
+        {/* Right actions: Timezone, VIP Register / Profile */}
         <div className="header-right-actions">
-          {/* Quick Search */}
-          <div className="header-search-wrap">
-            <Search size={13} color="#7a9580" />
-            <input
-              type="text"
-              placeholder="Search player..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="header-search-input"
-            />
-            {searchQuery && (
-              <button onClick={() => onSearchChange('')} className="search-clear-btn">✕</button>
-            )}
-          </div>
 
           {/* Timezone Selector */}
           <div className="timezone-pill">

@@ -21,8 +21,23 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
     const active = predictions.filter(p => p.status === 'UPCOMING' || p.status === 'LIVE');
     if (active.length === 0) return null;
 
+    // Filter out synthetic/test matches if real tour fixtures exist
+    const isSynthetic = (p: Prediction) => {
+      const h = (p.home_name || '').toLowerCase();
+      const a = (p.away_name || '').toLowerCase();
+      const t = (p.tournament_name || '').toLowerCase();
+      return (
+        h.startsWith('player ') || a.startsWith('player ') ||
+        h.startsWith('t. p.') || a.startsWith('t. p.') ||
+        h === 't. p. a' || a === 't. p. b' ||
+        t.includes('test') || t.includes('synthetic')
+      );
+    };
+    const realMatches = active.filter(p => !isSynthetic(p));
+    const pool = realMatches.length > 0 ? realMatches : active;
+
     // Prioritize HIGH confidence first, then highest win probability
-    const sorted = [...active].sort((a, b) => {
+    const sorted = [...pool].sort((a, b) => {
       const confWeight = (c?: string) => (c === 'HIGH' ? 3 : c === 'MODERATE' ? 2 : 1);
       const diffConf = confWeight(b.confidence) - confWeight(a.confidence);
       if (diffConf !== 0) return diffConf;
@@ -63,7 +78,7 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
     <div className="top-pick-widget">
       <div className="top-pick-badge-top">
         <div className="top-pick-title-left">
-          <Zap size={14} color="#e8c060" />
+          <Zap size={14} color="#fbbf24" />
           <span>FEATURED AI PICK</span>
         </div>
         <span className={`tour-pill ${isWta ? 'tour-pill-wta' : 'tour-pill-atp'}`}>
@@ -84,14 +99,20 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
       {/* Matchup Players */}
       <div className="top-pick-matchup">
         <div className="top-pick-player">
-          <span className="player-name">{formatPlayerDisplayName(topPick.home_name)}</span>
+          <div className="top-pick-player-info">
+            <span className="player-name">{formatPlayerDisplayName(topPick.home_name)}</span>
+            {topPick.home_odds && <span className="top-pick-odds">{topPick.home_odds}</span>}
+          </div>
           {isVerified && !topPick.content_locked && topPick.predicted_winner && topPick.predicted_winner !== 'LOCKED' && topPick.predicted_winner.toLowerCase().includes(topPick.home_name?.toLowerCase() || '') && (
             <span className="pick-marker">PICK</span>
           )}
         </div>
         <div className="top-pick-vs">vs</div>
         <div className="top-pick-player">
-          <span className="player-name">{formatPlayerDisplayName(topPick.away_name)}</span>
+          <div className="top-pick-player-info">
+            <span className="player-name">{formatPlayerDisplayName(topPick.away_name)}</span>
+            {topPick.away_odds && <span className="top-pick-odds">{topPick.away_odds}</span>}
+          </div>
           {isVerified && !topPick.content_locked && topPick.predicted_winner && topPick.predicted_winner !== 'LOCKED' && topPick.predicted_winner.toLowerCase().includes(topPick.away_name?.toLowerCase() || '') && (
             <span className="pick-marker">PICK</span>
           )}
