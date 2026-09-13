@@ -112,10 +112,7 @@ export function App() {
     if (typeof window !== 'undefined') {
       try {
         if (localStorage.getItem('ptin_user_logged_out') === 'true') return false;
-        return (
-          localStorage.getItem('ptin_web_verified') === 'true' ||
-          localStorage.getItem('ptin_partner_activated') === 'true'
-        );
+        return localStorage.getItem('ptin_partner_activated') === 'true';
       } catch {}
     }
     return false;
@@ -168,10 +165,7 @@ export function App() {
     if (isExplicitlyLoggedOut) return false;
     return Boolean(
       isVerified ||
-      (typeof window !== 'undefined' && (
-        localStorage.getItem('ptin_partner_activated') === 'true' ||
-        localStorage.getItem('ptin_web_verified') === 'true'
-      ))
+      (typeof window !== 'undefined' && localStorage.getItem('ptin_partner_activated') === 'true')
     );
   }, [isVerified, isExplicitlyLoggedOut]);
 
@@ -362,7 +356,23 @@ export function App() {
           .then(r => r.json())
           .then(res => {
             if (res?.success) {
-              if (res.verified !== undefined) setIsVerified(!!res.verified);
+              const isServerVerified = Boolean(
+                res.verified === true ||
+                res.user?.is_verified === 1 ||
+                res.user?.verify_status === 'verified'
+              );
+              setIsVerified(isServerVerified);
+              if (isServerVerified) {
+                try {
+                  localStorage.setItem('ptin_web_verified', 'true');
+                  localStorage.setItem('ptin_partner_activated', 'true');
+                } catch {}
+              } else {
+                try {
+                  localStorage.removeItem('ptin_web_verified');
+                  localStorage.removeItem('ptin_partner_activated');
+                } catch {}
+              }
               if (res.access_mode) setAccessMode(res.access_mode);
               if (res.content_layers) setContentLayers(prev => ({ ...prev, ...res.content_layers }));
               if (res.sessionToken) {
@@ -378,11 +388,12 @@ export function App() {
                   username: res.user.username,
                   auth_provider: 'telegram',
                   avatar_url: res.user.avatar_url || `${API_BASE}/users/${res.user.telegram_id}/avatar`,
+                  is_verified: isServerVerified ? 1 : 0,
+                  verify_status: res.user.verify_status || (isServerVerified ? 'verified' : 'telegram_connected'),
                 };
                 setTelegramUser(u);
                 try {
                   localStorage.setItem('ptin_telegram_user', JSON.stringify(u));
-                  localStorage.setItem('ptin_web_verified', 'true');
                 } catch {}
               }
               loadData();
@@ -504,7 +515,6 @@ export function App() {
         } else {
           verifiedStatus = Boolean(
             (typeof window !== 'undefined' && (
-              localStorage.getItem('ptin_web_verified') === 'true' ||
               localStorage.getItem('ptin_partner_activated') === 'true'
             ))
           );

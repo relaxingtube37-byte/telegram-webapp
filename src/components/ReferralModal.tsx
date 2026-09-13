@@ -72,11 +72,35 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
           }),
         }).then(r => r.json());
         if (res?.success && res.user) {
-          localStorage.setItem('ptin_web_verified', 'true');
+          const isAlreadyVerified = Boolean(
+            res.verified === true ||
+            res.user?.is_verified === 1 ||
+            res.user?.verify_status === 'verified'
+          );
+
           localStorage.setItem('ptin_telegram_user', JSON.stringify(res.user));
           if (res.sessionToken) localStorage.setItem('ptin_web_session', res.sessionToken);
           setJustConnectedUser(res.user);
-          if (onVerified) onVerified(res.sessionToken, res.user);
+
+          if (isAlreadyVerified) {
+            try {
+              localStorage.setItem('ptin_web_verified', 'true');
+              localStorage.setItem('ptin_partner_activated', 'true');
+            } catch {}
+            if (onVerified) onVerified(res.sessionToken, res.user);
+            setIsCompleted(true);
+            onClose();
+            return;
+          }
+
+          // First-time or unverified Telegram user: Step 1 done -> advance to mandatory Step 2
+          try {
+            localStorage.removeItem('ptin_web_verified');
+            localStorage.removeItem('ptin_partner_activated');
+          } catch {}
+          if (onAccountConnected) {
+            onAccountConnected(res.sessionToken, res.user);
+          }
           setCurrentStep(2);
         }
       }
