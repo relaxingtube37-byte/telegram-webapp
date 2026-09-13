@@ -19,6 +19,14 @@ const PRODUCTION_API_BASE = 'https://telegram-backend-2yck.onrender.com/api/weba
 const LOCAL_API_BASE = 'http://localhost:8080/api/webapp';
 
 function resolveApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
+    if (!isLocal) {
+      return PRODUCTION_API_BASE;
+    }
+  }
+
   const envBase = (import.meta as ImportMeta & { env?: { VITE_API_BASE?: string; DEV?: boolean } }).env?.VITE_API_BASE;
   const isDev = (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV;
 
