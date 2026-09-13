@@ -1,13 +1,18 @@
 import React from 'react';
-import { ArrowLeft, Share2, Trophy, Clock } from 'lucide-react';
-import type { Prediction } from '../../types';
+import { ArrowLeft, Share2, Clock, Sparkles, Tv, Lock } from 'lucide-react';
+import type { Prediction, ReferralSite } from '../../types';
 import {
   formatMatchTime,
-  formatPlayerDisplayName,
   getMatchGender,
   getSurfaceEmoji,
   parseTennisScore,
 } from '../../utils/formatters';
+import {
+  buildGoReferralUrl,
+  openExternalLink,
+  shouldShowWatchLive,
+  type BusinessActionsPublic,
+} from '../../utils/referralLinks';
 import { MatchLiveStatus } from './MatchLiveStatus';
 import { PlayerAvatar } from '../PlayerAvatar';
 import { getPlayerImageUrl } from '../../utils/playerImage';
@@ -17,6 +22,13 @@ interface MatchHeaderProps {
   selectedTimezone: string;
   onBack: () => void;
   onShare?: () => void;
+  sites?: ReferralSite[];
+  apiBase?: string;
+  trackingId?: string | number;
+  isVerified?: boolean;
+  businessActions?: BusinessActionsPublic;
+  onUnlockClick?: () => void;
+  onVerified?: () => void;
 }
 
 export const MatchHeader: React.FC<MatchHeaderProps> = ({
@@ -24,6 +36,16 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   selectedTimezone,
   onBack,
   onShare,
+  sites = [],
+  apiBase = '',
+  trackingId = 'anonymous',
+  isVerified = false,
+  businessActions = {
+    registration_referral_enabled: true,
+    watch_live_enabled: true,
+    payment_mode_placeholder_enabled: false,
+  },
+  onUnlockClick,
 }) => {
   const gender = getMatchGender(
     match.tournament_name,
@@ -44,7 +66,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   const isMatchInFuture = rawDateStr ? new Date(rawDateStr).getTime() > Date.now() + 15 * 60 * 1000 : false;
   const isZeroScore = !rawScore || rawScore === '0-0   0-0    0-0' || rawScore === '0-0' || rawScore === '0:0';
 
-  // Same safeguard as CompactMatchRow: unstarted matches with zero score must not show as LIVE
+  // Safeguard: unstarted matches with zero score must not show as LIVE
   const effectiveStatus: Prediction['status'] = (match.status === 'LIVE' && isZeroScore && isMatchInFuture)
     ? 'UPCOMING'
     : match.status;
@@ -53,9 +75,26 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   const isLive = effectiveStatus === 'LIVE';
   const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST' || effectiveStatus === 'VOID';
 
+  // Integrated business actions
+  const primarySite = sites[0];
+  const showRegister = businessActions.registration_referral_enabled !== false && !isVerified && !!primarySite;
+  const showWatch = businessActions.watch_live_enabled !== false && !!primarySite && shouldShowWatchLive(match.status, match.match_date);
+
+  const handlePartnerAction = (action: 'registration' | 'watch_live') => {
+    if (!primarySite) return;
+    const url = buildGoReferralUrl(apiBase, primarySite.id, trackingId, {
+      action,
+      matchId: match.id,
+      fixtureId: match.fixture_id,
+      page: 'match_header',
+    });
+    if (url) openExternalLink(url);
+    else onUnlockClick?.();
+  };
+
   return (
     <div className="match-card-header-hero">
-      {/* ── Top Navigation Bar ── */}
+      {/* ── 1. Top Navigation & Tournament Bar ── */}
       <div className="match-hero-nav-bar">
         <button
           type="button"
@@ -71,6 +110,11 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           <span className={`hero-tour-pill ${isWomen ? 'tour-wta' : 'tour-atp'}`}>
             {tour}
           </span>
+          {match.tournament_name && (
+            <span className="hero-tourn-title" title={match.tournament_name}>
+              {match.tournament_name}
+            </span>
+          )}
           {match.surface && (
             <span className="hero-surface-pill">
               {getSurfaceEmoji(match.surface)} {match.surface}
@@ -89,103 +133,148 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             title="Share Match Intelligence"
           >
             <Share2 size={14} />
-            <span className="hide-on-mobile">Share</span>
           </button>
         )}
       </div>
 
-      {/* ── Scoreboard Arena Card ── */}
+      {/* ── 2. Modern Tabular Sports Scoreboard Arena (SofaScore / Google Sports style) ── */}
       <div className={`match-scoreboard-arena ${isWomen ? 'arena-wta' : 'arena-atp'}`}>
-        {/* Arena Top Line: Live / Scheduled status */}
-        <div className="arena-top-status-row">
-          <div className="arena-match-time">
+        {/* Scoreboard Meta Header */}
+        <div className="scoreboard-meta-line">
+          <div className="scoreboard-time-chip">
             <Clock size={12} />
             <span>{formatMatchTime(match.match_date, selectedTimezone)}</span>
           </div>
           <MatchLiveStatus status={effectiveStatus} resultScore={match.result_score} />
         </div>
 
-        {/* Arena Players & Center Score */}
-        <div className="arena-players-grid">
-          {/* Home Player */}
-          <div className={`arena-player-card home-player ${isHomeWinner ? 'is-favored' : ''}`}>
-            <PlayerAvatar
-              name={match.home_name}
-              imageUrl={getPlayerImageUrl(match.home_image, match.home_name, match.home_id)}
-              size={42}
-              isWinner={isHomeWinner}
-              className="arena-player-avatar"
-            />
-            <div className="arena-player-name">
-              {formatPlayerDisplayName(match.home_name)}
+        {/* Players & Scores Table */}
+        <div className="scoreboard-players-table">
+          {/* Header Column Labels for Live Scores (SET, GM, PTS) */}
+          {isLive && parsedScore && (
+            <div className="scoreboard-table-header">
+              <span className="th-label">SET</span>
+              <span className="th-label">GM</span>
+              <span className="th-label">PTS</span>
             </div>
-            <div className="arena-player-sub">
+          )}
+
+          {/* Player 1 Row (Home) */}
+          <div className={`scoreboard-player-row ${isHomeWinner ? 'row-winner-picked' : ''}`}>
+            <div className="scoreboard-player-info">
+              <PlayerAvatar
+                name={match.home_name}
+                imageUrl={getPlayerImageUrl(match.home_image, match.home_name, match.home_id)}
+                size={32}
+                isWinner={isHomeWinner}
+              />
+              <div className="scoreboard-player-details">
+                <span className="scoreboard-player-name">
+                  {match.home_name}
+                </span>
+                {isHomeWinner && (
+                  <span className="scoreboard-pick-chip">
+                    <Sparkles size={10} /> AI Pick
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="scoreboard-player-aside">
               {match.home_odds && match.home_odds !== 'N/A' && (
-                <span className="arena-odds-badge">@{match.home_odds}</span>
+                <span className={`scoreboard-odds-box ${isHomeWinner ? 'odds-picked-box' : ''}`}>
+                  {match.home_odds}
+                </span>
               )}
-              {isHomeWinner && (
-                <span className="arena-lean-chip">✓ MODEL LEAN</span>
-              )}
+
+              {/* Live / Finished Scores */}
+              {isLive && parsedScore ? (
+                <div className="scoreboard-cells-stack">
+                  <span className="sb-cell sb-set">{parsedScore.homeSets || '0'}</span>
+                  <span className="sb-cell sb-game">{parsedScore.homeGames || '0'}</span>
+                  <span className="sb-cell sb-point pts-glow">{parsedScore.homePoints || '0'}</span>
+                </div>
+              ) : isFinished && parsedScore && parsedScore.homeSets !== undefined ? (
+                <div className="scoreboard-cells-stack">
+                  <span className={`sb-cell sb-final-set ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-winner' : ''}`}>
+                    {parsedScore.homeSets}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
 
-          {/* Center Score / VS Box */}
-          <div className="arena-center-nexus">
-            {isLive && parsedScore ? (
-              <div className="arena-live-scoreboard">
-                <div className="arena-live-tag-mini">
-                  <span className="live-dot-pulse" />
-                  <span>LIVE</span>
-                </div>
-                <div className="arena-vertical-score-stack">
-                  <div className="vertical-score-row sets-row" title="Sets Won">
-                    <span className="v-label">SETS</span>
-                    <span className="v-num">{parsedScore.liveSets || '0-0'}</span>
-                  </div>
-                  <div className="vertical-score-row points-row" title="Game Points">
-                    <span className="v-label">POINTS</span>
-                    <span className="v-num pts-glow">{parsedScore.livePoints || '0-0'}</span>
-                  </div>
-                  <div className="vertical-score-row games-row" title="Current Set Games">
-                    <span className="v-label">GAMES</span>
-                    <span className="v-num">{parsedScore.liveGames || '0-0'}</span>
-                  </div>
-                </div>
+          {/* Player 2 Row (Away) */}
+          <div className={`scoreboard-player-row ${isAwayWinner ? 'row-winner-picked' : ''}`}>
+            <div className="scoreboard-player-info">
+              <PlayerAvatar
+                name={match.away_name}
+                imageUrl={getPlayerImageUrl(match.away_image, match.away_name, match.away_id)}
+                size={32}
+                isWinner={isAwayWinner}
+              />
+              <div className="scoreboard-player-details">
+                <span className="scoreboard-player-name">
+                  {match.away_name}
+                </span>
+                {isAwayWinner && (
+                  <span className="scoreboard-pick-chip">
+                    <Sparkles size={10} /> AI Pick
+                  </span>
+                )}
               </div>
-            ) : isFinished && parsedScore ? (
-              <div className="arena-score-display">
-                <span className="score-main-text">{parsedScore.setsScore}</span>
-                <span className="score-sub-label">FINAL SETS</span>
-              </div>
-            ) : (
-              <div className="arena-vs-badge">
-                <span>VS</span>
-              </div>
-            )}
-          </div>
-
-          {/* Away Player */}
-          <div className={`arena-player-card away-player ${isAwayWinner ? 'is-favored' : ''}`}>
-            <PlayerAvatar
-              name={match.away_name}
-              imageUrl={getPlayerImageUrl(match.away_image, match.away_name, match.away_id)}
-              size={42}
-              isWinner={isAwayWinner}
-              className="arena-player-avatar"
-            />
-            <div className="arena-player-name">
-              {formatPlayerDisplayName(match.away_name)}
             </div>
-            <div className="arena-player-sub">
-              {isAwayWinner && (
-                <span className="arena-lean-chip">✓ MODEL LEAN</span>
-              )}
+
+            <div className="scoreboard-player-aside">
               {match.away_odds && match.away_odds !== 'N/A' && (
-                <span className="arena-odds-badge">@{match.away_odds}</span>
+                <span className={`scoreboard-odds-box ${isAwayWinner ? 'odds-picked-box' : ''}`}>
+                  {match.away_odds}
+                </span>
               )}
+
+              {/* Live / Finished Scores */}
+              {isLive && parsedScore ? (
+                <div className="scoreboard-cells-stack">
+                  <span className="sb-cell sb-set">{parsedScore.awaySets || '0'}</span>
+                  <span className="sb-cell sb-game">{parsedScore.awayGames || '0'}</span>
+                  <span className="sb-cell sb-point pts-glow">{parsedScore.awayPoints || '0'}</span>
+                </div>
+              ) : isFinished && parsedScore && parsedScore.awaySets !== undefined ? (
+                <div className="scoreboard-cells-stack">
+                  <span className={`sb-cell sb-final-set ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-winner' : ''}`}>
+                    {parsedScore.awaySets}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
+
+        {/* ── 3. Integrated Action Footer (No separate ugly box) ── */}
+        {(showWatch || showRegister) && (
+          <div className="scoreboard-action-footer">
+            {showWatch && (
+              <button
+                type="button"
+                className="btn-scoreboard-watch"
+                onClick={() => handlePartnerAction('watch_live')}
+              >
+                <Tv size={13} />
+                <span>Watch Live Stream</span>
+              </button>
+            )}
+            {showRegister && (
+              <button
+                type="button"
+                className="btn-scoreboard-unlock"
+                onClick={() => handlePartnerAction('registration')}
+              >
+                <Lock size={12} />
+                <span>Unlock Full AI Dossier &amp; Value Edge</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

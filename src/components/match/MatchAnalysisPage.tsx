@@ -177,23 +177,18 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 
   return (
     <div className="master-match-card-container">
-      {/* ── Hero Scoreboard & Navigation ── */}
+      {/* ── Hero Scoreboard & Navigation (Integrated Action Footer) ── */}
       <MatchHeader
         match={match}
         selectedTimezone={selectedTimezone}
         onBack={onBack}
         onShare={handleShare}
-      />
-
-      {/* ── Match Action & Partner Banner ── */}
-      <MatchBusinessActions
-        match={match}
         sites={referralSites}
         apiBase={webappApiBase}
         trackingId={trackingId}
         isVerified={member}
         businessActions={businessActions}
-        onRegisterInfoClick={onUnlockClick}
+        onUnlockClick={onUnlockClick}
         onVerified={onVerified}
       />
 
