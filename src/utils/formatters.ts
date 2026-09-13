@@ -163,7 +163,9 @@ export const getSurfaceEmoji = (surface?: string): string => {
 };
 
 const WTA_KEYWORDS = [
-  'wta', 'women', 'w15', 'w25', 'w35', 'w50', 'w75', 'w100', 'billie jean king', 'bjk cup', 'ladies', 'girls',
+  'wta', 'women', 'ladies', 'girls', 'billie jean king', 'bjk cup',
+  // Active WTA tournament locations/cities
+  'guadalajara', 'sao paulo', 'monastir', 'seoul', 'hua hin', 'ningbo', 'wuhan', 'merida', 'jiujiang',
   'sabalenka', 'rybakina', 'pegula', 'gauff', 'swiatek', 'andreeva', 'muchova', 'noskova', 'svitolina',
   'anisimova', 'kostyuk', 'bencic', 'osaka', 'shnaider', 'paolini', 'jovic', 'mboko', 'alexandrova',
   'cirstea', 'eala', 'kalinskaya', 'mertens', 'chwalinska', 'keys', 'potapova', 'krejcikova', 'bouzkova',
@@ -181,7 +183,11 @@ const WTA_KEYWORDS = [
   'sramkova', 'liutova', 'stoiana', 'inglis', 'kawa', 'ribera', 'pigato', 'sakatsume', 'podrez',
   'sasnovich', 'vandromme', 'akugue', 'stefanini', 'dart', 'stakusic', 'ferro', 'garcia', 'vondrousova',
   'gormaz', 'kostovic', 'barty', 'halep', 'serena', 'venus', 'wozniacki', 'kerber', 'kvitova',
-  'andreescu', 'sharapova', 'hingis', 'clijsters', 'henin', 'davenport'
+  'andreescu', 'sharapova', 'hingis', 'clijsters', 'henin', 'davenport',
+  'azarenka', 'jabeur', 'stephens', 'haddad', 'danilovic', 'begu', 'podoroska',
+  'pigossi', 'lamens', 'riera', 'avanesyan', 'dolehide', 'hibino', 'monnet', 'scott', 'boisson',
+  'lepchenko', 'shymanovich', 'bosio', 'valdmannova', 'sharma', 'ce', 'alves', 'you', 'kichenok',
+  'sorribes', 'tormo', 'bouzas'
 ];
 
 export const getMatchGender = (
@@ -203,35 +209,47 @@ export const getMatchGender = (
   const home = normalize(homeName);
   const away = normalize(awayName);
 
-  const combined = `${tourn} ${round} ${title} ${home} ${away}`;
+  const tournCombined = `${tourn} ${round} ${title}`;
+  const fullCombined = `${tournCombined} ${home} ${away}`;
 
   // 1. Explicit Tournament / Round / Title indicators
   if (
-    combined.includes('wta') ||
-    combined.includes('women') ||
-    combined.includes('ladies') ||
-    combined.includes('billie jean king') ||
-    combined.includes('bjk cup') ||
-    combined.includes('girls') ||
-    /\bw(15|25|35|50|75|100)\b/.test(combined)
+    tournCombined.includes('wta') ||
+    tournCombined.includes('women') ||
+    tournCombined.includes('ladies') ||
+    tournCombined.includes('billie jean king') ||
+    tournCombined.includes('bjk cup') ||
+    tournCombined.includes('girls') ||
+    tournCombined.includes('guadalajara') ||
+    tournCombined.includes('sao paulo') ||
+    tournCombined.includes('monastir') ||
+    /\bw(15|25|35|50|75|100)\b/.test(tournCombined)
   ) {
     return 'women';
   }
 
-  // 2. Player name checks against WTA roster
-  if (WTA_KEYWORDS.some(k => combined.includes(k))) {
-    return 'women';
-  }
-
-  // 3. Men checks
+  // 2. Explicit Men indicators in tournament/title
   if (
-    combined.includes('atp') ||
-    combined.includes('men') ||
-    combined.includes('challenger') ||
-    combined.includes('davis cup') ||
-    /\bm(15|25)\b/.test(combined)
+    tournCombined.includes('atp') ||
+    tournCombined.includes('men') ||
+    tournCombined.includes('challenger') ||
+    tournCombined.includes('davis cup') ||
+    /\bm(15|25)\b/.test(tournCombined)
   ) {
     return 'men';
+  }
+
+  // 3. Player name checks against WTA roster using word-boundary matching
+  // (Prevents short tokens like "ce" or "you" from falsely matching "Frances" or "Young")
+  const tokens = fullCombined.split(/[^a-z0-9]+/).filter(Boolean);
+  const tokenSet = new Set(tokens);
+
+  for (const k of WTA_KEYWORDS) {
+    if (k.includes(' ')) {
+      if (fullCombined.includes(k)) return 'women';
+    } else {
+      if (tokenSet.has(k)) return 'women';
+    }
   }
 
   return 'men'; // Default to men if no indicator found
