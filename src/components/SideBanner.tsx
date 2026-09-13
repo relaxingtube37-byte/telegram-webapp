@@ -98,14 +98,14 @@ export const SideBanner: React.FC<SideBannerProps> = ({
         </div>
 
         <a
-          href="https://t.me/admdinbetbetforbot"
+          href="https://t.me/PtinAI_Tennis"
           target="_blank"
           rel="noopener noreferrer"
           className="side-tg-link-btn"
           onClick={(e) => {
             if (window.Telegram?.WebApp?.openTelegramLink) {
               e.preventDefault();
-              window.Telegram.WebApp.openTelegramLink('https://t.me/admdinbetbetforbot');
+              window.Telegram.WebApp.openTelegramLink('https://t.me/PtinAI_Tennis');
             }
           }}
         >
