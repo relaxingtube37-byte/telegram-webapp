@@ -17,8 +17,29 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
   canSeeFullAi,
   onUnlockClick,
 }) => {
-  const sections = parseAiDossierSections(match.ai_summary || '');
-  const cards = analytics?.cards || [];
+  const allSections = parseAiDossierSections(match.ai_summary || '');
+  // Deduplicate: exclude upset scenario / risk sections from the general cards stack (removing the duplicate top card)
+  const sections = allSections.filter(
+    s => s.type !== 'risk' &&
+         !s.title.toLowerCase().includes('upset scenario') &&
+         !s.title.toLowerCase().includes('devils advocate')
+  );
+
+  // Single source of truth for the red Critical Upset Scenario card (keeping this one)
+  const upsetRisk = (match.devils_advocate_risk && match.devils_advocate_risk.trim()) ||
+    allSections.find(
+      s => s.type === 'risk' ||
+           s.title.toLowerCase().includes('upset scenario') ||
+           s.title.toLowerCase().includes('devils advocate')
+    )?.body?.trim();
+
+  // Deduplicate cards against upsetRisk
+  const cards = (analytics?.cards || []).filter(c => {
+    const titleLower = c.title.toLowerCase();
+    if (titleLower.includes('upset scenario') || titleLower.includes('devils advocate')) return false;
+    if (upsetRisk && c.description.trim() === upsetRisk) return false;
+    return true;
+  });
 
   if (!canSeeFullAi) {
     const previewSections = sections.length > 0 ? sections.slice(0, 1) : [];
@@ -118,13 +139,13 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
         </div>
       )}
 
-      {match.devils_advocate_risk && (
+      {upsetRisk && (
         <div className="dossier-risk-card">
           <div className="dossier-risk-header">
             <AlertTriangle size={14} className="text-rose" />
             <span>Critical Upset Scenario</span>
           </div>
-          <p className="dossier-risk-body">{match.devils_advocate_risk}</p>
+          <p className="dossier-risk-body">{upsetRisk}</p>
         </div>
       )}
 
@@ -141,7 +162,7 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
         </div>
       )}
 
-      {sections.length === 0 && !match.key_factors?.length && cards.length === 0 && (
+      {sections.length === 0 && !match.key_factors?.length && !upsetRisk && cards.length === 0 && (
         <div className="dossier-card" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
           Detailed dossier text is not available for this match yet.
         </div>
