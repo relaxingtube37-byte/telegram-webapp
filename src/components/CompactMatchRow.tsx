@@ -140,7 +140,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   };
 
   const showWatch = canWatchLive && shouldShowWatchLive(effectiveStatus, rawDateStr);
-  const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST';
+  const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST' || effectiveStatus === 'VOID';
   const isLive = effectiveStatus === 'LIVE';
   const subLabelInfo = formatMatchSubLabel(
     isFinished || isLive ? '' : matchDateLabel,

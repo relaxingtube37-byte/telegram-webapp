@@ -51,7 +51,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
 
   const parsedScore = parseTennisScore(match.result_score, effectiveStatus);
   const isLive = effectiveStatus === 'LIVE';
-  const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST';
+  const isFinished = effectiveStatus === 'WON' || effectiveStatus === 'LOST' || effectiveStatus === 'VOID';
 
   return (
     <div className="match-card-header-hero">

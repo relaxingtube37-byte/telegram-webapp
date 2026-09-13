@@ -43,7 +43,8 @@ export const MatchLiveStatus: React.FC<MatchLiveStatusProps> = ({ status, result
   }
 
   if (status === 'VOID') {
-    return <span style={{ fontWeight: 700, color: '#64748b' }}>VOID</span>;
+    const displayScore = resultScore && resultScore !== 'VOID' ? ` (${resultScore})` : '';
+    return <span style={{ fontWeight: 700, color: '#f59e0b' }}>VOID{displayScore}</span>;
   }
 
   // UPCOMING / default
