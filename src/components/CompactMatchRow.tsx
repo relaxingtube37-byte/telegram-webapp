@@ -219,7 +219,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       </div>
 
       {/* ── Column 3: Dedicated Results Column (Aligned with each player's row: Home on top, Away on bottom) ── */}
-      <div className="match-col-score">
+      <div className={`match-col-score ${!parsedScore ? 'score-col-empty' : ''}`}>
         {/* Micro Headers: SET, GM, PTS */}
         {isLive && parsedScore ? (
           <div className="score-col-headers">
@@ -301,7 +301,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       </div>
 
 
-      {/* ── Column 3: AI Prediction & Win Probability ── */}
+      {/* ── Column 3.5: AI Prediction & Win Probability ── */}
       <div className="match-col-ai">
         {isRowLocked ? (
           <div
@@ -315,9 +315,9 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           >
             <div className="ai-pred-headline">
               <span className="ai-pred-label" style={{ color: '#fbbf24' }}>
-                <Lock size={10} className="ai-sparkle-icon" /> VIP Pick
+                <Lock size={9} className="ai-sparkle-icon" /> VIP Pick
               </span>
-              <span className="ai-prob-pct" style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+              <span className="ai-prob-pct" style={{ fontSize: '0.64rem', color: 'var(--text-secondary)' }}>
                 🔒 Locked
               </span>
             </div>
@@ -331,7 +331,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             </div>
 
             <div className="ai-meta-subrow">
-              <span className="ai-winner-name ai-unlock-cta" style={{ color: '#fbbf24', fontSize: '0.68rem', fontWeight: 700 }}>
+              <span className="ai-winner-name compact-winner-name ai-unlock-cta" style={{ color: '#fbbf24', fontSize: '0.62rem', fontWeight: 700 }}>
                 Unlock Analysis ➔
               </span>
             </div>
@@ -340,7 +340,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           <>
             <div className="ai-pred-headline">
               <span className="ai-pred-label">
-                <Sparkles size={11} className="ai-sparkle-icon" /> AI Forecast
+                <Sparkles size={10} className="ai-sparkle-icon" /> AI Forecast
               </span>
               <span className="ai-prob-pct">{winProb}%</span>
             </div>
@@ -354,7 +354,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             </div>
 
             <div className="ai-meta-subrow">
-              <span className="ai-winner-name truncate-text">
+              <span className="ai-winner-name compact-winner-name truncate-text">
                 {prediction.predicted_winner ? formatPlayerDisplayName(prediction.predicted_winner) : 'Pick'}
               </span>
               {prediction.confidence && (
