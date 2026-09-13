@@ -41,16 +41,10 @@ export const SideBanner: React.FC<SideBannerProps> = ({
       onOpenModal();
       return;
     }
-    try {
-      localStorage.setItem('ptin_web_verified', 'true');
-      localStorage.setItem('ptin_partner_activated', 'true');
-    } catch {}
-    if (onVerified) onVerified();
-    if (!url) {
-      onOpenModal();
-      return;
+    if (url) {
+      openExternalLink(url);
     }
-    openExternalLink(url);
+    onOpenModal();
   };
 
   return (

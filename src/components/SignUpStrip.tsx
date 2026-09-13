@@ -74,14 +74,10 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
 
   const handleStep2Click = (e: React.MouseEvent) => {
     e.preventDefault();
-    try {
-      localStorage.removeItem('ptin_user_logged_out');
-      localStorage.setItem('ptin_web_verified', 'true');
-      localStorage.setItem('ptin_partner_activated', 'true');
-    } catch {}
-    if (onVerified) onVerified();
-    if (directLink) openExternalLink(directLink);
-    else onOpenModal(2);
+    if (directLink) {
+      openExternalLink(directLink);
+    }
+    onOpenModal(2);
   };
 
   return (

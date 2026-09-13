@@ -226,6 +226,68 @@ export function App() {
     loadData(false, null);
   };
 
+  // Global real-time postback confirmation listener:
+  // When account is connected (Google or Telegram) but partner postback is pending,
+  // continuously check /api/webapp/auth/status on focus and every 4.5s
+  useEffect(() => {
+    if (isExplicitlyLoggedOut || !isAccountConnected || effectiveVerified) return;
+
+    const checkGlobalAuthStatus = async () => {
+      try {
+        const storedToken = sessionToken || (typeof window !== 'undefined' ? localStorage.getItem('ptin_web_session') : null);
+        const rawInitData = typeof window !== 'undefined' ? window.Telegram?.WebApp?.initData : undefined;
+
+        const queryParams = new URLSearchParams();
+        if (effectiveTrackingId && effectiveTrackingId !== 'anonymous') {
+          queryParams.set('telegramId', String(effectiveTrackingId));
+        }
+        if (telegramUser?.email) queryParams.set('email', telegramUser.email);
+        if (storedToken) queryParams.set('sessionToken', storedToken);
+        if (rawInitData) queryParams.set('initData', rawInitData);
+
+        const headers: Record<string, string> = { Accept: 'application/json' };
+        if (storedToken) headers['Authorization'] = `Bearer ${storedToken}`;
+        if (rawInitData) headers['x-telegram-init-data'] = rawInitData;
+        if (effectiveTrackingId && effectiveTrackingId !== 'anonymous') {
+          headers['x-telegram-id'] = String(effectiveTrackingId);
+        }
+
+        const res = await fetch(`${API_BASE}/auth/status?${queryParams.toString()}`, { headers }).then(r => r.json());
+
+        if (res?.verified === true || res?.user?.is_verified === 1 || res?.verify_status === 'verified') {
+          try {
+            localStorage.removeItem('ptin_user_logged_out');
+            localStorage.setItem('ptin_web_verified', 'true');
+            localStorage.setItem('ptin_partner_activated', 'true');
+          } catch {}
+          setIsVerified(true);
+          setShowReferralModal(false);
+          setPredictions(prev => prev.map(p => ({ ...p, content_locked: false })));
+          if (selectedMatch) {
+            setSelectedMatch(prev => (prev ? { ...prev, content_locked: false } : null));
+          }
+          loadData(true);
+        }
+      } catch (err) {
+        // Silently retry on next interval tick
+      }
+    };
+
+    const interval = setInterval(checkGlobalAuthStatus, 4500);
+    const handleFocus = () => {
+      checkGlobalAuthStatus();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [isExplicitlyLoggedOut, isAccountConnected, effectiveVerified, sessionToken, effectiveTrackingId, telegramUser, selectedMatch]);
+
   const handleOpenMatchPage = (pred: Prediction) => {
     setSelectedMatch(pred);
     try {

@@ -40,13 +40,6 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
 
   const go = (action: 'registration' | 'watch_live') => {
     if (!primary) return;
-    if (action === 'registration') {
-      try {
-        localStorage.setItem('ptin_web_verified', 'true');
-        localStorage.setItem('ptin_partner_activated', 'true');
-      } catch {}
-      if (onVerified) onVerified();
-    }
     const url = buildGoReferralUrl(apiBase, primary.id, trackingId, {
       action,
       matchId: match.id,
