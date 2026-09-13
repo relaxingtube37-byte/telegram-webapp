@@ -7,6 +7,7 @@ import { SideBanner } from './components/SideBanner';
 import { SignUpStrip } from './components/SignUpStrip';
 import { SportsNavSidebar } from './components/SportsNavSidebar';
 import { AiTopPickWidget } from './components/AiTopPickWidget';
+import { HistoryTimelineView } from './components/HistoryTimelineView';
 import type { Prediction, StatsOverviewData, ReferralSite, ContentLayerFlags } from './types';
 import { DEFAULT_CONTENT_LAYERS } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
@@ -937,6 +938,19 @@ export function App() {
               <Trophy size={42} className="loading-icon" />
               <div className="loading-text">Loading AI Predictions & Analysis...</div>
             </div>
+          ) : activeTab === 'history' ? (
+            <HistoryTimelineView
+              predictions={displayedList}
+              selectedTimezone={selectedTimezone}
+              canSeeDeepAnalysis={canSeeDeepAnalysis}
+              onOpenMatchPage={handleOpenMatchPage}
+              onUnlockClick={() => setShowReferralModal(true)}
+              apiBase={API_BASE}
+              referralSites={referralSites}
+              trackingId={effectiveTrackingId}
+              contentLayers={contentLayers}
+              canWatchLive={canWatchLive}
+            />
           ) : Object.keys(groupedByTournament).length > 0 ? (
             Object.entries(groupedByTournament).map(([tournName, tournData]) => {
               const isCollapsed = !!collapsedTournaments[tournName];

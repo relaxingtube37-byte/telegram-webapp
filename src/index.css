@@ -4468,4 +4468,464 @@ body {
   border-radius: 4px;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   CHRONOLOGICAL HISTORY TIMELINE & ACCORDION SYSTEM
+   ═══════════════════════════════════════════════════════════ */
+.history-timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+/* ── 1. Global Performance KPI Hero Banner ── */
+.history-kpi-banner {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.7) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  padding: 0.95rem 1.15rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.history-kpi-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, #38bdf8 0%, #4ade80 50%, #facc15 100%);
+}
+
+.kpi-banner-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.kpi-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.02em;
+}
+
+.kpi-banner-icon {
+  color: #38bdf8;
+}
+
+.kpi-settled-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.kpi-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.kpi-metric-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+}
+
+.kpi-metric-card:hover {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+
+.kpi-metric-card.kpi-winrate {
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.kpi-metric-val {
+  font-family: var(--font-mono, monospace);
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #4ade80;
+  line-height: 1.1;
+  text-shadow: 0 0 12px rgba(74, 222, 128, 0.3);
+}
+
+.kpi-odds-val {
+  color: #38bdf8;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.kpi-streak-val {
+  color: #facc15;
+  font-size: 1.05rem;
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.3);
+}
+
+.kpi-metric-lbl {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.kpi-record-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono, monospace);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.record-won {
+  color: #4ade80;
+}
+
+.record-dash {
+  color: #64748b;
+}
+
+.record-lost {
+  color: #f87171;
+}
+
+.record-void {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* ── 2. Toolbar: Month Selectors & Expand Controls ── */
+.history-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 2px;
+}
+
+.history-month-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.history-month-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.month-pill {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.month-pill:hover {
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.month-pill.active {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-weight: 800;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+.history-expand-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-history-toggle {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-history-toggle:hover {
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── 3. Daily Accordion Cards ── */
+.history-days-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.history-day-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.history-day-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.history-day-card.day-is-sweep {
+  border-color: rgba(250, 204, 21, 0.32);
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.06);
+}
+
+.history-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.15s ease;
+  gap: 8px;
+}
+
+.history-day-header:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.history-day-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.history-day-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.history-cal-icon {
+  color: #38bdf8;
+}
+
+.history-date-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.history-date-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.history-date-text {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-relative-tag {
+  font-size: 0.58rem;
+  font-weight: 800;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 1px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.history-match-count-sub {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1;
+}
+
+.history-day-right {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.history-sweep-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  padding: 2px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
+
+.history-day-chips {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.day-chip-won {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.day-chip-lost {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.day-chip-void {
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.history-winrate-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.74rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
+.history-winrate-pill.pill-high {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.history-winrate-pill.pill-mid {
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.history-winrate-pill.pill-low {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.history-day-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+
+.history-day-matches {
+  padding: 0.5rem 0.65rem;
+  background: rgba(0, 0, 0, 0.18);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* Mobile responsive adjustments for History Timeline */
+@media (max-width: 640px) {
+  .kpi-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hide-on-tiny-mobile {
+    display: none !important;
+  }
+
+  .history-kpi-banner {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .history-day-header {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .history-date-text {
+    font-size: 0.8rem;
+  }
+
+  .history-sweep-badge {
+    display: none; /* Keep right side concise on narrow mobile */
+  }
+
+  .history-day-right {
+    gap: 5px;
+  }
+}
+
 
