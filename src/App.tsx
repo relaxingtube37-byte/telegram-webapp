@@ -153,19 +153,30 @@ export function App() {
     return 'anonymous';
   }, [telegramUser, webId, isExplicitlyLoggedOut]);
 
-  const isUserRegistered = useMemo(() => {
+  // Step 1: User has connected identity (Google or Telegram account)
+  const isAccountConnected = useMemo(() => {
     if (isExplicitlyLoggedOut) return false;
     return Boolean(
-      telegramUser?.id ||
+      (telegramUser?.id && telegramUser.id > 0) ||
       telegramUser?.email ||
-      (typeof window !== 'undefined' && (
-        localStorage.getItem('ptin_web_verified') === 'true' ||
-        localStorage.getItem('ptin_partner_activated') === 'true'
-      ))
+      (typeof window !== 'undefined' && window.Telegram?.WebApp?.initDataUnsafe?.user?.id)
     );
   }, [telegramUser, isExplicitlyLoggedOut]);
 
-  const effectiveVerified = !isExplicitlyLoggedOut && (isVerified || isUserRegistered);
+  // Step 2: Partner registration completed
+  const isPartnerActivated = useMemo(() => {
+    if (isExplicitlyLoggedOut) return false;
+    return Boolean(
+      isVerified ||
+      (typeof window !== 'undefined' && (
+        localStorage.getItem('ptin_partner_activated') === 'true' ||
+        localStorage.getItem('ptin_web_verified') === 'true'
+      ))
+    );
+  }, [isVerified, isExplicitlyLoggedOut]);
+
+  // STRICT 2-STEP REQUIREMENT: Both Step 1 (Account connected) AND Step 2 (1WIN partner registration) are strictly mandatory!
+  const effectiveVerified = !isExplicitlyLoggedOut && isAccountConnected && isPartnerActivated;
 
   const effectiveAccessMode = isExplicitlyLoggedOut ? 'REGISTRATION_REQUIRED' : accessMode;
 
@@ -201,6 +212,7 @@ export function App() {
       setSelectedMatch(prev => prev ? { ...prev, content_locked: false } : null);
     }
     setShowReferralModal(false);
+    loadData(true);
   };
 
   const handleLogout = () => {
@@ -393,7 +405,15 @@ export function App() {
         .then(r => r.json())
         .then(res => {
           if (res?.success) {
-            if (res.verified !== undefined) setIsVerified(!!res.verified);
+            if (typeof res.verified === 'boolean') {
+              setIsVerified(res.verified);
+              if (!res.verified) {
+                try {
+                  localStorage.removeItem('ptin_web_verified');
+                  localStorage.removeItem('ptin_partner_activated');
+                } catch {}
+              }
+            }
             if (res.access_mode) setAccessMode(res.access_mode);
             if (res.content_layers) setContentLayers(prev => ({ ...prev, ...res.content_layers }));
             if (res.sessionToken) {
@@ -408,6 +428,8 @@ export function App() {
                 id: res.telegramUser.telegram_id,
                 first_name: res.telegramUser.first_name,
                 username: res.telegramUser.username,
+                email: res.telegramUser.email,
+                avatar_url: res.telegramUser.avatar_url,
               });
             }
           }
@@ -467,21 +489,34 @@ export function App() {
         : (Array.isArray(predRes?.predictions) ? predRes.predictions : []);
       if (predRes?.content_layers) setContentLayers(prev => ({ ...prev, ...predRes.content_layers }));
 
-      const isClientVerified = forcedVerified !== undefined
-        ? forcedVerified
-        : (!isLoggedOut && Boolean(
+      let verifiedStatus = false;
+      if (forcedVerified !== undefined) {
+        verifiedStatus = forcedVerified;
+      } else if (!isLoggedOut) {
+        if (typeof predRes?.verified === 'boolean') {
+          verifiedStatus = predRes.verified;
+          if (!verifiedStatus) {
+            try {
+              localStorage.removeItem('ptin_web_verified');
+              localStorage.removeItem('ptin_partner_activated');
+            } catch {}
+          }
+        } else {
+          verifiedStatus = Boolean(
             (typeof window !== 'undefined' && (
               localStorage.getItem('ptin_web_verified') === 'true' ||
               localStorage.getItem('ptin_partner_activated') === 'true'
             ))
-          ));
+          );
+        }
+      }
 
-      setIsVerified(isClientVerified);
+      setIsVerified(verifiedStatus);
       if (predRes?.access_mode) setAccessMode(predRes.access_mode);
 
       const finalPreds = loadedPreds.map(p => ({
         ...p,
-        content_locked: !isClientVerified ? true : false,
+        content_locked: !verifiedStatus ? true : (p.content_locked ?? false),
       }));
       setPredictions(finalPreds);
       setStats(statsRes);
@@ -913,6 +948,7 @@ export function App() {
             onOpenModal={() => setShowReferralModal(true)}
             onVerified={handlePartnerActivation}
             apiBase={API_BASE}
+            isLoggedIn={isAccountConnected}
           />
         </aside>
       </div>
@@ -927,14 +963,16 @@ export function App() {
           botUsername={botUsername}
           webappShortName={webappShortName}
           apiBase={API_BASE}
-          initialStep={modalInitialStep}
+          initialStep={isAccountConnected && !isPartnerActivated ? 2 : modalInitialStep}
           currentUser={telegramUser}
           onClose={() => setShowReferralModal(false)}
-          onVerified={(newToken, user) => {
+          onAccountConnected={(newToken, user) => {
             try {
               localStorage.removeItem('ptin_user_logged_out');
+              localStorage.removeItem('ptin_partner_activated');
+              localStorage.removeItem('ptin_web_verified');
             } catch {}
-            handlePartnerActivation();
+            setIsVerified(false);
             if (newToken) {
               setSessionToken(newToken);
               try {
@@ -951,6 +989,30 @@ export function App() {
                 auth_provider: user.auth_provider || 'google',
               });
             }
+          }}
+          onVerified={(newToken, user) => {
+            try {
+              localStorage.removeItem('ptin_user_logged_out');
+              localStorage.setItem('ptin_web_verified', 'true');
+              localStorage.setItem('ptin_partner_activated', 'true');
+            } catch {}
+            if (newToken) {
+              setSessionToken(newToken);
+              try {
+                localStorage.setItem('ptin_web_session', newToken);
+              } catch {}
+            }
+            if (user) {
+              setTelegramUser({
+                id: user.telegram_id || user.id,
+                first_name: user.first_name || user.name,
+                username: user.username,
+                email: user.email,
+                avatar_url: user.avatar_url || user.picture,
+                auth_provider: user.auth_provider || 'google',
+              });
+            }
+            handlePartnerActivation();
           }}
         />
       )}

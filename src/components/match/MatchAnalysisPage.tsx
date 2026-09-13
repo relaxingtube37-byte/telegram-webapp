@@ -54,13 +54,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 }) => {
   const webApiBase = useMemo(() => resolveWebApiBase(webappApiBase), [webappApiBase]);
   const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
-  const isClientVerified = !isLoggedOut && Boolean(
-    isVerified ||
-    (typeof window !== 'undefined' && (
-      localStorage.getItem('ptin_web_verified') === 'true' ||
-      localStorage.getItem('ptin_partner_activated') === 'true'
-    ))
-  );
+  const isClientVerified = !isLoggedOut && Boolean(isVerified);
 
   const [match, setMatch] = useState<Prediction>(() => ({
     ...seed,
@@ -244,7 +238,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         {/* Model Prediction Bar (Shown in 'all' and 'tactical') */}
         {(activeTab === 'all' || activeTab === 'tactical') && (
           <>
-            <MatchPredictionPanel match={match} />
+            <MatchPredictionPanel match={match} onUnlockClick={onUnlockClick} />
             <MatchDeepAnalysis
               match={match}
               analytics={analytics}

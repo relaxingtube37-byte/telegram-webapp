@@ -1,13 +1,62 @@
 import React from 'react';
-import { Sparkles, Target, Shield, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Target, Shield, CheckCircle2, Lock } from 'lucide-react';
 import type { Prediction } from '../../types';
 import { formatPlayerDisplayName } from '../../utils/formatters';
 
 interface MatchPredictionPanelProps {
   match: Prediction;
+  onUnlockClick?: () => void;
 }
 
-export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ match }) => {
+export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ match, onUnlockClick }) => {
+  const isLocked = match.content_locked === true || !match.predicted_winner || match.predicted_winner === 'LOCKED';
+
+  if (isLocked) {
+    return (
+      <div className="ai-verdict-card ai-verdict-locked" style={{ border: '1px dashed rgba(212, 168, 67, 0.45)', background: 'rgba(15, 25, 20, 0.85)' }}>
+        <div className="ai-verdict-header">
+          <div className="ai-verdict-title">
+            <Lock size={14} color="#fbbf24" />
+            <span style={{ color: '#fbbf24' }}>AI Model Verdict (Gated)</span>
+          </div>
+          <span className="ai-confidence-pill conf-low" style={{ background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.3)' }}>
+            2-Step Unlock Required
+          </span>
+        </div>
+
+        <div style={{ textAlign: 'center', padding: '1.25rem 1rem' }}>
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f4f4f5', marginBottom: '0.35rem' }}>
+            🔒 Projected Winner &amp; Win Probability Hidden
+          </div>
+          <p style={{ margin: '0 0 1rem 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+            Specialist model verdict, projected match winner, edge ratings, and expected set scores require verified membership.
+          </p>
+          <button
+            type="button"
+            className="pulse-glow"
+            onClick={onUnlockClick}
+            style={{
+              padding: '0.65rem 1.25rem',
+              borderRadius: 8,
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: '#fff',
+              border: 'none',
+              fontWeight: 800,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+            }}
+          >
+            <Lock size={14} /> Complete 2-Step Registration to Unlock
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const winProb = match.win_probability ?? 0;
   const rawWinner = (match.predicted_winner || '').trim();
   const winner = rawWinner.toLowerCase();

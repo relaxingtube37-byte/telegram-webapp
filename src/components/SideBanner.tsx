@@ -9,6 +9,7 @@ interface SideBannerProps {
   onOpenModal: () => void;
   onVerified?: () => void;
   apiBase?: string;
+  isLoggedIn?: boolean;
 }
 
 /** Professional sponsor & community cards for the right-hand sidebar */
@@ -18,6 +19,7 @@ export const SideBanner: React.FC<SideBannerProps> = ({
   onOpenModal,
   onVerified,
   apiBase = 'https://telegram-backend-2yck.onrender.com/api/webapp',
+  isLoggedIn = false,
 }) => {
   const primarySite = sites[0];
 
@@ -35,6 +37,10 @@ export const SideBanner: React.FC<SideBannerProps> = ({
 
   const handleOpenLink = (url: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isLoggedIn) {
+      onOpenModal();
+      return;
+    }
     try {
       localStorage.setItem('ptin_web_verified', 'true');
       localStorage.setItem('ptin_partner_activated', 'true');

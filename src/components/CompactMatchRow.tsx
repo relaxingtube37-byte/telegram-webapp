@@ -67,9 +67,10 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   const matchTimeStr = formatMatchTime(rawDateStr, selectedTimezone);
   const matchDateLabel = getCompactDateLabel(rawDateStr, selectedTimezone);
 
-  const isHomeWinner = prediction.predicted_winner === prediction.home_name;
-  const isAwayWinner = prediction.predicted_winner === prediction.away_name;
-  const winProb = prediction.win_probability || 65;
+  const isRowLocked = isLocked || prediction.content_locked === true;
+  const isHomeWinner = !isRowLocked && Boolean(prediction.predicted_winner && prediction.predicted_winner !== 'LOCKED' && prediction.predicted_winner === prediction.home_name);
+  const isAwayWinner = !isRowLocked && Boolean(prediction.predicted_winner && prediction.predicted_winner !== 'LOCKED' && prediction.predicted_winner === prediction.away_name);
+  const winProb = !isRowLocked ? (prediction.win_probability || 65) : null;
 
   const rawScore = (prediction.result_score || '').trim();
   const isMatchInFuture = rawDateStr ? new Date(rawDateStr).getTime() > Date.now() + 15 * 60 * 1000 : false;
@@ -305,29 +306,66 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
       {/* ── Column 3: AI Prediction & Win Probability ── */}
       <div className="match-col-ai">
-        <div className="ai-pred-headline">
-          <span className="ai-pred-label">
-            <Sparkles size={11} className="ai-sparkle-icon" /> AI Forecast
-          </span>
-          <span className="ai-prob-pct">{winProb}%</span>
-        </div>
-
-        {/* Dual Progress Bar */}
-        <div className="ai-prob-track">
+        {isRowLocked ? (
           <div
-            className="ai-prob-fill"
-            style={{ width: `${Math.min(Math.max(winProb, 10), 96)}%` }}
-          />
-        </div>
+            className="ai-pred-locked-state"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUnlockClick?.();
+            }}
+            title="Click to complete 2-step verification and unlock prediction"
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="ai-pred-headline">
+              <span className="ai-pred-label" style={{ color: '#fbbf24' }}>
+                <Lock size={10} className="ai-sparkle-icon" /> VIP Pick
+              </span>
+              <span className="ai-prob-pct" style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
+                🔒 Locked
+              </span>
+            </div>
 
-        <div className="ai-meta-subrow">
-          <span className="ai-winner-name truncate-text">
-            {prediction.predicted_winner ? formatPlayerDisplayName(prediction.predicted_winner) : 'Pick'}
-          </span>
-          {prediction.confidence && (
-            <span className="ai-conf-chip">★ {prediction.confidence}</span>
-          )}
-        </div>
+            {/* Locked Track */}
+            <div className="ai-prob-track">
+              <div
+                className="ai-prob-fill"
+                style={{ width: '0%', background: 'rgba(255, 255, 255, 0.1)' }}
+              />
+            </div>
+
+            <div className="ai-meta-subrow">
+              <span className="ai-winner-name" style={{ color: '#fbbf24', fontSize: '0.68rem', fontWeight: 700 }}>
+                2-Step Unlock ➔
+              </span>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="ai-pred-headline">
+              <span className="ai-pred-label">
+                <Sparkles size={11} className="ai-sparkle-icon" /> AI Forecast
+              </span>
+              <span className="ai-prob-pct">{winProb}%</span>
+            </div>
+
+            {/* Dual Progress Bar */}
+            <div className="ai-prob-track">
+              <div
+                className="ai-prob-fill"
+                style={{ width: `${Math.min(Math.max(winProb || 65, 10), 96)}%` }}
+              />
+            </div>
+
+            <div className="ai-meta-subrow">
+              <span className="ai-winner-name truncate-text">
+                {prediction.predicted_winner ? formatPlayerDisplayName(prediction.predicted_winner) : 'Pick'}
+              </span>
+              {prediction.confidence && (
+                <span className="ai-conf-chip">★ {prediction.confidence}</span>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Column 4: Quick Action & Arrow ── */}

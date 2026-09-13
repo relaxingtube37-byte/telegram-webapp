@@ -85,14 +85,14 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
       <div className="top-pick-matchup">
         <div className="top-pick-player">
           <span className="player-name">{formatPlayerDisplayName(topPick.home_name)}</span>
-          {topPick.predicted_winner?.toLowerCase().includes(topPick.home_name?.toLowerCase() || '') && (
+          {isVerified && !topPick.content_locked && topPick.predicted_winner && topPick.predicted_winner !== 'LOCKED' && topPick.predicted_winner.toLowerCase().includes(topPick.home_name?.toLowerCase() || '') && (
             <span className="pick-marker">PICK</span>
           )}
         </div>
         <div className="top-pick-vs">vs</div>
         <div className="top-pick-player">
           <span className="player-name">{formatPlayerDisplayName(topPick.away_name)}</span>
-          {topPick.predicted_winner?.toLowerCase().includes(topPick.away_name?.toLowerCase() || '') && (
+          {isVerified && !topPick.content_locked && topPick.predicted_winner && topPick.predicted_winner !== 'LOCKED' && topPick.predicted_winner.toLowerCase().includes(topPick.away_name?.toLowerCase() || '') && (
             <span className="pick-marker">PICK</span>
           )}
         </div>
@@ -102,15 +102,15 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
       <div className="top-pick-gauge-box">
         <div className="gauge-header">
           <span className="gauge-label">AI Win Probability</span>
-          <span className="gauge-val">{winProb}%</span>
+          <span className="gauge-val">{!isVerified || topPick.content_locked ? '🔒 Gated' : `${winProb}%`}</span>
         </div>
         <div className="gauge-track">
-          <div className="gauge-fill" style={{ width: `${Math.max(winProb, 20)}%` }} />
+          <div className="gauge-fill" style={{ width: !isVerified || topPick.content_locked ? '0%' : `${Math.max(winProb, 20)}%` }} />
         </div>
       </div>
 
       {/* Market recommendation */}
-      {topPick.best_bet_market && topPick.best_bet_market !== 'NO_BET' && (
+      {isVerified && !topPick.content_locked && topPick.best_bet_market && topPick.best_bet_market !== 'NO_BET' && (
         <div className="top-pick-market">
           <span className="market-label">Recommended Market:</span>
           <span className="market-value">{topPick.best_bet_market}</span>

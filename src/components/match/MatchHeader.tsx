@@ -35,8 +35,9 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   const isWomen = gender === 'women';
   const tour = isWomen ? 'WTA' : 'ATP';
 
-  const isHomeWinner = match.predicted_winner === match.home_name;
-  const isAwayWinner = match.predicted_winner === match.away_name;
+  const isRowLocked = match.content_locked === true;
+  const isHomeWinner = !isRowLocked && Boolean(match.predicted_winner && match.predicted_winner !== 'LOCKED' && match.predicted_winner === match.home_name);
+  const isAwayWinner = !isRowLocked && Boolean(match.predicted_winner && match.predicted_winner !== 'LOCKED' && match.predicted_winner === match.away_name);
 
   const rawScore = (match.result_score || '').trim();
   const rawDateStr = match.match_date || match.published_at;

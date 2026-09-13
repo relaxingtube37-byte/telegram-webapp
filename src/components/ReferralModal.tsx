@@ -22,6 +22,7 @@ interface ReferralModalProps {
   } | null;
   onClose: () => void;
   onVerified?: (newToken?: string, user?: any) => void;
+  onAccountConnected?: (newToken?: string, user?: any) => void;
 }
 
 export const ReferralModal: React.FC<ReferralModalProps> = ({
@@ -34,6 +35,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   currentUser,
   onClose,
   onVerified,
+  onAccountConnected,
 }) => {
   const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
   const hasTelegramInitData = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.initData);
@@ -101,13 +103,12 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     onSuccess: (newToken, user) => {
       try {
         localStorage.removeItem('ptin_user_logged_out');
-        // NOTE: Do NOT set ptin_web_verified here — user must complete Step 2 (partner link) first.
       } catch {}
       setJustConnectedUser(user);
-      if (onVerified) {
-        onVerified(newToken, user);
+      if (onAccountConnected) {
+        onAccountConnected(newToken, user);
       }
-      // Auto-advance to Step 2 (1WIN Partner Activation) — modal stays open
+      // Auto-advance to Step 2 (1WIN Partner Activation) — modal stays open, content remains locked
       setCurrentStep(2);
     },
     onError: (err) => {
@@ -166,12 +167,6 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     if (trackingUrl) {
       openExternalLink(trackingUrl);
     }
-    setIsCompleted(true);
-  };
-
-  const handleDirectUnlock = (e: React.MouseEvent) => {
-    e.preventDefault();
-    completeActivation(primarySite?.id);
     setIsCompleted(true);
   };
 
@@ -465,23 +460,6 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
                   <div ref={googleBtnRef} style={{ minHeight: 44, display: 'flex', justifyContent: 'center' }} />
                 </div>
-
-                <div style={{ textAlign: 'center', marginTop: '0.8rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(2)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--text-secondary)',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      textDecoration: 'underline',
-                    }}
-                  >
-                    Skip to Step 2 (Direct Partner Activation) ➔
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -567,24 +545,6 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 <Gift size={16} />
                 <span>Step 2: Register on 1WIN &amp; Unlock</span>
               </button>
-
-              {/* Direct Unlock Alternative */}
-              <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
-                <button
-                  type="button"
-                  onClick={handleDirectUnlock}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer',
-                    textDecoration: 'underline',
-                  }}
-                >
-                  Already registered on 1WIN? Tap here to unlock
-                </button>
-              </div>
             </div>
           </div>
         )}
