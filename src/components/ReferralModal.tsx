@@ -105,10 +105,31 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         localStorage.removeItem('ptin_user_logged_out');
       } catch {}
       setJustConnectedUser(user);
+
+      // Returning member who already completed 2-step registration previously: direct 1-step login!
+      const isAlreadyVerified = Boolean(
+        user?.verified === true ||
+        user?.is_verified === 1 ||
+        user?.verify_status === 'verified'
+      );
+
+      if (isAlreadyVerified) {
+        try {
+          localStorage.setItem('ptin_web_verified', 'true');
+          localStorage.setItem('ptin_partner_activated', 'true');
+        } catch {}
+        if (onVerified) {
+          onVerified(newToken, user);
+        }
+        setIsCompleted(true);
+        onClose();
+        return;
+      }
+
+      // First-time or unverified user: Step 1 done -> advance to mandatory Step 2
       if (onAccountConnected) {
         onAccountConnected(newToken, user);
       }
-      // Auto-advance to Step 2 (1WIN Partner Activation) — modal stays open, content remains locked
       setCurrentStep(2);
     },
     onError: (err) => {

@@ -70,7 +70,11 @@ export function useGoogleAuth({
         const data = await res.json();
         if (data.success && data.sessionToken) {
           localStorage.setItem('ptin_web_session', data.sessionToken);
-          onSuccess?.(data.sessionToken, data.user);
+          const enrichedUser = {
+            ...(data.user || {}),
+            verified: Boolean(data.verified || data.user?.is_verified === 1 || data.user?.verify_status === 'verified'),
+          };
+          onSuccess?.(data.sessionToken, enrichedUser);
         } else {
           onError?.(data.error || 'Failed to authenticate with Google');
         }

@@ -969,10 +969,7 @@ export function App() {
           onAccountConnected={(newToken, user) => {
             try {
               localStorage.removeItem('ptin_user_logged_out');
-              localStorage.removeItem('ptin_partner_activated');
-              localStorage.removeItem('ptin_web_verified');
             } catch {}
-            setIsVerified(false);
             if (newToken) {
               setSessionToken(newToken);
               try {
@@ -988,6 +985,25 @@ export function App() {
                 avatar_url: user.avatar_url || user.picture,
                 auth_provider: user.auth_provider || 'google',
               });
+            }
+            const isAlreadyVerified = Boolean(
+              user?.verified === true ||
+              user?.is_verified === 1 ||
+              user?.verify_status === 'verified'
+            );
+            if (isAlreadyVerified) {
+              try {
+                localStorage.setItem('ptin_web_verified', 'true');
+                localStorage.setItem('ptin_partner_activated', 'true');
+              } catch {}
+              setIsVerified(true);
+              handlePartnerActivation();
+            } else {
+              try {
+                localStorage.removeItem('ptin_partner_activated');
+                localStorage.removeItem('ptin_web_verified');
+              } catch {}
+              setIsVerified(false);
             }
           }}
           onVerified={(newToken, user) => {
