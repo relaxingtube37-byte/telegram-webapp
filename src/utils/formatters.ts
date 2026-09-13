@@ -1,24 +1,38 @@
 export const TIMEZONE_KEY = 'tg_webapp_timezone';
 
+export const getDeviceTimezoneCityName = (): string => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz) {
+      const city = tz.split('/').pop()?.replace(/_/g, ' ');
+      return city || tz;
+    }
+  } catch {}
+  return 'Local';
+};
+
 export const getInitialTimezone = (): string => {
   try {
-    return localStorage.getItem(TIMEZONE_KEY) || 'UTC';
+    const saved = localStorage.getItem(TIMEZONE_KEY);
+    if (saved) return saved;
+    // Default to device local timezone for all new users & Telegram mini-app
+    return 'local';
   } catch {
-    return 'UTC';
+    return 'local';
   }
 };
 
-export const formatMatchTime = (dateStr?: string, timeZone: string = 'UTC'): string => {
+export const formatMatchTime = (dateStr?: string, timeZone: string = 'local'): string => {
   if (!dateStr) return '--:--';
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return dateStr.split('T')[1]?.slice(0, 5) || '--:--';
 
     if (timeZone === 'local') {
-      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
     }
 
-    return d.toLocaleTimeString('en-US', {
+    return d.toLocaleTimeString('en-GB', {
       timeZone: timeZone || 'UTC',
       hour: '2-digit',
       minute: '2-digit',
@@ -29,7 +43,7 @@ export const formatMatchTime = (dateStr?: string, timeZone: string = 'UTC'): str
   }
 };
 
-export const formatMatchDate = (dateStr?: string, timeZone: string = 'UTC'): string => {
+export const formatMatchDate = (dateStr?: string, timeZone: string = 'local'): string => {
   if (!dateStr) return '';
   try {
     const d = new Date(dateStr);

@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Globe, Sparkles, CheckCircle, Search, Gift, ChevronDown, ShieldCheck, LogOut } from 'lucide-react';
 import type { StatsOverviewData } from '../types';
+import { getDeviceTimezoneCityName } from '../utils/formatters';
 
 interface HeaderProps {
   stats: StatsOverviewData | null;
@@ -40,6 +41,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const deviceCity = useMemo(() => getDeviceTimezoneCityName(), []);
 
   useEffect(() => {
     setAvatarError(false);
@@ -121,9 +123,9 @@ export const Header: React.FC<HeaderProps> = React.memo(({
               className="timezone-select"
               aria-label="Select Timezone"
             >
-              <option value="UTC">🌐 UTC</option>
+              <option value="local">💻 Local ({deviceCity})</option>
               <option value="Asia/Tehran">🇮🇷 Tehran</option>
-              <option value="local">💻 Local</option>
+              <option value="UTC">🌐 UTC</option>
               <option value="Europe/London">🇬🇧 London</option>
               <option value="America/New_York">🇺🇸 New York</option>
             </select>
