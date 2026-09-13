@@ -101,14 +101,13 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     onSuccess: (newToken, user) => {
       try {
         localStorage.removeItem('ptin_user_logged_out');
-        localStorage.setItem('ptin_web_verified', 'true');
-        localStorage.setItem('ptin_partner_activated', 'true');
+        // NOTE: Do NOT set ptin_web_verified here — user must complete Step 2 (partner link) first.
       } catch {}
       setJustConnectedUser(user);
       if (onVerified) {
         onVerified(newToken, user);
       }
-      // Auto-advance smoothly to Step 2 (1WIN Partner Activation)
+      // Auto-advance to Step 2 (1WIN Partner Activation) — modal stays open
       setCurrentStep(2);
     },
     onError: (err) => {
@@ -147,7 +146,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
     if (onVerified) {
       onVerified(sessionToken || undefined, activeUser);
     }
-    // Background sync to backend
+    // Background sync to backend — include googleId/email so Google users get fully verified in DB
     fetch(`${apiBase}/referral/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -155,6 +154,8 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
         telegramId: effectiveId !== 'anonymous' ? effectiveId : undefined,
         siteId: siteId || primarySite?.id || 1,
         sessionToken: sessionToken || (typeof window !== 'undefined' ? localStorage.getItem('ptin_web_session') : null),
+        googleId: activeUser?.google_id || undefined,
+        email: activeUser?.email || undefined,
       }),
     }).catch(() => {});
   }, [apiBase, effectiveId, sessionToken, activeUser, primarySite, onVerified]);
