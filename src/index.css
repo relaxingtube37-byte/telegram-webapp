@@ -843,6 +843,19 @@ body {
   transform: scale(0.99);
 }
 
+.match-mobile-header {
+  display: none !important;
+}
+
+.match-main-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
 /* ATP tour accent */
 .tennis-match-row.match-row-atp {
   border-left: 3px solid #38bdf8;
@@ -2200,15 +2213,150 @@ body {
   .hide-on-mobile {
     display: none !important;
   }
+  
+  /* ── 2-Tier Mobile Match Row ── */
   .tennis-match-row {
-    padding: 0.6rem 0.75rem;
-    gap: 0.5rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 0.55rem 0.75rem !important;
+    gap: 0.45rem !important;
   }
-  .match-col-status {
-    width: 68px;
-    min-width: 68px;
-    max-width: 68px;
+
+  /* Tier 1: Meta Header Bar */
+  .match-mobile-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
+
+  .match-mobile-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .match-mobile-header-left .tennis-status-badge {
+    padding: 0.12rem 0.35rem;
+    font-size: 0.62rem;
+  }
+
+  .match-mobile-header-left .match-round-tag {
+    font-size: 0.62rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+  }
+
+  .match-mobile-header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .match-mobile-header-right .btn-watch-live-mini {
+    padding: 2px 7px;
+    font-size: 0.62rem;
+    border-radius: 12px;
+  }
+
+  .match-mobile-header-right .mobile-winprob-indicator {
+    display: inline-flex !important;
+    align-items: center;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 5px;
+  }
+
+  .match-mobile-header-right .mobile-vip-indicator {
+    display: inline-flex !important;
+    align-items: center;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 5px;
+  }
+
+  .match-mobile-header-right .chevron-open-icon {
+    color: #64748b;
+    opacity: 0.8;
+  }
+
+  /* Tier 2: Main Content Area */
+  .match-main-content {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+    padding-top: 2px;
+  }
+
+  .match-main-content .match-col-status {
+    display: none !important;
+  }
+
+  .match-main-content .match-col-ai {
+    display: none !important;
+  }
+
+  .match-main-content .match-col-action {
+    display: none !important;
+  }
+
+  .match-main-content .match-col-score.score-col-empty {
+    display: none !important;
+  }
+
+  .match-col-players {
+    flex: 1;
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .player-info {
+    flex: 1;
+    min-width: 0;
+    gap: 7px;
+  }
+
+  .player-name-text {
+    font-size: 0.86rem;
+    max-width: calc(100% - 10px);
+  }
+
+  .player-name-text.selected-pick-name {
+    font-size: 0.86rem !important;
+    max-width: calc(100% - 10px);
+    padding: 1px 5px;
+  }
+
+  .player-row-right {
+    flex-shrink: 0;
+  }
+
+  .match-col-score {
+    width: 76px;
+    min-width: 70px;
+    margin-top: 3px;
+  }
+
   .arena-players-grid {
     gap: 0.5rem;
   }

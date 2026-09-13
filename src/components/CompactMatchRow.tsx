@@ -161,250 +161,306 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
         }
       }}
     >
-      {/* ── Column 1: Time / Status ── */}
-      <div className="match-col-status">
-        {renderStatus()}
-        {subLabelInfo.text && (
-          <span className="match-round-tag" title={subLabelInfo.fullTitle}>
-            {subLabelInfo.text}
-          </span>
-        )}
-      </div>
-
-      {/* ── Column 2: Players & Odds ── */}
-      <div className="match-col-players">
-        {/* Home Player */}
-        <div className={`player-row ${isHomeWinner ? 'player-is-winner' : ''}`}>
-          <div className="player-info">
-            <PlayerAvatar
-              name={prediction.home_name}
-              imageUrl={homeAvatarUrl}
-              size={22}
-              isWinner={isHomeWinner}
-            />
-            <span className={`player-name-text ${isHomeWinner ? 'selected-pick-name' : ''}`}>
-              {isHomeWinner && <span className="selected-pick-check">✓</span>}
-              {formatPlayerDisplayName(prediction.home_name)}
+      {/* ── Mobile Tier 1: Header Meta Bar (Only visible on mobile screens) ── */}
+      <div className="match-mobile-header">
+        <div className="match-mobile-header-left">
+          {renderStatus()}
+          {subLabelInfo.text && (
+            <span className="match-round-tag" title={subLabelInfo.fullTitle}>
+              {subLabelInfo.text}
             </span>
-          </div>
-
-          <div className="player-row-right">
-            {prediction.home_odds && prediction.home_odds !== 'N/A' && (
-              <span className={`player-odds-tag ${isHomeWinner ? 'odds-selected-accent' : ''}`}>{prediction.home_odds}</span>
-            )}
-          </div>
-        </div>
-
-        {/* Away Player */}
-        <div className={`player-row ${isAwayWinner ? 'player-is-winner' : ''}`}>
-          <div className="player-info">
-            <PlayerAvatar
-              name={prediction.away_name}
-              imageUrl={awayAvatarUrl}
-              size={22}
-              isWinner={isAwayWinner}
-            />
-            <span className={`player-name-text ${isAwayWinner ? 'selected-pick-name' : ''}`}>
-              {isAwayWinner && <span className="selected-pick-check">✓</span>}
-              {formatPlayerDisplayName(prediction.away_name)}
-            </span>
-          </div>
-
-          <div className="player-row-right">
-            {prediction.away_odds && prediction.away_odds !== 'N/A' && (
-              <span className={`player-odds-tag ${isAwayWinner ? 'odds-selected-accent' : ''}`}>{prediction.away_odds}</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Column 3: Dedicated Results Column (Aligned with each player's row: Home on top, Away on bottom) ── */}
-      <div className={`match-col-score ${!parsedScore ? 'score-col-empty' : ''}`}>
-        {/* Micro Headers: SET, GM, PTS */}
-        {isLive && parsedScore ? (
-          <div className="score-col-headers">
-            <span className="score-header-label">SET</span>
-            <span className="score-header-label">GM</span>
-            <span className="score-header-label">PTS</span>
-          </div>
-        ) : isFinished && parsedScore && parsedScore.homeSets !== undefined ? (
-          <div className="score-col-headers single-col">
-            <span className="score-header-label">SET</span>
-          </div>
-        ) : null}
-
-        {/* Row 1: Home Player Score (aligned with Home Player name) */}
-        <div className="player-score-row" title={`Home Player Score: ${formatPlayerDisplayName(prediction.home_name)}`}>
-          {isLive && parsedScore ? (
-            <div className="player-score-cells">
-              <span className="score-cell cell-set" title="Sets Won">
-                <span className="cell-num">{parsedScore.homeSets || '0'}</span>
-              </span>
-              <span className="score-cell cell-game" title="Current Set Games">
-                <span className="cell-num">{parsedScore.homeGames || '0'}</span>
-              </span>
-              <span className="score-cell cell-point" title="Current Game Points">
-                <span className="cell-num pts-accent">{parsedScore.homePoints || '0'}</span>
-              </span>
-            </div>
-          ) : isFinished && parsedScore ? (
-            // Walkover / Retirement: no individual sets — show summary label in row 1
-            parsedScore.homeSets === undefined ? (
-              <span className="score-walkover-label">{parsedScore.setsScore}</span>
-            ) : (
-              <div className="player-score-cells">
-                <span
-                  className={`score-cell cell-final-set ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-winner' : ''}`}
-                  title="Final Sets Won"
-                >
-                  <span className="cell-num">{parsedScore.homeSets}</span>
-                </span>
-              </div>
-            )
-          ) : (
-            <span className="score-dash">—</span>
           )}
         </div>
 
-        {/* Row 2: Away Player Score (aligned with Away Player name) */}
-        <div className="player-score-row" title={`Away Player Score: ${formatPlayerDisplayName(prediction.away_name)}`}>
-          {isLive && parsedScore ? (
-            <div className="player-score-cells">
-              <span className="score-cell cell-set" title="Sets Won">
-                <span className="cell-num">{parsedScore.awaySets || '0'}</span>
-              </span>
-              <span className="score-cell cell-game" title="Current Set Games">
-                <span className="cell-num">{parsedScore.awayGames || '0'}</span>
-              </span>
-              <span className="score-cell cell-point" title="Current Game Points">
-                <span className="cell-num pts-accent">{parsedScore.awayPoints || '0'}</span>
-              </span>
-            </div>
-          ) : isFinished && parsedScore ? (
-            // Walkover / Retirement: row 2 is empty (label shown in row 1)
-            parsedScore.awaySets === undefined ? (
-              <span className="score-dash">—</span>
-            ) : (
-              <div className="player-score-cells">
-                <span
-                  className={`score-cell cell-final-set ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-winner' : ''}`}
-                  title="Final Sets Won"
-                >
-                  <span className="cell-num">{parsedScore.awaySets}</span>
-                </span>
-              </div>
-            )
-          ) : (
-            <span className="score-dash">—</span>
+        <div className="match-mobile-header-right">
+          {showWatch && (
+            <button
+              type="button"
+              className="btn-watch-live-mini"
+              title="Watch Live Stream"
+              onClick={(e) => {
+                e.stopPropagation();
+                const url = buildPartnerWatchUrl({ apiBase, sites: referralSites, trackingId });
+                if (url) openExternalLink(url);
+                else onUnlockClick?.();
+              }}
+            >
+              <Tv size={11} />
+              <span>Live</span>
+            </button>
           )}
+
+          {isRowLocked ? (
+            <span
+              className="mobile-vip-indicator"
+              title="VIP Prediction Locked"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnlockClick?.();
+              }}
+            >
+              <Lock size={10} />
+              <span>VIP</span>
+            </span>
+          ) : winProb ? (
+            <span className="mobile-winprob-indicator" title={`AI Model Win Probability: ${winProb}%`}>
+              <Sparkles size={9} style={{ marginRight: 2 }} /> {winProb}%
+            </span>
+          ) : null}
+
+          <div className="row-open-cta" title="Open Full Match Intelligence">
+            <ChevronRight size={16} className="chevron-open-icon" />
+          </div>
         </div>
       </div>
 
+      {/* ── Main Content Area (Tier 2 on Mobile, Full 5-Column Row on Desktop) ── */}
+      <div className="match-main-content">
+        {/* ── Column 1: Time / Status (Desktop only) ── */}
+        <div className="match-col-status">
+          {renderStatus()}
+          {subLabelInfo.text && (
+            <span className="match-round-tag" title={subLabelInfo.fullTitle}>
+              {subLabelInfo.text}
+            </span>
+          )}
+        </div>
 
-      {/* ── Column 3.5: AI Prediction & Win Probability ── */}
-      <div className="match-col-ai">
-        {isRowLocked ? (
-          <div
-            className="ai-pred-locked-state"
-            onClick={(e) => {
-              e.stopPropagation();
-              onUnlockClick?.();
-            }}
-            title="Click to complete 2-step verification and unlock prediction"
-            style={{ cursor: 'pointer' }}
-          >
-            <div className="ai-pred-headline">
-              <span className="ai-pred-label" style={{ color: '#fbbf24' }}>
-                <Lock size={9} className="ai-sparkle-icon" /> VIP Pick
-              </span>
-              <span className="ai-prob-pct" style={{ fontSize: '0.64rem', color: 'var(--text-secondary)' }}>
-                🔒 Locked
-              </span>
-            </div>
-
-            {/* Locked Track */}
-            <div className="ai-prob-track">
-              <div
-                className="ai-prob-fill"
-                style={{ width: '0%', background: 'rgba(255, 255, 255, 0.1)' }}
+        {/* ── Column 2: Players & Odds ── */}
+        <div className="match-col-players">
+          {/* Home Player */}
+          <div className={`player-row ${isHomeWinner ? 'player-is-winner' : ''}`}>
+            <div className="player-info">
+              <PlayerAvatar
+                name={prediction.home_name}
+                imageUrl={homeAvatarUrl}
+                size={22}
+                isWinner={isHomeWinner}
               />
-            </div>
-
-            <div className="ai-meta-subrow">
-              <span className="ai-winner-name compact-winner-name ai-unlock-cta" style={{ color: '#fbbf24', fontSize: '0.62rem', fontWeight: 700 }}>
-                Unlock Analysis ➔
+              <span className={`player-name-text ${isHomeWinner ? 'selected-pick-name' : ''}`}>
+                {isHomeWinner && <span className="selected-pick-check">✓</span>}
+                {formatPlayerDisplayName(prediction.home_name)}
               </span>
             </div>
-          </div>
-        ) : (
-          <>
-            <div className="ai-pred-headline">
-              <span className="ai-pred-label">
-                <Sparkles size={10} className="ai-sparkle-icon" /> AI Forecast
-              </span>
-              <span className="ai-prob-pct">{winProb}%</span>
-            </div>
 
-            {/* Dual Progress Bar */}
-            <div className="ai-prob-track">
-              <div
-                className="ai-prob-fill"
-                style={{ width: `${Math.min(Math.max(winProb || 65, 10), 96)}%` }}
-              />
-            </div>
-
-            <div className="ai-meta-subrow">
-              <span className="ai-winner-name compact-winner-name truncate-text">
-                {prediction.predicted_winner ? formatPlayerDisplayName(prediction.predicted_winner) : 'Pick'}
-              </span>
-              {prediction.confidence && (
-                <span className="ai-conf-chip">★ {prediction.confidence}</span>
+            <div className="player-row-right">
+              {prediction.home_odds && prediction.home_odds !== 'N/A' && (
+                <span className={`player-odds-tag ${isHomeWinner ? 'odds-selected-accent' : ''}`}>{prediction.home_odds}</span>
               )}
             </div>
-          </>
-        )}
-      </div>
+          </div>
 
-      {/* ── Column 4: Quick Action & Arrow ── */}
-      <div className="match-col-action">
-        {showWatch && (
-          <button
-            type="button"
-            className="btn-watch-live-mini"
-            title="Watch Live Stream"
-            onClick={(e) => {
-              e.stopPropagation();
-              const url = buildPartnerWatchUrl({ apiBase, sites: referralSites, trackingId });
-              if (url) openExternalLink(url);
-              else onUnlockClick?.();
-            }}
-          >
-            <Tv size={11} />
-            <span className="hide-on-mobile">Live</span>
-          </button>
-        )}
+          {/* Away Player */}
+          <div className={`player-row ${isAwayWinner ? 'player-is-winner' : ''}`}>
+            <div className="player-info">
+              <PlayerAvatar
+                name={prediction.away_name}
+                imageUrl={awayAvatarUrl}
+                size={22}
+                isWinner={isAwayWinner}
+              />
+              <span className={`player-name-text ${isAwayWinner ? 'selected-pick-name' : ''}`}>
+                {isAwayWinner && <span className="selected-pick-check">✓</span>}
+                {formatPlayerDisplayName(prediction.away_name)}
+              </span>
+            </div>
 
-        {/* Mobile-visible prediction indicator */}
-        {isRowLocked ? (
-          <span
-            className="mobile-vip-indicator"
-            title="VIP Prediction Locked"
-            onClick={(e) => {
-              e.stopPropagation();
-              onUnlockClick?.();
-            }}
-          >
-            <Lock size={10} />
-            <span>VIP</span>
-          </span>
-        ) : winProb ? (
-          <span className="mobile-winprob-indicator" title={`AI Model Win Probability: ${winProb}%`}>
-            {winProb}%
-          </span>
-        ) : null}
+            <div className="player-row-right">
+              {prediction.away_odds && prediction.away_odds !== 'N/A' && (
+                <span className={`player-odds-tag ${isAwayWinner ? 'odds-selected-accent' : ''}`}>{prediction.away_odds}</span>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <div className="row-open-cta" title="Open Full Match Intelligence">
-          <ChevronRight size={18} className="chevron-open-icon" />
+        {/* ── Column 3: Dedicated Results Column (Aligned with each player's row: Home on top, Away on bottom) ── */}
+        <div className={`match-col-score ${!parsedScore ? 'score-col-empty' : ''}`}>
+          {/* Micro Headers: SET, GM, PTS */}
+          {isLive && parsedScore ? (
+            <div className="score-col-headers">
+              <span className="score-header-label">SET</span>
+              <span className="score-header-label">GM</span>
+              <span className="score-header-label">PTS</span>
+            </div>
+          ) : isFinished && parsedScore && parsedScore.homeSets !== undefined ? (
+            <div className="score-col-headers single-col">
+              <span className="score-header-label">SET</span>
+            </div>
+          ) : null}
+
+          {/* Row 1: Home Player Score (aligned with Home Player name) */}
+          <div className="player-score-row" title={`Home Player Score: ${formatPlayerDisplayName(prediction.home_name)}`}>
+            {isLive && parsedScore ? (
+              <div className="player-score-cells">
+                <span className="score-cell cell-set" title="Sets Won">
+                  <span className="cell-num">{parsedScore.homeSets || '0'}</span>
+                </span>
+                <span className="score-cell cell-game" title="Current Set Games">
+                  <span className="cell-num">{parsedScore.homeGames || '0'}</span>
+                </span>
+                <span className="score-cell cell-point" title="Current Game Points">
+                  <span className="cell-num pts-accent">{parsedScore.homePoints || '0'}</span>
+                </span>
+              </div>
+            ) : isFinished && parsedScore ? (
+              // Walkover / Retirement: no individual sets — show summary label in row 1
+              parsedScore.homeSets === undefined ? (
+                <span className="score-walkover-label">{parsedScore.setsScore}</span>
+              ) : (
+                <div className="player-score-cells">
+                  <span
+                    className={`score-cell cell-final-set ${Number(parsedScore.homeSets) > Number(parsedScore.awaySets) ? 'is-winner' : ''}`}
+                    title="Final Sets Won"
+                  >
+                    <span className="cell-num">{parsedScore.homeSets}</span>
+                  </span>
+                </div>
+              )
+            ) : (
+              <span className="score-dash">—</span>
+            )}
+          </div>
+
+          {/* Row 2: Away Player Score (aligned with Away Player name) */}
+          <div className="player-score-row" title={`Away Player Score: ${formatPlayerDisplayName(prediction.away_name)}`}>
+            {isLive && parsedScore ? (
+              <div className="player-score-cells">
+                <span className="score-cell cell-set" title="Sets Won">
+                  <span className="cell-num">{parsedScore.awaySets || '0'}</span>
+                </span>
+                <span className="score-cell cell-game" title="Current Set Games">
+                  <span className="cell-num">{parsedScore.awayGames || '0'}</span>
+                </span>
+                <span className="score-cell cell-point" title="Current Game Points">
+                  <span className="cell-num pts-accent">{parsedScore.awayPoints || '0'}</span>
+                </span>
+              </div>
+            ) : isFinished && parsedScore ? (
+              // Walkover / Retirement: row 2 is empty (label shown in row 1)
+              parsedScore.awaySets === undefined ? (
+                <span className="score-dash">—</span>
+              ) : (
+                <div className="player-score-cells">
+                  <span
+                    className={`score-cell cell-final-set ${Number(parsedScore.awaySets) > Number(parsedScore.homeSets) ? 'is-winner' : ''}`}
+                    title="Final Sets Won"
+                  >
+                    <span className="cell-num">{parsedScore.awaySets}</span>
+                  </span>
+                </div>
+              )
+            ) : (
+              <span className="score-dash">—</span>
+            )}
+          </div>
+        </div>
+
+
+        {/* ── Column 3.5: AI Prediction & Win Probability ── */}
+        <div className="match-col-ai">
+          {isRowLocked ? (
+            <div
+              className="ai-pred-locked-state"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnlockClick?.();
+              }}
+              title="Click to complete 2-step verification and unlock prediction"
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="ai-pred-headline">
+                <span className="ai-pred-label" style={{ color: '#fbbf24' }}>
+                  <Lock size={9} className="ai-sparkle-icon" /> VIP Pick
+                </span>
+                <span className="ai-prob-pct" style={{ fontSize: '0.64rem', color: 'var(--text-secondary)' }}>
+                  🔒 Locked
+                </span>
+              </div>
+
+              {/* Locked Track */}
+              <div className="ai-prob-track">
+                <div
+                  className="ai-prob-fill"
+                  style={{ width: '0%', background: 'rgba(255, 255, 255, 0.1)' }}
+                />
+              </div>
+
+              <div className="ai-meta-subrow">
+                <span className="ai-winner-name compact-winner-name ai-unlock-cta" style={{ color: '#fbbf24', fontSize: '0.62rem', fontWeight: 700 }}>
+                  Unlock Analysis ➔
+                </span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="ai-pred-headline">
+                <span className="ai-pred-label">
+                  <Sparkles size={10} className="ai-sparkle-icon" /> AI Forecast
+                </span>
+                <span className="ai-prob-pct">{winProb}%</span>
+              </div>
+
+              {/* Dual Progress Bar */}
+              <div className="ai-prob-track">
+                <div
+                  className="ai-prob-fill"
+                  style={{ width: `${Math.min(Math.max(winProb || 65, 10), 96)}%` }}
+                />
+              </div>
+
+              <div className="ai-meta-subrow">
+                <span className="ai-winner-name compact-winner-name truncate-text">
+                  {prediction.predicted_winner ? formatPlayerDisplayName(prediction.predicted_winner) : 'Pick'}
+                </span>
+                {prediction.confidence && (
+                  <span className="ai-conf-chip">★ {prediction.confidence}</span>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Column 4: Quick Action & Arrow ── */}
+        <div className="match-col-action">
+          {showWatch && (
+            <button
+              type="button"
+              className="btn-watch-live-mini"
+              title="Watch Live Stream"
+              onClick={(e) => {
+                e.stopPropagation();
+                const url = buildPartnerWatchUrl({ apiBase, sites: referralSites, trackingId });
+                if (url) openExternalLink(url);
+                else onUnlockClick?.();
+              }}
+            >
+              <Tv size={11} />
+              <span className="hide-on-mobile">Live</span>
+            </button>
+          )}
+
+          {/* Mobile-visible prediction indicator */}
+          {isRowLocked ? (
+            <span
+              className="mobile-vip-indicator"
+              title="VIP Prediction Locked"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnlockClick?.();
+              }}
+            >
+              <Lock size={10} />
+              <span>VIP</span>
+            </span>
+          ) : winProb ? (
+            <span className="mobile-winprob-indicator" title={`AI Model Win Probability: ${winProb}%`}>
+              {winProb}%
+            </span>
+          ) : null}
+
+          <div className="row-open-cta" title="Open Full Match Intelligence">
+            <ChevronRight size={18} className="chevron-open-icon" />
+          </div>
         </div>
       </div>
     </div>
