@@ -86,11 +86,19 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
               {[p1Form, p2Form].filter(Boolean).map((f, i) => (
                 <div key={i} style={{ marginBottom: i === 0 ? 10 : 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                   <div style={{ fontWeight: 800, color: 'white', marginBottom: 2 }}>{f!.playerName}</div>
-                  <div>Last 5: <strong style={{ color: 'white' }}>{f!.last5WinRatePct != null ? `${f!.last5WinRatePct}%` : '—'}</strong></div>
-                  {f!.last10WinRatePct != null && (
-                    <div>Last 10: <strong style={{ color: 'white' }}>{f!.last10WinRatePct}%</strong></div>
+                  {f!.last5WinRatePct != null && f!.matchesEvaluated !== 0 ? (
+                    <>
+                      <div>Last 5: <strong style={{ color: 'white' }}>{f!.last5WinRatePct}%</strong></div>
+                      {f!.last10WinRatePct != null && (
+                        <div>Last 10: <strong style={{ color: 'white' }}>{f!.last10WinRatePct}%</strong></div>
+                      )}
+                      {f!.currentStreak && f!.currentStreak !== 'N/A' && (
+                        <div>Streak: <strong style={{ color: f!.currentStreak.includes('W') ? '#4ade80' : '#f87171' }}>{f!.currentStreak}</strong></div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ fontStyle: 'italic', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>No recent tour form on record</div>
                   )}
-                  {f!.currentStreak && <div>Streak: <strong style={{ color: 'white' }}>{f!.currentStreak}</strong></div>}
                 </div>
               ))}
             </StatCard>
@@ -98,12 +106,19 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
 
           {h2h && (
             <StatCard title="Head-to-head">
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Activity size={14} />
-                <span>
-                  <strong style={{ color: 'white' }}>{h2h.p1Wins}-{h2h.p2Wins}</strong> ({h2h.total} meetings)
-                </span>
-              </div>
+              {h2h.total > 0 ? (
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Activity size={14} />
+                  <span>
+                    <strong style={{ color: 'white' }}>{h2h.p1Wins}-{h2h.p2Wins}</strong> ({h2h.total} meetings)
+                  </span>
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.82rem', color: '#38bdf8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Activity size={14} />
+                  <span>First career tour meeting</span>
+                </div>
+              )}
               <div style={{ marginTop: 6, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                 {homeName} vs {awayName}
               </div>
@@ -116,9 +131,15 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
                 row.s ? (
                   <div key={i} style={{ marginBottom: 8, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                     <div style={{ fontWeight: 800, color: 'white' }}>{row.label}</div>
-                    <div>
-                      Win {row.s.winRatePct != null ? `${row.s.winRatePct}%` : '—'} · Hold {row.s.holdRatePct != null ? `${row.s.holdRatePct}%` : '—'} · Break {row.s.breakRatePct != null ? `${row.s.breakRatePct}%` : '—'}
-                    </div>
+                    {row.s.winRatePct != null && (row.s.holdRatePct != null || row.s.breakRatePct != null) ? (
+                      <div>
+                        Win {row.s.winRatePct}% · Hold {row.s.holdRatePct != null ? `${row.s.holdRatePct}%` : '—'} · Break {row.s.breakRatePct != null ? `${row.s.breakRatePct}%` : '—'}
+                      </div>
+                    ) : (
+                      <div style={{ fontStyle: 'italic', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        No {row.s.surface ? `${row.s.surface.toLowerCase()} court` : 'surface'} stats recorded
+                      </div>
+                    )}
                   </div>
                 ) : null
               )}
@@ -127,18 +148,23 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
 
           {(p1Workload || p2Workload) && (
             <StatCard title="Workload / fatigue">
-              {[{ label: homeName, w: p1Workload }, { label: awayName, w: p2Workload }].map((row, i) =>
-                row.w ? (
+              {[{ label: homeName, w: p1Workload }, { label: awayName, w: p2Workload }].map((row, i) => {
+                if (!row.w) return null;
+                const isWellRested = row.w.daysSinceLastMatch == null || row.w.daysSinceLastMatch > 45;
+                const label = row.w.fatigueStatusLabel && !row.w.fatigueStatusLabel.includes('999')
+                  ? row.w.fatigueStatusLabel
+                  : 'Fresh (Resting)';
+                return (
                   <div key={i} style={{ marginBottom: 8, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                     <div style={{ fontWeight: 800, color: 'white' }}>{row.label}</div>
-                    <div>{row.w.fatigueStatusLabel || '—'}</div>
+                    <div>{label}</div>
                     <div>
-                      Energy {row.w.energyTankPct != null ? `${row.w.energyTankPct}%` : '—'}
-                      {row.w.daysSinceLastMatch != null ? ` · Rest ${row.w.daysSinceLastMatch}d` : ''}
+                      Energy {row.w.energyTankPct != null ? `${row.w.energyTankPct}%` : '100%'}
+                      {isWellRested ? ' · Well rested' : ` · Rest ${row.w.daysSinceLastMatch}d`}
                     </div>
                   </div>
-                ) : null
-              )}
+                );
+              })}
             </StatCard>
           )}
         </div>

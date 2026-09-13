@@ -108,15 +108,25 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
         {[form1, form2].filter(Boolean).map((f: any, idx: number) => (
           <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <div style={{ fontWeight: 800, color: 'white', fontSize: '0.9rem' }}>{f.playerName}</div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-              Last 5: <strong style={{ color: 'white' }}>{f.last5WinRatePct}%</strong>
-            </div>
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-              Streak: <strong style={{ color: 'white' }}>{f.currentStreak}</strong>
-            </div>
-            {!locked && (
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                Last 10: <strong style={{ color: 'white' }}>{f.last10WinRatePct}%</strong>
+            {f.last5WinRatePct != null && f.matchesEvaluated !== 0 ? (
+              <>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                  Last 5: <strong style={{ color: 'white' }}>{f.last5WinRatePct}%</strong>
+                </div>
+                {f.currentStreak && f.currentStreak !== 'N/A' && (
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    Streak: <strong style={{ color: 'white' }}>{f.currentStreak}</strong>
+                  </div>
+                )}
+                {!locked && f.last10WinRatePct != null && (
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    Last 10: <strong style={{ color: 'white' }}>{f.last10WinRatePct}%</strong>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                No recent tour form
               </div>
             )}
           </div>
@@ -126,8 +136,14 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
       {h2h && (
         <div className="glass" style={{ padding: '0.9rem 1rem', borderRadius: 12, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
           <Activity size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
-          H2H: <strong style={{ color: 'white' }}>{h2h.p1Wins}-{h2h.p2Wins}</strong>
-          {' '}({h2h.totalPreMatchEncounters} meetings)
+          {h2h.totalPreMatchEncounters > 0 ? (
+            <>
+              H2H: <strong style={{ color: 'white' }}>{h2h.p1Wins}-{h2h.p2Wins}</strong>
+              {' '}({h2h.totalPreMatchEncounters} meetings)
+            </>
+          ) : (
+            <span style={{ color: '#38bdf8', fontWeight: 700 }}>First career tour meeting</span>
+          )}
         </div>
       )}
 
@@ -161,7 +177,15 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
                   <div style={{ fontWeight: 800, color: 'white', marginBottom: 4 }}>
                     {i === 0 ? homeName : awayName} on {s.surface}
                   </div>
-                  <div style={{ color: 'var(--text-secondary)' }}>Win {s.winRatePct}% · Hold {s.holdRatePct}% · Break {s.breakRatePct}%</div>
+                  {s.winRatePct != null && (s.holdRatePct != null || s.breakRatePct != null) ? (
+                    <div style={{ color: 'var(--text-secondary)' }}>
+                      Win {s.winRatePct}% · Hold {s.holdRatePct != null ? `${s.holdRatePct}%` : '—'} · Break {s.breakRatePct != null ? `${s.breakRatePct}%` : '—'}
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.75rem' }}>
+                      No {s.surface ? `${s.surface.toLowerCase()} court` : 'surface'} stats recorded
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
