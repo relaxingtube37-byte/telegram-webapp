@@ -182,19 +182,15 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               size={22}
               isWinner={isHomeWinner}
             />
-            <span className="player-name-text">
+            <span className={`player-name-text ${isHomeWinner ? 'selected-pick-name' : ''}`}>
+              {isHomeWinner && <span className="selected-pick-check">✓</span>}
               {formatPlayerDisplayName(prediction.home_name)}
             </span>
-            {isHomeWinner && (
-              <span className="lean-badge-pill" title="Model Lean">
-                ✓ LEAN
-              </span>
-            )}
           </div>
 
           <div className="player-row-right">
             {prediction.home_odds && prediction.home_odds !== 'N/A' && (
-              <span className="player-odds-tag">{prediction.home_odds}</span>
+              <span className={`player-odds-tag ${isHomeWinner ? 'odds-selected-accent' : ''}`}>{prediction.home_odds}</span>
             )}
           </div>
         </div>
@@ -208,19 +204,15 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               size={22}
               isWinner={isAwayWinner}
             />
-            <span className="player-name-text">
+            <span className={`player-name-text ${isAwayWinner ? 'selected-pick-name' : ''}`}>
+              {isAwayWinner && <span className="selected-pick-check">✓</span>}
               {formatPlayerDisplayName(prediction.away_name)}
             </span>
-            {isAwayWinner && (
-              <span className="lean-badge-pill" title="Model Lean">
-                ✓ LEAN
-              </span>
-            )}
           </div>
 
           <div className="player-row-right">
             {prediction.away_odds && prediction.away_odds !== 'N/A' && (
-              <span className="player-odds-tag">{prediction.away_odds}</span>
+              <span className={`player-odds-tag ${isAwayWinner ? 'odds-selected-accent' : ''}`}>{prediction.away_odds}</span>
             )}
           </div>
         </div>
@@ -228,6 +220,19 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
       {/* ── Column 3: Dedicated Results Column (Aligned with each player's row: Home on top, Away on bottom) ── */}
       <div className="match-col-score">
+        {/* Micro Headers: SET, GM, PTS */}
+        {isLive && parsedScore ? (
+          <div className="score-col-headers">
+            <span className="score-header-label">SET</span>
+            <span className="score-header-label">GM</span>
+            <span className="score-header-label">PTS</span>
+          </div>
+        ) : isFinished && parsedScore && parsedScore.homeSets !== undefined ? (
+          <div className="score-col-headers single-col">
+            <span className="score-header-label">SET</span>
+          </div>
+        ) : null}
+
         {/* Row 1: Home Player Score (aligned with Home Player name) */}
         <div className="player-score-row" title={`Home Player Score: ${formatPlayerDisplayName(prediction.home_name)}`}>
           {isLive && parsedScore ? (
@@ -235,11 +240,11 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <span className="score-cell cell-set" title="Sets Won">
                 <span className="cell-num">{parsedScore.homeSets || '0'}</span>
               </span>
-              <span className="score-cell cell-point" title="Current Game Points">
-                <span className="cell-num pts-accent">{parsedScore.homePoints || '0'}</span>
-              </span>
               <span className="score-cell cell-game" title="Current Set Games">
                 <span className="cell-num">{parsedScore.homeGames || '0'}</span>
+              </span>
+              <span className="score-cell cell-point" title="Current Game Points">
+                <span className="cell-num pts-accent">{parsedScore.homePoints || '0'}</span>
               </span>
             </div>
           ) : isFinished && parsedScore ? (
@@ -268,11 +273,11 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               <span className="score-cell cell-set" title="Sets Won">
                 <span className="cell-num">{parsedScore.awaySets || '0'}</span>
               </span>
-              <span className="score-cell cell-point" title="Current Game Points">
-                <span className="cell-num pts-accent">{parsedScore.awayPoints || '0'}</span>
-              </span>
               <span className="score-cell cell-game" title="Current Set Games">
                 <span className="cell-num">{parsedScore.awayGames || '0'}</span>
+              </span>
+              <span className="score-cell cell-point" title="Current Game Points">
+                <span className="cell-num pts-accent">{parsedScore.awayPoints || '0'}</span>
               </span>
             </div>
           ) : isFinished && parsedScore ? (
