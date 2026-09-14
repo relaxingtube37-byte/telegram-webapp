@@ -11,7 +11,7 @@ import { HistoryTimelineView } from './components/HistoryTimelineView';
 import type { Prediction, StatsOverviewData, ReferralSite, ContentLayerFlags } from './types';
 import { DEFAULT_CONTENT_LAYERS } from './types';
 import { Trophy, RefreshCw, Flame, History, Key, Search, Calendar, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
-import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority } from './utils/formatters';
+import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilter, getMatchGender, getTournamentPriority, getCompactDateLabel } from './utils/formatters';
 import { buildMatchSlug, parseMatchParamFromUrl, findMatchByParam } from './utils/seo';
 import { Analytics } from '@vercel/analytics/react';
 import { track } from '@vercel/analytics';
@@ -757,19 +757,25 @@ export function App() {
     });
   }, [activeTab, activePredictions, historyPredictions, searchQuery, dateFilter, genderFilter, filterChip, selectedTimezone]);
 
-  // Group by Tournament with Tier Priority Sorting (Grand Slams & 1000s First)
+  // Group by Tournament + Date with Tier Priority Sorting (Grand Slams & 1000s First)
+  // Each tournament shows today's and tomorrow's matches as separate sections
   const groupedByTournament = useMemo(() => {
-    const groups: Record<string, { surface?: string; items: Prediction[] }> = {};
-    
+    const groups: Record<string, { surface?: string; tournName: string; dateLabel: string; dateTs: number; items: Prediction[] }> = {};
+
     displayedList.forEach((p: Prediction) => {
       const tourn = p.tournament_name || 'Tennis Tournament';
-      if (!groups[tourn]) {
-        groups[tourn] = { surface: p.surface, items: [] };
+      const rawDate = p.match_date || p.published_at;
+      const dateLabel = getCompactDateLabel(rawDate, selectedTimezone);
+      // Group key = tournament + date so today/tomorrow are separated
+      const groupKey = dateLabel ? `${tourn}||${dateLabel}` : tourn;
+      if (!groups[groupKey]) {
+        const dateTs = rawDate ? new Date(rawDate).getTime() : 0;
+        groups[groupKey] = { surface: p.surface, tournName: tourn, dateLabel: dateLabel || '', dateTs, items: [] };
       }
-      groups[tourn].items.push(p);
+      groups[groupKey].items.push(p);
     });
 
-    // Sort items within each tournament (Live matches first, then chronological)
+    // Sort items within each group (Live first, then chronological)
     Object.values(groups).forEach(g => {
       g.items.sort((a, b) => {
         const liveA = a.status === 'LIVE' ? 1 : 0;
@@ -782,21 +788,26 @@ export function App() {
       });
     });
 
-    // Sort tournament groups by Priority (Grand Slam -> 1000 -> 500 -> 250 -> Challenger -> ITF)
+    // Sort groups: by tournament priority first, then by date (earlier date first)
     const sortedKeys = Object.keys(groups).sort((k1, k2) => {
-      const p1 = getTournamentPriority(k1);
-      const p2 = getTournamentPriority(k2);
+      const g1 = groups[k1];
+      const g2 = groups[k2];
+      const p1 = getTournamentPriority(g1.tournName);
+      const p2 = getTournamentPriority(g2.tournName);
       if (p1 !== p2) return p1 - p2;
-      return k1.localeCompare(k2);
+      // Same tournament tier: sort by name then by date
+      const nameComp = g1.tournName.localeCompare(g2.tournName);
+      if (nameComp !== 0) return nameComp;
+      return g1.dateTs - g2.dateTs;
     });
 
-    const sortedGroups: Record<string, { surface?: string; items: Prediction[] }> = {};
+    const sortedGroups: Record<string, { surface?: string; tournName: string; dateLabel: string; dateTs: number; items: Prediction[] }> = {};
     sortedKeys.forEach(k => {
       sortedGroups[k] = groups[k];
     });
 
     return sortedGroups;
-  }, [displayedList]);
+  }, [displayedList, selectedTimezone]);
 
   return (
     <div className="portal-root">
@@ -1002,20 +1013,20 @@ export function App() {
               canWatchLive={canWatchLive}
             />
           ) : Object.keys(groupedByTournament).length > 0 ? (
-            Object.entries(groupedByTournament).map(([tournName, tournData]) => {
-              const isCollapsed = !!collapsedTournaments[tournName];
+            Object.entries(groupedByTournament).map(([groupKey, tournData]) => {
+              const isCollapsed = !!collapsedTournaments[groupKey];
               return (
-                <div key={tournName} className="tournament-group">
+                <div key={groupKey} className="tournament-group">
                   {/* Tournament Header (Collapsible Accordion) */}
                   {(() => {
                     const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
                     const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
-                    const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
+                    const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournData.tournName) === 'women' ? 'WTA' : 'ATP');
                     const isWta = tournBadge === 'WTA';
                     return (
                       <div 
                         className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
-                        onClick={() => toggleTournament(tournName)}
+                        onClick={() => toggleTournament(groupKey)}
                         role="button"
                         tabIndex={0}
                         aria-expanded={!isCollapsed}
@@ -1023,8 +1034,11 @@ export function App() {
                         <div className="tourn-title-left">
                           <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
                           <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
-                          <span className="tourn-name">{tournName}</span>
+                          <span className="tourn-name">{tournData.tournName}</span>
                           {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
+                          {tournData.dateLabel && (
+                            <span className="tourn-date-badge">{tournData.dateLabel}</span>
+                          )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span className="tourn-count">{tournData.items.length}</span>

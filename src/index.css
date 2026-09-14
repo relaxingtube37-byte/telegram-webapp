@@ -753,6 +753,19 @@ body {
   white-space: nowrap;
 }
 
+.tourn-date-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  border-radius: 6px;
+  padding: 0.05rem 0.4rem;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
 .tourn-count {
   font-size: 0.7rem;
   background: rgba(0, 0, 0, 0.45);
