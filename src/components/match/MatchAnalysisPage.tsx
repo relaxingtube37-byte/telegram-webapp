@@ -68,12 +68,12 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 
   useEffect(() => {
     setMatch(prev => ({
-      ...seed,
       ...prev,
+      ...seed,
       content_locked: !isClientVerified,
     }));
     setServerVerified(isClientVerified);
-  }, [seed.id, seed.fixture_id, isClientVerified]);
+  }, [seed.id, seed.fixture_id, seed.result_score, seed.status, isClientVerified]);
 
   useEffect(() => {
     let cancelled = false;

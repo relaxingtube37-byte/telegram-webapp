@@ -549,8 +549,8 @@ export function App() {
     loadData();
   }, []);
 
-  const loadData = async (forcedVerified?: boolean, forcedToken?: string | null) => {
-    setLoading(true);
+  const loadData = async (forcedVerified?: boolean, forcedToken?: string | null, silent: boolean = false) => {
+    if (!silent) setLoading(true);
     try {
       const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
       const token = forcedToken !== undefined
@@ -562,8 +562,8 @@ export function App() {
 
       const [predRes, statsRes, refRes] = await Promise.all([
         fetch(`${API_BASE}/predictions`, { headers }).then(r => r.json()).catch(() => ({})),
-        fetch(`${API_BASE}/stats`, { headers }).then(r => r.json()).catch(() => null),
-        fetch(`${API_BASE}/referrals`).then(r => r.json()).catch(() => []),
+        silent ? Promise.resolve(null) : fetch(`${API_BASE}/stats`, { headers }).then(r => r.json()).catch(() => null),
+        silent ? Promise.resolve(null) : fetch(`${API_BASE}/referrals`).then(r => r.json()).catch(() => []),
       ]);
 
       const loadedPreds: Prediction[] = Array.isArray(predRes)
@@ -600,34 +600,84 @@ export function App() {
         content_locked: !verifiedStatus ? true : (p.content_locked ?? false),
       }));
       setPredictions(finalPreds);
-      setStats(statsRes);
-      setReferralSites(Array.isArray(refRes) ? refRes : []);
+      if (!silent && statsRes) setStats(statsRes);
+      if (!silent && Array.isArray(refRes)) setReferralSites(refRes);
+
+      // Keep selected match in sync with real-time live score / status
+      setSelectedMatch(prev => {
+        if (!prev) return null;
+        const updated = loadedPreds.find(p => (p.fixture_id && p.fixture_id === prev.fixture_id) || p.id === prev.id);
+        if (updated) {
+          return {
+            ...updated,
+            content_locked: !verifiedStatus ? true : (updated.content_locked ?? false),
+          };
+        }
+        return prev;
+      });
 
       // Check URL path or query for direct match landing (e.g. /match/:slug or ?match=123)
-      try {
-        const matchParam = parseMatchParamFromUrl();
-        if (matchParam) {
-          let matchTarget = loadedPreds.length > 0 ? findMatchByParam(loadedPreds, matchParam) : null;
-          if (!matchTarget) {
-            const trailing = matchParam.match(/-(\d+)$/) || matchParam.match(/^(\d+)$/);
-            if (trailing) {
-              try {
-                const singleRes = await fetch(`${API_BASE}/matches/${trailing[1]}/betting`, { headers }).then(r => r.json());
-                if (singleRes && (singleRes.fixture_id || singleRes.id)) {
-                  matchTarget = singleRes;
-                }
-              } catch {}
+      if (!silent) {
+        try {
+          const matchParam = parseMatchParamFromUrl();
+          if (matchParam) {
+            let matchTarget = loadedPreds.length > 0 ? findMatchByParam(loadedPreds, matchParam) : null;
+            if (!matchTarget) {
+              const trailing = matchParam.match(/-(\d+)$/) || matchParam.match(/^(\d+)$/);
+              if (trailing) {
+                try {
+                  const singleRes = await fetch(`${API_BASE}/matches/${trailing[1]}/betting`, { headers }).then(r => r.json());
+                  if (singleRes && (singleRes.fixture_id || singleRes.id)) {
+                    matchTarget = singleRes;
+                  }
+                } catch {}
+              }
             }
+            if (matchTarget) setSelectedMatch(matchTarget);
           }
-          if (matchTarget) setSelectedMatch(matchTarget);
-        }
-      } catch {}
+        } catch {}
+      }
     } catch (e) {
       console.warn("Failed to load WebApp predictions data", e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  // Poll predictions silently every 5 seconds for real-time live score updates
+  useEffect(() => {
+    let isPolling = false;
+
+    const poll = async () => {
+      // Pause polling if the tab or Telegram Mini App is hidden / in background
+      if (typeof document !== 'undefined' && document.hidden) return;
+      if (isPolling) return;
+
+      isPolling = true;
+      try {
+        await loadData(undefined, undefined, true);
+      } catch {
+        // Silently ignore background network fluctuations
+      } finally {
+        isPolling = false;
+      }
+    };
+
+    const intervalId = setInterval(poll, 5000);
+
+    const onVisibilityChange = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        poll();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
 
   // Filtered Predictions
   const activePredictions = useMemo(() => {
