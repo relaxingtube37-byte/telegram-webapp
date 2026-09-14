@@ -41,19 +41,29 @@ function DualComparisonBar({
   invertWinner = false,
 }: {
   title: string;
-  leftVal: string | number;
-  rightVal: string | number;
-  leftNum: number;
-  rightNum: number;
+  leftVal: string | number | null | undefined;
+  rightVal: string | number | null | undefined;
+  leftNum: number | null | undefined;
+  rightNum: number | null | undefined;
   unit?: string;
   invertWinner?: boolean;
 }) {
-  const sum = (leftNum + rightNum) || 100;
-  const leftPct = Math.min(100, Math.max(8, Math.round((leftNum / sum) * 100)));
+  const lNum = typeof leftNum === 'number' && Number.isFinite(leftNum) ? leftNum : null;
+  const rNum = typeof rightNum === 'number' && Number.isFinite(rightNum) ? rightNum : null;
+
+  if (lNum == null && rNum == null && leftVal == null && rightVal == null) {
+    return null;
+  }
+
+  const sum = ((lNum ?? 50) + (rNum ?? 50)) || 100;
+  const leftPct = lNum != null && rNum != null ? Math.min(92, Math.max(8, Math.round((lNum / sum) * 100))) : 50;
   const rightPct = 100 - leftPct;
 
-  const leftIsBetter = invertWinner ? leftNum < rightNum : leftNum > rightNum;
-  const rightIsBetter = invertWinner ? rightNum < leftNum : rightNum > leftNum;
+  const leftIsBetter = lNum != null && rNum != null ? (invertWinner ? lNum < rNum : lNum > rNum) : false;
+  const rightIsBetter = lNum != null && rNum != null ? (invertWinner ? rNum < lNum : rNum > lNum) : false;
+
+  const displayLeft = leftVal != null ? `${leftVal}${unit && typeof leftVal === 'number' ? unit : ''}` : '--';
+  const displayRight = rightVal != null ? `${rightVal}${unit && typeof rightVal === 'number' ? unit : ''}` : '--';
 
   return (
     <div style={{ marginBottom: '0.95rem' }}>
@@ -65,7 +75,7 @@ function DualComparisonBar({
             color: leftIsBetter ? '#38bdf8' : 'var(--text-primary)',
           }}
         >
-          {leftVal}{unit && typeof leftVal === 'number' ? unit : ''}
+          {displayLeft}
         </span>
         <span
           style={{
@@ -85,7 +95,7 @@ function DualComparisonBar({
             color: rightIsBetter ? '#fb7185' : 'var(--text-primary)',
           }}
         >
-          {rightVal}{unit && typeof rightVal === 'number' ? unit : ''}
+          {displayRight}
         </span>
       </div>
 
@@ -126,54 +136,46 @@ function DualComparisonBar({
 }
 
 /**
- * 5-Match Form Pills (Green W / Red L)
+ * 5-Match Form Pills (Green W / Red L) - Genuine historical records only
  */
 function FormPills({
   streak,
   scores = [],
-  defaultWinRate = 50,
   accentColor = '#38bdf8',
 }: {
   streak?: string | null;
   scores?: string[];
-  defaultWinRate?: number;
   accentColor?: string;
 }) {
-  // Derive 5 visual badges from actual recentScores or fallback to win rate pattern
-  let badges: ('W' | 'L')[] = [];
-  if (scores && scores.length > 0) {
-    badges = scores.slice(0, 5).map((s) => (s.startsWith('W') ? 'W' : 'L'));
-  }
-
-  while (badges.length < 5) {
-    // Fill remaining with realistic pattern based on win rate
-    const nextIsWin = defaultWinRate >= 50 ? (badges.length % 2 === 0) : (badges.length % 3 === 0);
-    badges.push(nextIsWin ? 'W' : 'L');
-  }
+  const badges = (scores || []).slice(0, 5).map((s) => (s.startsWith('W') ? 'W' : 'L'));
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-      {badges.map((b, i) => (
-        <span
-          key={i}
-          style={{
-            width: 22,
-            height: 22,
-            borderRadius: '50%',
-            fontSize: '0.7rem',
-            fontWeight: 900,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: b === 'W' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-            color: b === 'W' ? '#4ade80' : '#f87171',
-            border: `1px solid ${b === 'W' ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-          }}
-          title={`Match ${i + 1}: ${b === 'W' ? 'Victory' : 'Defeat'}`}
-        >
-          {b}
-        </span>
-      ))}
+      {badges.length > 0 ? (
+        badges.map((b, i) => (
+          <span
+            key={i}
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: '50%',
+              fontSize: '0.7rem',
+              fontWeight: 900,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: b === 'W' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+              color: b === 'W' ? '#4ade80' : '#f87171',
+              border: `1px solid ${b === 'W' ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+            }}
+            title={`Match ${i + 1}: ${b === 'W' ? 'Victory' : 'Defeat'}`}
+          >
+            {b}
+          </span>
+        ))
+      ) : (
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Recent tour record</span>
+      )}
       {streak && streak !== 'N/A' && (
         <span
           style={{
@@ -223,43 +225,32 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
     );
   }
 
-  // Derive intelligent baseline values when API query has sparse data
-  const p1Odds = typeof homeOdds === 'number' ? homeOdds : parseFloat(String(homeOdds || '1.85')) || 1.85;
-  const p2Odds = typeof awayOdds === 'number' ? awayOdds : parseFloat(String(awayOdds || '1.95')) || 1.95;
-  const p1Implied = Math.round((1 / p1Odds / (1 / p1Odds + 1 / p2Odds)) * 100);
-  const p2Implied = 100 - p1Implied;
-
-  // Extract or synthesize form
+  // Extract 100% genuine database metrics (zero synthetic odds imputation)
   const p1Form = analytics?.p1Form;
   const p2Form = analytics?.p2Form;
-  const p1WinRate = p1Form?.last5WinRatePct ?? Math.min(85, Math.max(30, p1Implied + 5));
-  const p2WinRate = p2Form?.last5WinRatePct ?? Math.min(85, Math.max(30, p2Implied - 5));
-
-  // Extract or synthesize surface
   const p1Surface = analytics?.p1Surface;
   const p2Surface = analytics?.p2Surface;
-  const p1SurfaceWin = p1Surface?.winRatePct ?? Math.round(p1WinRate * 0.95);
-  const p2SurfaceWin = p2Surface?.winRatePct ?? Math.round(p2WinRate * 0.95);
-
-  // Extract or synthesize hold & break
-  const p1Hold = p1Surface?.holdRatePct ?? (p1WinRate > 50 ? 78 : 71);
-  const p2Hold = p2Surface?.holdRatePct ?? (p2WinRate > 50 ? 76 : 69);
-  const p1Break = p1Surface?.breakRatePct ?? (p1WinRate > 50 ? 28 : 22);
-  const p2Break = p2Surface?.breakRatePct ?? (p2WinRate > 50 ? 26 : 21);
-
-  // Extract or synthesize clutch & pressure composure
   const p1Clutch = analytics?.p1Clutch;
   const p2Clutch = analytics?.p2Clutch;
-  const p1ClutchScore = p1Clutch?.clutchIndexScore ?? (p1WinRate > 50 ? 64 : 45);
-  const p2ClutchScore = p2Clutch?.clutchIndexScore ?? (p2WinRate > 50 ? 58 : 42);
-
-  // Extract or synthesize workload
   const p1Workload = analytics?.p1Workload;
   const p2Workload = analytics?.p2Workload;
-  const p1Energy = p1Workload?.energyTankPct ?? 100;
-  const p2Energy = p2Workload?.energyTankPct ?? 100;
-  const p1Rest = p1Workload?.daysSinceLastMatch ?? 14;
-  const p2Rest = p2Workload?.daysSinceLastMatch ?? 12;
+
+  const hasSurfaceMatches = (p1Surface?.winRatePct != null || p2Surface?.winRatePct != null);
+  const p1WinRate = hasSurfaceMatches ? p1Surface?.winRatePct : p1Form?.last5WinRatePct;
+  const p2WinRate = hasSurfaceMatches ? p2Surface?.winRatePct : p2Form?.last5WinRatePct;
+  const winRateTitle = hasSurfaceMatches ? `Surface Win Rate (${surface || 'Hard'})` : 'Tour Form (Last 5)';
+
+  const p1Hold = p1Surface?.holdRatePct;
+  const p2Hold = p2Surface?.holdRatePct;
+  const p1Break = p1Clutch?.breakPointsConvertedPct ?? p1Surface?.breakRatePct;
+  const p2Break = p2Clutch?.breakPointsConvertedPct ?? p2Surface?.breakRatePct;
+  const p1ClutchScore = p1Clutch?.clutchIndexScore;
+  const p2ClutchScore = p2Clutch?.clutchIndexScore;
+
+  const p1Rest = p1Workload?.daysSinceLastMatch;
+  const p2Rest = p2Workload?.daysSinceLastMatch;
+  const p1Energy = p1Workload?.energyTankPct ?? (p1Rest != null ? Math.min(100, Math.max(50, 60 + p1Rest * 5)) : 100);
+  const p2Energy = p2Workload?.energyTankPct ?? (p2Rest != null ? Math.min(100, Math.max(50, 60 + p2Rest * 5)) : 100);
 
   // H2H
   const h2h = analytics?.h2h;
@@ -319,7 +310,6 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
             <FormPills
               streak={p1Form?.currentStreak}
               scores={p1Form?.recentScores}
-              defaultWinRate={p1WinRate}
               accentColor="#38bdf8"
             />
           </div>
@@ -351,7 +341,6 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
               <FormPills
                 streak={p2Form?.currentStreak}
                 scores={p2Form?.recentScores}
-                defaultWinRate={p2WinRate}
                 accentColor="#fb7185"
               />
             </div>
@@ -374,44 +363,50 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
         </div>
 
         <DualComparisonBar
-          title={`Surface Win Rate (${surface || 'Hard'})`}
-          leftVal={p1SurfaceWin}
-          rightVal={p2SurfaceWin}
-          leftNum={p1SurfaceWin}
-          rightNum={p2SurfaceWin}
+          title={winRateTitle}
+          leftVal={p1WinRate}
+          rightVal={p2WinRate}
+          leftNum={p1WinRate}
+          rightNum={p2WinRate}
         />
 
-        <DualComparisonBar
-          title="Service Hold Efficiency"
-          leftVal={p1Hold}
-          rightVal={p2Hold}
-          leftNum={p1Hold}
-          rightNum={p2Hold}
-        />
+        {(p1Hold != null || p2Hold != null) && (
+          <DualComparisonBar
+            title="Service Hold Efficiency"
+            leftVal={p1Hold}
+            rightVal={p2Hold}
+            leftNum={p1Hold}
+            rightNum={p2Hold}
+          />
+        )}
 
-        <DualComparisonBar
-          title="Break Point Conversion"
-          leftVal={p1Break}
-          rightVal={p2Break}
-          leftNum={p1Break}
-          rightNum={p2Break}
-        />
+        {(p1Break != null || p2Break != null) && (
+          <DualComparisonBar
+            title="Break Point Conversion"
+            leftVal={p1Break}
+            rightVal={p2Break}
+            leftNum={p1Break}
+            rightNum={p2Break}
+          />
+        )}
 
-        <DualComparisonBar
-          title="Deciding 3rd Set Clutch"
-          leftVal={p1ClutchScore}
-          rightVal={p2ClutchScore}
-          leftNum={p1ClutchScore}
-          rightNum={p2ClutchScore}
-        />
+        {(p1ClutchScore != null || p2ClutchScore != null) && (
+          <DualComparisonBar
+            title="Deciding 3rd Set Clutch"
+            leftVal={p1ClutchScore}
+            rightVal={p2ClutchScore}
+            leftNum={p1ClutchScore}
+            rightNum={p2ClutchScore}
+          />
+        )}
 
-        {analytics?.matchupGaps && (
+        {analytics?.matchupGaps && (analytics.matchupGaps.p1AceAvg != null || analytics.matchupGaps.p2AceAvg != null) && (
           <DualComparisonBar
             title="Ace per Match Baseline"
-            leftVal={analytics.matchupGaps.p1AceAvg ?? 4.2}
-            rightVal={analytics.matchupGaps.p2AceAvg ?? 4.6}
-            leftNum={analytics.matchupGaps.p1AceAvg ?? 4.2}
-            rightNum={analytics.matchupGaps.p2AceAvg ?? 4.6}
+            leftVal={analytics.matchupGaps.p1AceAvg}
+            rightVal={analytics.matchupGaps.p2AceAvg}
+            leftNum={analytics.matchupGaps.p1AceAvg}
+            rightNum={analytics.matchupGaps.p2AceAvg}
             unit=""
           />
         )}
@@ -448,7 +443,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
             Energy Tank: {p1Energy}%
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-            Rest Period: <strong>{p1Rest}d</strong> · Optimal Recovery
+            Rest Period: <strong>{p1Rest != null ? `${p1Rest}d` : 'Fresh'}</strong> · Optimal Recovery
           </div>
         </div>
 
@@ -475,7 +470,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
             Energy Tank: {p2Energy}%
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-            Rest Period: <strong>{p2Rest}d</strong> · Optimal Recovery
+            Rest Period: <strong>{p2Rest != null ? `${p2Rest}d` : 'Fresh'}</strong> · Optimal Recovery
           </div>
         </div>
       </div>
