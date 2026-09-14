@@ -4,6 +4,7 @@ export interface RollingFormView {
   last10WinRatePct: number | null;
   currentStreak: string | null;
   matchesEvaluated: number | null;
+  recentScores?: string[];
 }
 
 export interface H2HView {
@@ -24,6 +25,24 @@ export interface WorkloadView {
   energyTankPct: number | null;
   daysSinceLastMatch: number | null;
   acute7dMatchesCount: number | null;
+}
+
+export interface ClutchView {
+  decidingSetWinRatePct: number | null;
+  tiebreakWinRatePct: number | null;
+  breakPointsSavedPct: number | null;
+  breakPointsConvertedPct: number | null;
+  clutchIndexScore: number | null;
+}
+
+export interface MatchupGapsView {
+  p1ServeVsP2ReturnEdge: number | null;
+  p2ServeVsP1ReturnEdge: number | null;
+  p1AceAvg: number | null;
+  p2AceAvg: number | null;
+  p1DfAvg: number | null;
+  p2DfAvg: number | null;
+  rankDelta: number | null;
 }
 
 export interface ExplanationCardView {
@@ -49,6 +68,9 @@ export interface MappedDeepAnalytics {
   p2Surface: SurfaceView | null;
   p1Workload: WorkloadView | null;
   p2Workload: WorkloadView | null;
+  p1Clutch: ClutchView | null;
+  p2Clutch: ClutchView | null;
+  matchupGaps: MatchupGapsView | null;
   cards: ExplanationCardView[];
   previewOnly: boolean;
 }
@@ -67,6 +89,7 @@ function mapForm(raw: any): RollingFormView | null {
     last10WinRatePct: asNum(raw.last10WinRatePct),
     currentStreak: raw.currentStreak != null ? String(raw.currentStreak) : null,
     matchesEvaluated: asNum(raw.matchesEvaluated),
+    recentScores: Array.isArray(raw.recentScores) ? raw.recentScores : [],
   };
 }
 
@@ -90,6 +113,30 @@ function mapWorkload(raw: any): WorkloadView | null {
   };
 }
 
+function mapClutch(raw: any): ClutchView | null {
+  if (!raw || typeof raw !== 'object') return null;
+  return {
+    decidingSetWinRatePct: asNum(raw.decidingSetWinRatePct),
+    tiebreakWinRatePct: asNum(raw.tiebreakWinRatePct),
+    breakPointsSavedPct: asNum(raw.breakPointsSavedPct),
+    breakPointsConvertedPct: asNum(raw.breakPointsConvertedPct),
+    clutchIndexScore: asNum(raw.clutchIndexScore),
+  };
+}
+
+function mapGaps(raw: any): MatchupGapsView | null {
+  if (!raw || typeof raw !== 'object') return null;
+  return {
+    p1ServeVsP2ReturnEdge: asNum(raw.p1ServeVsP2ReturnEdge),
+    p2ServeVsP1ReturnEdge: asNum(raw.p2ServeVsP1ReturnEdge),
+    p1AceAvg: asNum(raw.p1AceAvg),
+    p2AceAvg: asNum(raw.p2AceAvg),
+    p1DfAvg: asNum(raw.p1DfAvg),
+    p2DfAvg: asNum(raw.p2DfAvg),
+    rankDelta: asNum(raw.rankDelta),
+  };
+}
+
 /**
  * Maps Phase A deep-analytics payload (full or redacted) into a stable UI model.
  */
@@ -99,7 +146,12 @@ export function mapDeepAnalyticsPayload(input: {
   verified?: boolean;
   data?: Record<string, unknown> | null;
 }): MappedDeepAnalytics {
-  const data = (input.data || {}) as any;
+  const rawData = (input.data || {}) as any;
+  // Transparently unpack teaser fields if present (for non-verified guests)
+  const data = (rawData.teaser && typeof rawData.teaser === 'object')
+    ? { ...rawData, ...rawData.teaser }
+    : rawData;
+
   const locked = input.content_locked === true && input.verified !== true;
   const level = (input.guest_stats_level || 'none') as string;
 
@@ -145,6 +197,9 @@ export function mapDeepAnalyticsPayload(input: {
     p2Surface: mapSurface(data.p2SurfaceMastery),
     p1Workload: mapWorkload(data.p1Workload),
     p2Workload: mapWorkload(data.p2Workload),
+    p1Clutch: mapClutch(data.p1Clutch),
+    p2Clutch: mapClutch(data.p2Clutch),
+    matchupGaps: mapGaps(data.matchupGaps),
     cards,
     previewOnly: locked && hasPartialPreview,
   };

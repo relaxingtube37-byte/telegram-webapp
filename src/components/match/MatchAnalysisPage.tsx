@@ -251,6 +251,11 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
             error={analyticsError}
             homeName={match.home_name}
             awayName={match.away_name}
+            surface={match.surface}
+            homeOdds={match.home_odds}
+            awayOdds={match.away_odds}
+            homeImage={match.home_image}
+            awayImage={match.away_image}
             onUnlockClick={contentLocked ? onUnlockClick : undefined}
           />
         )}
