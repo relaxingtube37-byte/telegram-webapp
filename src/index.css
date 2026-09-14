@@ -766,6 +766,33 @@ body {
   text-transform: uppercase;
 }
 
+/* ── Tomorrow separator inside tournament match list ── */
+.date-separator-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.75rem;
+  margin: 0.1rem 0;
+}
+
+.date-separator-row::before,
+.date-separator-row::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(250, 204, 21, 0.18);
+}
+
+.date-separator-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: #fbbf24;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
 .tourn-count {
   font-size: 0.7rem;
   background: rgba(0, 0, 0, 0.45);

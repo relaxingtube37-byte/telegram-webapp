@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { CompactMatchRow } from './components/CompactMatchRow';
 import { MatchAnalysisPage } from './components/match/MatchAnalysisPage';
@@ -67,6 +67,7 @@ function buildAuthHeaders(sessionToken: string | null, isExplicitlyLoggedOut: bo
 }
 
 export function App() {
+
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [stats, setStats] = useState<StatsOverviewData | null>(null);
@@ -757,57 +758,42 @@ export function App() {
     });
   }, [activeTab, activePredictions, historyPredictions, searchQuery, dateFilter, genderFilter, filterChip, selectedTimezone]);
 
-  // Group by Tournament + Date with Tier Priority Sorting (Grand Slams & 1000s First)
-  // Each tournament shows today's and tomorrow's matches as separate sections
+  // Group by Tournament only — date separation is handled inside each group as a divider row
   const groupedByTournament = useMemo(() => {
-    const groups: Record<string, { surface?: string; tournName: string; dateLabel: string; dateTs: number; items: Prediction[] }> = {};
+    const groups: Record<string, { surface?: string; items: Prediction[] }> = {};
 
     displayedList.forEach((p: Prediction) => {
       const tourn = p.tournament_name || 'Tennis Tournament';
-      const rawDate = p.match_date || p.published_at;
-      const dateLabel = getCompactDateLabel(rawDate, selectedTimezone);
-      // Group key = tournament + date so today/tomorrow are separated
-      const groupKey = dateLabel ? `${tourn}||${dateLabel}` : tourn;
-      if (!groups[groupKey]) {
-        const dateTs = rawDate ? new Date(rawDate).getTime() : 0;
-        groups[groupKey] = { surface: p.surface, tournName: tourn, dateLabel: dateLabel || '', dateTs, items: [] };
+      if (!groups[tourn]) {
+        groups[tourn] = { surface: p.surface, items: [] };
       }
-      groups[groupKey].items.push(p);
+      groups[tourn].items.push(p);
     });
 
-    // Sort items within each group (Live first, then chronological)
+    // Sort items within each tournament: Live first, then chronological by datetime
     Object.values(groups).forEach(g => {
       g.items.sort((a, b) => {
         const liveA = a.status === 'LIVE' ? 1 : 0;
         const liveB = b.status === 'LIVE' ? 1 : 0;
         if (liveA !== liveB) return liveB - liveA;
-
         const timeA = new Date(a.match_date || a.published_at).getTime() || 0;
         const timeB = new Date(b.match_date || b.published_at).getTime() || 0;
         return timeA - timeB;
       });
     });
 
-    // Sort groups: by tournament priority first, then by date (earlier date first)
+    // Sort tournament groups by priority tier
     const sortedKeys = Object.keys(groups).sort((k1, k2) => {
-      const g1 = groups[k1];
-      const g2 = groups[k2];
-      const p1 = getTournamentPriority(g1.tournName);
-      const p2 = getTournamentPriority(g2.tournName);
+      const p1 = getTournamentPriority(k1);
+      const p2 = getTournamentPriority(k2);
       if (p1 !== p2) return p1 - p2;
-      // Same tournament tier: sort by name then by date
-      const nameComp = g1.tournName.localeCompare(g2.tournName);
-      if (nameComp !== 0) return nameComp;
-      return g1.dateTs - g2.dateTs;
+      return k1.localeCompare(k2);
     });
 
-    const sortedGroups: Record<string, { surface?: string; tournName: string; dateLabel: string; dateTs: number; items: Prediction[] }> = {};
-    sortedKeys.forEach(k => {
-      sortedGroups[k] = groups[k];
-    });
-
+    const sortedGroups: Record<string, { surface?: string; items: Prediction[] }> = {};
+    sortedKeys.forEach(k => { sortedGroups[k] = groups[k]; });
     return sortedGroups;
-  }, [displayedList, selectedTimezone]);
+  }, [displayedList]);
 
   return (
     <div className="portal-root">
@@ -1013,20 +999,20 @@ export function App() {
               canWatchLive={canWatchLive}
             />
           ) : Object.keys(groupedByTournament).length > 0 ? (
-            Object.entries(groupedByTournament).map(([groupKey, tournData]) => {
-              const isCollapsed = !!collapsedTournaments[groupKey];
+            Object.entries(groupedByTournament).map(([tournName, tournData]) => {
+              const isCollapsed = !!collapsedTournaments[tournName];
               return (
-                <div key={groupKey} className="tournament-group">
+                <div key={tournName} className="tournament-group">
                   {/* Tournament Header (Collapsible Accordion) */}
                   {(() => {
                     const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
                     const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
-                    const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournData.tournName) === 'women' ? 'WTA' : 'ATP');
+                    const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
                     const isWta = tournBadge === 'WTA';
                     return (
                       <div 
                         className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
-                        onClick={() => toggleTournament(groupKey)}
+                        onClick={() => toggleTournament(tournName)}
                         role="button"
                         tabIndex={0}
                         aria-expanded={!isCollapsed}
@@ -1034,11 +1020,8 @@ export function App() {
                         <div className="tourn-title-left">
                           <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
                           <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
-                          <span className="tourn-name">{tournData.tournName}</span>
+                          <span className="tourn-name">{tournName}</span>
                           {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
-                          {tournData.dateLabel && (
-                            <span className="tourn-date-badge">{tournData.dateLabel}</span>
-                          )}
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span className="tourn-count">{tournData.items.length}</span>
@@ -1052,10 +1035,30 @@ export function App() {
                     );
                   })()}
 
-                  {/* Match Rows (Shown when not collapsed) */}
-                  {!isCollapsed && (
-                    <div className="tournament-matches-list">
-                      {tournData.items.map((p) => (
+                  {/* Match Rows with inline Tomorrow separator */}
+                  {!isCollapsed && (() => {
+                    const rows: React.ReactNode[] = [];
+                    let tomorrowSeparatorShown = false;
+                    const todayStr = new Date().toLocaleDateString('en-CA');
+                    const tz = selectedTimezone === 'local' ? undefined : (selectedTimezone || 'UTC');
+
+                    tournData.items.forEach((p, idx) => {
+                      const rawDate = p.match_date || p.published_at;
+                      const matchDateStr = rawDate
+                        ? new Date(rawDate).toLocaleDateString('en-CA', { timeZone: tz })
+                        : todayStr;
+
+                      // Insert a "Tomorrow" divider before the first match that is NOT today
+                      if (!tomorrowSeparatorShown && matchDateStr > todayStr) {
+                        tomorrowSeparatorShown = true;
+                        rows.push(
+                          <div key={`sep-tmr-${tournName}-${idx}`} className="date-separator-row">
+                            <span className="date-separator-label">Tomorrow</span>
+                          </div>
+                        );
+                      }
+
+                      rows.push(
                         <CompactMatchRow
                           key={p.id}
                           prediction={p}
@@ -1070,9 +1073,11 @@ export function App() {
                           contentLayers={contentLayers}
                           canWatchLive={canWatchLive}
                         />
-                      ))}
-                    </div>
-                  )}
+                      );
+                    });
+
+                    return <div className="tournament-matches-list">{rows}</div>;
+                  })()}
                 </div>
               );
             })
