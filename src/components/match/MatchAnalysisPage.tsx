@@ -255,30 +255,34 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         )}
 
         {/* Pro Tour Skills Decagon & Proprietary Intel (Shown in 'all' and 'stats') */}
-        {(activeTab === 'all' || activeTab === 'stats') && proIntel && (
-          <ProIntelligenceCard
-            intel={proIntel}
-            surface={match.surface}
-            isLocked={contentLocked}
-            onUnlockClick={contentLocked ? onUnlockClick : undefined}
-          />
-        )}
-
-        {/* Deep Stats & Dynamics (Shown in 'all' and 'stats') */}
         {(activeTab === 'all' || activeTab === 'stats') && (
-          <MatchAnalyticsGrid
-            analytics={analytics}
-            loading={loadState === 'loading'}
-            error={analyticsError}
-            homeName={match.home_name}
-            awayName={match.away_name}
-            surface={match.surface}
-            homeOdds={match.home_odds}
-            awayOdds={match.away_odds}
-            homeImage={match.home_image}
-            awayImage={match.away_image}
-            onUnlockClick={contentLocked ? onUnlockClick : undefined}
-          />
+          proIntel ? (
+            <ProIntelligenceCard
+              intel={proIntel}
+              surface={match.surface}
+              homeName={match.home_name}
+              awayName={match.away_name}
+              h2hSummary={analytics?.h2h}
+              p1Form={analytics?.p1Form ? { currentStreak: analytics.p1Form.currentStreak, recentScores: analytics.p1Form.recentScores } : null}
+              p2Form={analytics?.p2Form ? { currentStreak: analytics.p2Form.currentStreak, recentScores: analytics.p2Form.recentScores } : null}
+              isLocked={contentLocked}
+              onUnlockClick={contentLocked ? onUnlockClick : undefined}
+            />
+          ) : (
+            <MatchAnalyticsGrid
+              analytics={analytics}
+              loading={loadState === 'loading'}
+              error={analyticsError}
+              homeName={match.home_name}
+              awayName={match.away_name}
+              surface={match.surface}
+              homeOdds={match.home_odds}
+              awayOdds={match.away_odds}
+              homeImage={match.home_image}
+              awayImage={match.away_image}
+              onUnlockClick={contentLocked ? onUnlockClick : undefined}
+            />
+          )
         )}
 
         {/* Official Editorial & Story (Shown in 'all' and 'editorial') */}
