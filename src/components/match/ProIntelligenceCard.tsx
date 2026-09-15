@@ -207,6 +207,19 @@ function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: 
   );
 }
 
+const LEGACY_KEY_MAP: Record<string, string> = {
+  hold_rate: 'serveGames',
+  first_serve_pts_won: 'firstServePts',
+  first_serve_accuracy: 'firstServeAcc',
+  second_serve_pts_won: 'secondServePts',
+  bps_saved: 'bpsSaved',
+  tiebreaks_won: 'tbsWon',
+  break_rate: 'returnGames',
+  return_1st_pts_won: 'returnFirstPts',
+  return_2nd_pts_won: 'returnSecondPts',
+  bps_converted: 'returnBpsWon',
+};
+
 export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   intel,
   surface,
@@ -221,11 +234,12 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   const [viewMode, setViewMode] = useState<'both' | 'p1' | 'p2'>('both');
   const [hoveredAxisIdx, setHoveredAxisIdx] = useState<number | null>(null);
 
-  // Normalize access between new IPlayerComparison schema and legacy fallback
-  const p1: IPlayerTelemetryCard = intel.player_one || (intel as any).player1 || {} as any;
-  const p2: IPlayerTelemetryCard = intel.player_two || (intel as any).player2 || {} as any;
-  const tourName = intel.tour || intel.meta?.tour || 'ATP';
-  const surfaceName = intel.surface || intel.meta?.surface || surface || 'Official';
+  // Unwrap any nesting (e.g. { data: { ... } } or { payload: { ... } })
+  const rawIntel: any = (intel as any)?.data || (intel as any)?.payload || (intel as any)?.proIntelligence || intel || {};
+  const p1: IPlayerTelemetryCard = rawIntel.player_one || rawIntel.player1 || {} as any;
+  const p2: IPlayerTelemetryCard = rawIntel.player_two || rawIntel.player2 || {} as any;
+  const tourName = rawIntel.tour || rawIntel.meta?.tour || 'ATP';
+  const surfaceName = rawIntel.surface || rawIntel.meta?.surface || surface || 'Official';
 
   const p1FullName = getPlayerFullName(p1.full_name || p1.name, homeName);
   const p2FullName = getPlayerFullName(p2.full_name || p2.name, awayName);
@@ -233,22 +247,48 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   const p2Short = getPlayerLastName(p2.full_name || p2.name, awayName);
 
   // Helper to extract a metric node from player telemetry card (or legacy fallback)
-  const getNode = (player: IPlayerTelemetryCard, key: string, legacyKey?: string): IMetricNode => {
+  const getNode = (player: IPlayerTelemetryCard, key: string, customLegacyKey?: string): IMetricNode => {
     if (player.radar_axes && Array.isArray(player.radar_axes)) {
       const found = player.radar_axes.find((n) => n.key === key);
       if (found) return found;
     }
     // Legacy fallback mapping
-    const legacyRadar = player.radar as any || {};
-    const legacySkills = player.skills as any || {};
-    const score = legacyRadar[legacyKey || key] ?? 72;
+    const legacyKey = customLegacyKey || LEGACY_KEY_MAP[key] || key;
+    const legacyRadar = (player.radar as any) || {};
+    const legacySkills = (player.skills as any) || {};
+
+    let score = legacyRadar[legacyKey];
+    if (score === undefined) {
+      score = legacyRadar[key];
+    }
+    if (score === undefined) {
+      score = (player as any)[legacyKey] ?? (player as any)[key];
+    }
+    if (score === undefined) {
+      const fallbackDefaults: Record<string, number> = {
+        hold_rate: 68,
+        first_serve_pts_won: 64,
+        first_serve_accuracy: 62,
+        second_serve_pts_won: 48,
+        bps_saved: 58,
+        tiebreaks_won: 52,
+        break_rate: 24,
+        return_1st_pts_won: 32,
+        return_2nd_pts_won: 51,
+        bps_converted: 41,
+      };
+      score = fallbackDefaults[key] ?? 65;
+    }
+
+    const pctStr = legacySkills[`${legacyKey}Pct`] || legacySkills[`${key}Pct`] || `${score}%`;
+
     return {
       key,
       label: key,
       category: 'SERVE',
-      raw_value: score / 100,
-      display_string: legacySkills[`${legacyKey || key}Pct`] || `${score}%`,
-      rating_score: score,
+      raw_value: Number(score) / 100,
+      display_string: pctStr,
+      rating_score: Math.round(Number(score)),
       tour_delta_raw: 0,
       tour_delta_string: '0%',
     };
@@ -430,14 +470,43 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
     },
   ];
 
-  // Macro-economic composites
-  const p1Dr = p1.composites?.dominance_ratio || { display_string: '1.00', rating_score: 72, tour_delta_string: '+0.00' };
-  const p2Dr = p2.composites?.dominance_ratio || { display_string: '1.00', rating_score: 72, tour_delta_string: '+0.00' };
-  const p1Tsi = p1.composites?.match_efficiency || { display_string: '100.0', rating_score: 72, tour_delta_string: '+0.0' };
-  const p2Tsi = p2.composites?.match_efficiency || { display_string: '100.0', rating_score: 72, tour_delta_string: '+0.0' };
+  // Dynamic calculation of Dominance Ratio & TSI for legacy or missing composites
+  const calcLegacyDr = (player: any) => {
+    const radar = player?.radar || {};
+    const firstPts = Number(radar.firstServePts || 64);
+    const retPts = Number(radar.returnFirstPts || 32);
+    const dr = ((firstPts + retPts) / 95).toFixed(2);
+    const score = Math.min(99, Math.max(45, Math.round(Number(dr) * 68)));
+    return { display_string: dr, rating_score: score, tour_delta_string: '+0.00' };
+  };
 
-  const p1Overall = p1.composites?.overall_rating || 75;
-  const p2Overall = p2.composites?.overall_rating || 75;
+  const calcLegacyTsi = (player: any) => {
+    const radar = player?.radar || {};
+    const hold = Number(radar.serveGames || 68);
+    const brk = Number(radar.returnGames || 24);
+    const tsi = (hold + brk).toFixed(1);
+    const score = Math.min(99, Math.max(45, Math.round((Number(tsi) / 100) * 80)));
+    return { display_string: tsi, rating_score: score, tour_delta_string: '+0.0' };
+  };
+
+  const calcLegacyOverall = (player: any) => {
+    if (player?.composites?.overall_rating) return player.composites.overall_rating;
+    if (player?.rank && player.rank < 100) return Math.max(76, 96 - Math.round(player.rank / 4));
+    const radar = player?.radar || {};
+    const vals = Object.values(radar).filter((v): v is number => typeof v === 'number');
+    if (vals.length > 0) {
+      return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+    }
+    return 74;
+  };
+
+  const p1Dr = p1.composites?.dominance_ratio || calcLegacyDr(p1);
+  const p2Dr = p2.composites?.dominance_ratio || calcLegacyDr(p2);
+  const p1Tsi = p1.composites?.match_efficiency || calcLegacyTsi(p1);
+  const p2Tsi = p2.composites?.match_efficiency || calcLegacyTsi(p2);
+
+  const p1Overall = p1.composites?.overall_rating || calcLegacyOverall(p1);
+  const p2Overall = p2.composites?.overall_rating || calcLegacyOverall(p2);
 
   return (
     <div className="glass" style={{
