@@ -94,61 +94,102 @@ export interface DeepAnalyticsTeaser {
   explanationCards?: { title: string; body: string; severity?: string }[];
 }
 
+export type TourType = 'ATP' | 'WTA';
+export type SkillCategory = 'SERVE' | 'RETURN' | 'COMPOSITE';
+
+export interface IMetricNode {
+  key: string;               // e.g. 'hold_rate', 'first_serve_pts_won'
+  label: string;             // e.g. 'Serve Games (Hold %)'
+  category: SkillCategory;
+  raw_value: number;         // e.g. 0.810 (percentage as fraction or actual unit)
+  display_string: string;    // e.g. '81.0%'
+  rating_score: number;      // 40-100 normalized integer (e.g. 98)
+  tour_delta_raw: number;    // e.g. +0.090 vs tour average
+  tour_delta_string: string; // e.g. '+9.0%'
+}
+
+export interface ICompositeRatings {
+  dominance_ratio: IMetricNode;
+  match_efficiency: IMetricNode;
+  serve_composite: number;   // Aggregated 0-100 serve score
+  return_composite: number;  // Aggregated 0-100 return score
+  overall_rating: number;    // Master 0-100 rating
+}
+
+export interface IPlayerReadiness {
+  energyScore: number;       // 0-100%
+  statusLabel: string;       // 'PEAK_READINESS' | 'OPTIMAL' | 'MODERATE_LOAD' | 'HIGH_FATIGUE'
+  restDays: number;
+  restLabel: string;
+  matches7d?: number;
+}
+
+export interface IPlayerMentalGrit {
+  clutchScore: number;       // 0-100
+  verdict: string;           // 'ELITE_CLUTCH' | 'RESOLUTE' | 'STEADY' | 'VULNERABLE'
+  frontRunnerWinPct: string; // e.g. '88.5%'
+  comebackRatePct: string;   // e.g. '34.2%'
+}
+
 export interface PlayerSkillsDecagon {
-  serveGames: number;
-  firstServePts: number;
-  firstServeAcc: number;
-  secondServePts: number;
-  bpsSaved: number;
-  tbsWon: number;
-  returnGames: number;
-  returnFirstPts: number;
-  returnSecondPts: number;
-  returnBpsWon: number;
+  serveGames?: number;
+  firstServePts?: number;
+  firstServeAcc?: number;
+  secondServePts?: number;
+  bpsSaved?: number;
+  tbsWon?: number;
+  returnGames?: number;
+  returnFirstPts?: number;
+  returnSecondPts?: number;
+  returnBpsWon?: number;
+  [key: string]: number | undefined;
 }
 
-export interface PlayerIntelPackage {
-  name: string;
-  rank: number | null;
-  countryCode: string | null;
-  radar: PlayerSkillsDecagon;
-  skills: {
-    serveWonPct: string;
-    firstServeWonPct: string;
-    secondServeWonPct: string;
-    bpSavedPct: string;
-    returnGamesWonPct: string;
-    return1stPtsPct: string;
-    return2ndPtsPct: string;
-    bpConvertedPct: string;
-    dominanceRatioScore: number;
-    matchEfficiencyScore: number;
-  };
-  readiness: {
-    energyScore: number;
-    statusLabel: string;
-    restLabel: string;
-  };
-  mental: {
-    clutchScore: number;
-    verdict: string;
-    frontRunnerWinPct: string;
-    comebackRatePct: string;
-  };
+export interface IPlayerTelemetryCard {
+  player_id: string;
+  full_name: string;
+  tour: TourType;
+  snapshot_date: string;
+  lookback_days: number;     // 365
+  radar_axes: IMetricNode[]; // Exactly 10 nodes for the Decagon
+  composites: ICompositeRatings;
+  readiness?: IPlayerReadiness;
+  mental?: IPlayerMentalGrit;
+
+  // Legacy compatibility
+  name?: string;
+  rank?: number | null;
+  countryCode?: string | null;
+  radar?: PlayerSkillsDecagon | Record<string, number>;
+  skills?: any;
 }
 
-export interface ProIntelligencePayload {
-  version: string;
-  meta: {
-    fixtureId: number;
-    tour: string;
-    surface: string;
-    courtSpeedLabel: string;
-    generatedAt: string;
+export interface IPlayerComparison {
+  matchup_id: string;
+  fixture_id?: number;
+  tour: TourType;
+  surface: string;
+  court_speed_label?: string;
+  generated_at: string;
+  player_one: IPlayerTelemetryCard;
+  player_two: IPlayerTelemetryCard;
+  head_to_head_delta: Record<string, number>;
+
+  // Legacy compatibility aliases
+  version?: string;
+  meta?: {
+    fixtureId?: number;
+    tour?: string;
+    surface?: string;
+    courtSpeedLabel?: string;
+    generatedAt?: string;
   };
-  player1: PlayerIntelPackage;
-  player2: PlayerIntelPackage;
+  player1?: IPlayerTelemetryCard;
+  player2?: IPlayerTelemetryCard;
 }
+
+export type ProIntelligencePayload = IPlayerComparison;
+
 
 declare global {
   interface Window {

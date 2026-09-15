@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import type { ProIntelligencePayload, PlayerSkillsDecagon } from '../../types';
-import { Sparkles, Shield, Zap, BatteryCharging, HeartHandshake, Eye, EyeOff, Layers, Activity } from 'lucide-react';
+import type { ProIntelligencePayload, IPlayerTelemetryCard, IMetricNode } from '../../types';
+import { Sparkles, Shield, Zap, BatteryCharging, HeartHandshake, Activity, Award } from 'lucide-react';
 
 interface ProIntelligenceCardProps {
   intel: ProIntelligencePayload;
@@ -14,35 +14,34 @@ interface ProIntelligenceCardProps {
   onUnlockClick?: () => void;
 }
 
-const RADAR_METRICS: { key: keyof PlayerSkillsDecagon; label: string; group: 'serve' | 'return' | 'clutch' }[] = [
-  { key: 'serveGames', label: 'Serve Games', group: 'serve' },
-  { key: 'firstServePts', label: '1st Serve Pts', group: 'serve' },
-  { key: 'firstServeAcc', label: '1st Serve Acc', group: 'serve' },
-  { key: 'secondServePts', label: '2nd Serve Pts', group: 'serve' },
-  { key: 'bpsSaved', label: 'BPs Saved', group: 'serve' },
-  { key: 'tbsWon', label: 'TBs Won', group: 'clutch' },
-  { key: 'returnGames', label: 'Return Games', group: 'return' },
-  { key: 'returnFirstPts', label: 'Return 1st Pts', group: 'return' },
-  { key: 'returnSecondPts', label: 'Return 2nd Pts', group: 'return' },
-  { key: 'returnBpsWon', label: 'Return BPs Won', group: 'return' },
+// 10 exact axes defined in the research paper (in clockwise order starting at 12 o'clock)
+const RESEARCH_RADAR_AXES: { key: string; label: string; group: 'SERVE' | 'RETURN' | 'COMPOSITE' }[] = [
+  { key: 'hold_rate', label: 'Serve Games (Hold %)', group: 'SERVE' },
+  { key: 'first_serve_pts_won', label: '1st Serve Won %', group: 'SERVE' },
+  { key: 'first_serve_accuracy', label: '1st Serve In %', group: 'SERVE' },
+  { key: 'second_serve_pts_won', label: '2nd Serve Won %', group: 'SERVE' },
+  { key: 'bps_saved', label: 'BPs Saved %', group: 'SERVE' },
+  { key: 'tiebreaks_won', label: 'Tiebreaks Won %', group: 'COMPOSITE' },
+  { key: 'break_rate', label: 'Return Games (Break %)', group: 'RETURN' },
+  { key: 'return_1st_pts_won', label: 'Return 1st Pts %', group: 'RETURN' },
+  { key: 'return_2nd_pts_won', label: 'Return 2nd Pts %', group: 'RETURN' },
+  { key: 'bps_converted', label: 'BPs Converted %', group: 'RETURN' },
 ];
 
-function getPlayerLastName(fullName: string, fallbackName?: string): string {
+function getPlayerLastName(fullName?: string, fallbackName?: string): string {
   const target = (fallbackName || fullName || '').trim();
   if (!target) return 'Player';
   const parts = target.split(/\s+/);
   if (parts.length === 1) return parts[0];
-  // If formatted like "Parry D.", return "Parry"
   if (parts[parts.length - 1].length <= 2) {
     return parts[0];
   }
-  // If formatted like "Diane Parry", return "Parry"
   return parts[parts.length - 1];
 }
 
-function getPlayerFullName(fullName: string, fallbackName?: string): string {
-  if (fallbackName && fallbackName.length >= fullName.length) return fallbackName;
-  return fullName;
+function getPlayerFullName(fullName?: string, fallbackName?: string): string {
+  if (fallbackName && fallbackName.length >= (fullName || '').length) return fallbackName;
+  return fullName || 'Player';
 }
 
 function FormPills({ scores = [] }: { scores?: string[] }) {
@@ -81,6 +80,8 @@ interface DualBarItem {
   r2: number;
   v1: string;
   v2: string;
+  d1?: string;
+  d2?: string;
 }
 
 function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: { item: DualBarItem; p1Color?: string; p2Color?: string }) {
@@ -92,7 +93,7 @@ function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: 
       {/* Metric Values & Center Label */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem' }}>
         {/* P1 Left: Percentage + Tour Index Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '82px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '85px' }}>
           <span style={{
             fontWeight: 900,
             fontSize: '0.84rem',
@@ -104,12 +105,12 @@ function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: 
           <span style={{
             fontSize: '0.62rem',
             fontWeight: 700,
-            color: 'rgba(255, 255, 255, 0.45)',
-            background: 'rgba(255, 255, 255, 0.06)',
+            color: p1Leads ? p1Color : 'rgba(255, 255, 255, 0.45)',
+            background: p1Leads ? 'rgba(6, 182, 212, 0.12)' : 'rgba(255, 255, 255, 0.06)',
             padding: '1px 5px',
             borderRadius: '4px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-          }} title="Tour Rating Score (0-100)">
+            border: p1Leads ? '1px solid rgba(6, 182, 212, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+          }} title="Tour Normalization Rating (40-100)">
             {item.r1}
           </span>
         </div>
@@ -128,16 +129,16 @@ function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: 
         </span>
 
         {/* P2 Right: Tour Index Badge + Percentage */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', minWidth: '82px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', minWidth: '85px' }}>
           <span style={{
             fontSize: '0.62rem',
             fontWeight: 700,
-            color: 'rgba(255, 255, 255, 0.45)',
-            background: 'rgba(255, 255, 255, 0.06)',
+            color: p2Leads ? p2Color : 'rgba(255, 255, 255, 0.45)',
+            background: p2Leads ? 'rgba(244, 63, 94, 0.12)' : 'rgba(255, 255, 255, 0.06)',
             padding: '1px 5px',
             borderRadius: '4px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-          }} title="Tour Rating Score (0-100)">
+            border: p2Leads ? '1px solid rgba(244, 63, 94, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+          }} title="Tour Normalization Rating (40-100)">
             {item.r2}
           </span>
           <span style={{
@@ -218,22 +219,49 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   onUnlockClick,
 }) => {
   const [viewMode, setViewMode] = useState<'both' | 'p1' | 'p2'>('both');
-  const [activeMetricHover, setActiveMetricHover] = useState<number | null>(null);
+  const [hoveredAxisIdx, setHoveredAxisIdx] = useState<number | null>(null);
 
-  const { player1: p1, player2: p2, meta } = intel;
+  // Normalize access between new IPlayerComparison schema and legacy fallback
+  const p1: IPlayerTelemetryCard = intel.player_one || (intel as any).player1 || {} as any;
+  const p2: IPlayerTelemetryCard = intel.player_two || (intel as any).player2 || {} as any;
+  const tourName = intel.tour || intel.meta?.tour || 'ATP';
+  const surfaceName = intel.surface || intel.meta?.surface || surface || 'Official';
 
-  const p1Short = getPlayerLastName(p1.name, homeName);
-  const p2Short = getPlayerLastName(p2.name, awayName);
-  const p1FullName = getPlayerFullName(p1.name, homeName);
-  const p2FullName = getPlayerFullName(p2.name, awayName);
+  const p1FullName = getPlayerFullName(p1.full_name || p1.name, homeName);
+  const p2FullName = getPlayerFullName(p2.full_name || p2.name, awayName);
+  const p1Short = getPlayerLastName(p1.full_name || p1.name, homeName);
+  const p2Short = getPlayerLastName(p2.full_name || p2.name, awayName);
 
-  // SVG Canvas and Radius dimensions for 10-axis decagon
-  const svgWidth = 380;
-  const svgHeight = 330;
-  const centerX = svgWidth / 2; // 190
-  const centerY = svgHeight / 2; // 165
-  const maxRadius = 90; // Web radius
+  // Helper to extract a metric node from player telemetry card (or legacy fallback)
+  const getNode = (player: IPlayerTelemetryCard, key: string, legacyKey?: string): IMetricNode => {
+    if (player.radar_axes && Array.isArray(player.radar_axes)) {
+      const found = player.radar_axes.find((n) => n.key === key);
+      if (found) return found;
+    }
+    // Legacy fallback mapping
+    const legacyRadar = player.radar as any || {};
+    const legacySkills = player.skills as any || {};
+    const score = legacyRadar[legacyKey || key] ?? 72;
+    return {
+      key,
+      label: key,
+      category: 'SERVE',
+      raw_value: score / 100,
+      display_string: legacySkills[`${legacyKey || key}Pct`] || `${score}%`,
+      rating_score: score,
+      tour_delta_raw: 0,
+      tour_delta_string: '0%',
+    };
+  };
 
+  // SVG Geometry for 10-Axis Decagon (Section 6 from research paper)
+  const svgWidth = 390;
+  const svgHeight = 340;
+  const centerX = svgWidth / 2; // 195
+  const centerY = svgHeight / 2; // 170
+  const maxRadius = 96;
+
+  // Exact polar projection: theta_i = (2 * PI / 10) * i - PI / 2 (True North = 12 o'clock)
   const getCoordinates = (index: number, scoreRatio: number) => {
     const angle = (Math.PI * 2 * index) / 10 - Math.PI / 2;
     const r = Math.max(12, Math.min(maxRadius, maxRadius * scoreRatio));
@@ -248,7 +276,6 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);
 
-    // Top: index 0 (Serve Games)
     if (index === 0) {
       return {
         x: centerX,
@@ -257,7 +284,6 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         dominantBaseline: 'auto' as const,
       };
     }
-    // Bottom: index 5 (TBs Won)
     if (index === 5) {
       return {
         x: centerX,
@@ -266,7 +292,6 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         dominantBaseline: 'hanging' as const,
       };
     }
-    // Right hemisphere: indices 1, 2, 3, 4
     if (cosA > 0.1) {
       return {
         x: centerX + (maxRadius + 14) * cosA + 10,
@@ -275,7 +300,6 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         dominantBaseline: 'central' as const,
       };
     }
-    // Left hemisphere: indices 6, 7, 8, 9
     return {
       x: centerX + (maxRadius + 14) * cosA - 10,
       y: centerY + (maxRadius + 14) * sinA,
@@ -284,23 +308,24 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
     };
   };
 
+  // Polygon points for Player 1 and Player 2
   const p1PolygonPoints = useMemo(() => {
-    return RADAR_METRICS.map((m, i) => {
-      const score = p1.radar[m.key] || 50;
-      const pt = getCoordinates(i, score / 100);
+    return RESEARCH_RADAR_AXES.map((axis, i) => {
+      const node = getNode(p1, axis.key);
+      const pt = getCoordinates(i, node.rating_score / 100);
       return `${pt.x},${pt.y}`;
     }).join(' ');
   }, [p1]);
 
   const p2PolygonPoints = useMemo(() => {
-    return RADAR_METRICS.map((m, i) => {
-      const score = p2.radar[m.key] || 50;
-      const pt = getCoordinates(i, score / 100);
+    return RESEARCH_RADAR_AXES.map((axis, i) => {
+      const node = getNode(p2, axis.key);
+      const pt = getCoordinates(i, node.rating_score / 100);
       return `${pt.x},${pt.y}`;
     }).join(' ');
   }, [p2]);
 
-  // Decagon concentric web rings
+  // Concentric background decagon web rings (20%, 40%, 60%, 80%, 100%)
   const webRings = [0.2, 0.4, 0.6, 0.8, 1.0].map((level) => {
     return Array.from({ length: 10 }).map((_, i) => {
       const pt = getCoordinates(i, level);
@@ -308,19 +333,111 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
     }).join(' ');
   });
 
+  // Serve & Return Dual Bar Lists
   const serveItems: DualBarItem[] = [
-    { label: 'Service Games Won', r1: p1.radar.serveGames, r2: p2.radar.serveGames, v1: p1.skills.serveWonPct, v2: p2.skills.serveWonPct },
-    { label: '1st Serve Pts Won', r1: p1.radar.firstServePts, r2: p2.radar.firstServePts, v1: p1.skills.firstServeWonPct, v2: p2.skills.firstServeWonPct },
-    { label: '2nd Serve Pts Won', r1: p1.radar.secondServePts, r2: p2.radar.secondServePts, v1: p1.skills.secondServeWonPct, v2: p2.skills.secondServeWonPct },
-    { label: 'Break Pts Saved', r1: p1.radar.bpsSaved, r2: p2.radar.bpsSaved, v1: p1.skills.bpSavedPct, v2: p2.skills.bpSavedPct },
+    {
+      label: 'Service Games (Hold %)',
+      r1: getNode(p1, 'hold_rate').rating_score,
+      r2: getNode(p2, 'hold_rate').rating_score,
+      v1: getNode(p1, 'hold_rate').display_string,
+      v2: getNode(p2, 'hold_rate').display_string,
+      d1: getNode(p1, 'hold_rate').tour_delta_string,
+      d2: getNode(p2, 'hold_rate').tour_delta_string,
+    },
+    {
+      label: '1st Serve Pts Won %',
+      r1: getNode(p1, 'first_serve_pts_won').rating_score,
+      r2: getNode(p2, 'first_serve_pts_won').rating_score,
+      v1: getNode(p1, 'first_serve_pts_won').display_string,
+      v2: getNode(p2, 'first_serve_pts_won').display_string,
+      d1: getNode(p1, 'first_serve_pts_won').tour_delta_string,
+      d2: getNode(p2, 'first_serve_pts_won').tour_delta_string,
+    },
+    {
+      label: '1st Serve Accuracy %',
+      r1: getNode(p1, 'first_serve_accuracy').rating_score,
+      r2: getNode(p2, 'first_serve_accuracy').rating_score,
+      v1: getNode(p1, 'first_serve_accuracy').display_string,
+      v2: getNode(p2, 'first_serve_accuracy').display_string,
+      d1: getNode(p1, 'first_serve_accuracy').tour_delta_string,
+      d2: getNode(p2, 'first_serve_accuracy').tour_delta_string,
+    },
+    {
+      label: '2nd Serve Pts Won %',
+      r1: getNode(p1, 'second_serve_pts_won').rating_score,
+      r2: getNode(p2, 'second_serve_pts_won').rating_score,
+      v1: getNode(p1, 'second_serve_pts_won').display_string,
+      v2: getNode(p2, 'second_serve_pts_won').display_string,
+      d1: getNode(p1, 'second_serve_pts_won').tour_delta_string,
+      d2: getNode(p2, 'second_serve_pts_won').tour_delta_string,
+    },
+    {
+      label: 'Break Points Saved %',
+      r1: getNode(p1, 'bps_saved').rating_score,
+      r2: getNode(p2, 'bps_saved').rating_score,
+      v1: getNode(p1, 'bps_saved').display_string,
+      v2: getNode(p2, 'bps_saved').display_string,
+      d1: getNode(p1, 'bps_saved').tour_delta_string,
+      d2: getNode(p2, 'bps_saved').tour_delta_string,
+    },
   ];
 
   const returnItems: DualBarItem[] = [
-    { label: 'Return Games Won', r1: p1.radar.returnGames, r2: p2.radar.returnGames, v1: p1.skills.returnGamesWonPct, v2: p2.skills.returnGamesWonPct },
-    { label: 'Return 1st Pts Won', r1: p1.radar.returnFirstPts, r2: p2.radar.returnFirstPts, v1: p1.skills.return1stPtsPct, v2: p2.skills.return1stPtsPct },
-    { label: 'Return 2nd Pts Won', r1: p1.radar.returnSecondPts, r2: p2.radar.returnSecondPts, v1: p1.skills.return2ndPtsPct, v2: p2.skills.return2ndPtsPct },
-    { label: 'Break Pts Converted', r1: p1.radar.returnBpsWon, r2: p2.radar.returnBpsWon, v1: p1.skills.bpConvertedPct, v2: p2.skills.bpConvertedPct },
+    {
+      label: 'Return Games (Break %)',
+      r1: getNode(p1, 'break_rate').rating_score,
+      r2: getNode(p2, 'break_rate').rating_score,
+      v1: getNode(p1, 'break_rate').display_string,
+      v2: getNode(p2, 'break_rate').display_string,
+      d1: getNode(p1, 'break_rate').tour_delta_string,
+      d2: getNode(p2, 'break_rate').tour_delta_string,
+    },
+    {
+      label: 'Return 1st Pts Won %',
+      r1: getNode(p1, 'return_1st_pts_won').rating_score,
+      r2: getNode(p2, 'return_1st_pts_won').rating_score,
+      v1: getNode(p1, 'return_1st_pts_won').display_string,
+      v2: getNode(p2, 'return_1st_pts_won').display_string,
+      d1: getNode(p1, 'return_1st_pts_won').tour_delta_string,
+      d2: getNode(p2, 'return_1st_pts_won').tour_delta_string,
+    },
+    {
+      label: 'Return 2nd Pts Won %',
+      r1: getNode(p1, 'return_2nd_pts_won').rating_score,
+      r2: getNode(p2, 'return_2nd_pts_won').rating_score,
+      v1: getNode(p1, 'return_2nd_pts_won').display_string,
+      v2: getNode(p2, 'return_2nd_pts_won').display_string,
+      d1: getNode(p1, 'return_2nd_pts_won').tour_delta_string,
+      d2: getNode(p2, 'return_2nd_pts_won').tour_delta_string,
+    },
+    {
+      label: 'Break Points Converted %',
+      r1: getNode(p1, 'bps_converted').rating_score,
+      r2: getNode(p2, 'bps_converted').rating_score,
+      v1: getNode(p1, 'bps_converted').display_string,
+      v2: getNode(p2, 'bps_converted').display_string,
+      d1: getNode(p1, 'bps_converted').tour_delta_string,
+      d2: getNode(p2, 'bps_converted').tour_delta_string,
+    },
+    {
+      label: 'Tiebreaks Won % (Bayes Adj.)',
+      r1: getNode(p1, 'tiebreaks_won').rating_score,
+      r2: getNode(p2, 'tiebreaks_won').rating_score,
+      v1: getNode(p1, 'tiebreaks_won').display_string,
+      v2: getNode(p2, 'tiebreaks_won').display_string,
+      d1: getNode(p1, 'tiebreaks_won').tour_delta_string,
+      d2: getNode(p2, 'tiebreaks_won').tour_delta_string,
+    },
   ];
+
+  // Macro-economic composites
+  const p1Dr = p1.composites?.dominance_ratio || { display_string: '1.00', rating_score: 72, tour_delta_string: '+0.00' };
+  const p2Dr = p2.composites?.dominance_ratio || { display_string: '1.00', rating_score: 72, tour_delta_string: '+0.00' };
+  const p1Tsi = p1.composites?.match_efficiency || { display_string: '100.0', rating_score: 72, tour_delta_string: '+0.0' };
+  const p2Tsi = p2.composites?.match_efficiency || { display_string: '100.0', rating_score: 72, tour_delta_string: '+0.0' };
+
+  const p1Overall = p1.composites?.overall_rating || 75;
+  const p2Overall = p2.composites?.overall_rating || 75;
 
   return (
     <div className="glass" style={{
@@ -358,13 +475,13 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
           </div>
           <div>
             <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#fff', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>{meta.tour || 'PRO'} TOUR SKILLS &amp; PERFORMANCE RADAR</span>
+              <span>{tourName} TOUR SKILLS &amp; PERFORMANCE RADAR</span>
               <span style={{ fontSize: '0.65rem', background: 'rgba(6, 182, 212, 0.2)', color: '#38bdf8', padding: '2px 7px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
-                {meta.surface || surface || 'Official'}
+                {surfaceName}
               </span>
             </div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-              10-Axis Decagon Spider Radar &amp; Genuine Historical Matchup Intelligence
+              10-Axis Decagon Spider Radar · 52-Week EWMA (90d Half-Life) &amp; Empirical Bayes Normalization
             </div>
           </div>
         </div>
@@ -403,7 +520,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               transition: 'all 0.2s ease',
             }}
           >
-            {p1Short}
+            {p1Short} ({p1Overall})
           </button>
           <button
             type="button"
@@ -420,12 +537,12 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               transition: 'all 0.2s ease',
             }}
           >
-            {p2Short}
+            {p2Short} ({p2Overall})
           </button>
         </div>
       </div>
 
-      {/* ── Subheader: Dual Player Form & H2H Status Capsule ── */}
+      {/* ── Subheader: Dual Player Form & Master Rating Capsule ── */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr auto 1fr',
@@ -440,6 +557,9 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#06b6d4', display: 'inline-block' }} />
           <span style={{ fontWeight: 800, fontSize: '0.8rem', color: '#38bdf8' }}>{p1FullName}</span>
+          <span style={{ fontSize: '0.65rem', background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8', padding: '1px 6px', borderRadius: 4, fontWeight: 900 }}>
+            ★ {p1Overall}
+          </span>
           {p1Form?.recentScores && <FormPills scores={p1Form.recentScores} />}
         </div>
 
@@ -457,13 +577,16 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
           {h2hSummary && h2hSummary.total > 0 ? (
             <span>H2H: <strong style={{ color: '#fff' }}>{h2hSummary.p1Wins} - {h2hSummary.p2Wins}</strong></span>
           ) : (
-            <span style={{ color: '#38bdf8' }}>1st Career Tour Meeting</span>
+            <span style={{ color: '#38bdf8' }}>Tour Skills Clash</span>
           )}
         </div>
 
         {/* P2 Form Right */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
           {p2Form?.recentScores && <FormPills scores={p2Form.recentScores} />}
+          <span style={{ fontSize: '0.65rem', background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185', padding: '1px 6px', borderRadius: 4, fontWeight: 900 }}>
+            ★ {p2Overall}
+          </span>
           <span style={{ fontWeight: 800, fontSize: '0.8rem', color: '#fb7185' }}>{p2FullName}</span>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f43f5e', display: 'inline-block' }} />
         </div>
@@ -472,11 +595,11 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       {/* ── Main 2-Column Layout: Radar Left, Progress Bars Right ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
         gap: '1.5rem',
         alignItems: 'center',
       }}>
-        {/* Left Column: 10-Axis Decagon Spider Radar */}
+        {/* Left Column: Pure SVG 10-Axis Decagon Spider Radar (Section 6) */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
           <svg
             width={svgWidth}
@@ -493,13 +616,24 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                 <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.5" />
                 <stop offset="100%" stopColor="#ec4899" stopOpacity="0.2" />
               </linearGradient>
-              <filter id="glowP1" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="glow" />
-                <feComposite in="SourceGraphic" in2="glow" operator="over" />
+              {/* Neon Glow Filters */}
+              <filter id="glowP1" x="-25%" y="-25%" width="150%" height="150%">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="glowP2" x="-25%" y="-25%" width="150%" height="150%">
+                <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
               </filter>
             </defs>
 
-            {/* Concentric Web Rings */}
+            {/* Concentric Decagon Web Rings at 20%, 40%, 60%, 80%, 100% */}
             {webRings.map((points, idx) => (
               <polygon
                 key={idx}
@@ -511,7 +645,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               />
             ))}
 
-            {/* 10 Spoke Axes */}
+            {/* 10 Spoke Structural Axes */}
             {Array.from({ length: 10 }).map((_, i) => {
               const edge = getCoordinates(i, 1.0);
               return (
@@ -534,6 +668,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                 fill="url(#p2Grad)"
                 stroke="#f43f5e"
                 strokeWidth="2"
+                filter="url(#glowP2)"
                 style={{ transition: 'all 0.4s ease' }}
               />
             )}
@@ -550,16 +685,23 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               />
             )}
 
-            {/* Vertices & Outer Labels */}
-            {RADAR_METRICS.map((m, i) => {
+            {/* Vertices & Axis Labels */}
+            {RESEARCH_RADAR_AXES.map((axis, i) => {
               const labelPos = getLabelProps(i);
-              const vP1 = getCoordinates(i, (p1.radar[m.key] || 50) / 100);
-              const vP2 = getCoordinates(i, (p2.radar[m.key] || 50) / 100);
+              const nodeP1 = getNode(p1, axis.key);
+              const nodeP2 = getNode(p2, axis.key);
+              const vP1 = getCoordinates(i, nodeP1.rating_score / 100);
+              const vP2 = getCoordinates(i, nodeP2.rating_score / 100);
 
-              const isHovered = activeMetricHover === i;
+              const isHovered = hoveredAxisIdx === i;
 
               return (
-                <g key={i} onMouseEnter={() => setActiveMetricHover(i)} onMouseLeave={() => setActiveMetricHover(null)}>
+                <g
+                  key={i}
+                  onMouseEnter={() => setHoveredAxisIdx(i)}
+                  onMouseLeave={() => setHoveredAxisIdx(null)}
+                  style={{ cursor: 'pointer' }}
+                >
                   {/* P2 vertex dot */}
                   {(viewMode === 'both' || viewMode === 'p2') && (
                     <circle cx={vP2.x} cy={vP2.y} r="3.5" fill="#f43f5e" stroke="#fff" strokeWidth="1" />
@@ -570,7 +712,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                     <circle cx={vP1.x} cy={vP1.y} r="4" fill="#06b6d4" stroke="#fff" strokeWidth="1.5" />
                   )}
 
-                  {/* Outer Label text */}
+                  {/* Outer Axis Label text */}
                   <text
                     x={labelPos.x}
                     y={labelPos.y}
@@ -580,27 +722,49 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                     fontSize="9.5"
                     fontWeight={isHovered ? 800 : 600}
                     style={{
-                      cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       textShadow: '0 2px 4px rgba(0, 0, 0, 0.9)',
                     }}
                   >
-                    {m.label}
+                    {axis.label}
                   </text>
                 </g>
               );
             })}
           </svg>
 
+          {/* Hover Tooltip Overlay */}
+          {hoveredAxisIdx !== null && (
+            <div style={{
+              position: 'absolute',
+              bottom: 40,
+              background: 'rgba(15, 23, 42, 0.95)',
+              border: '1px solid rgba(56, 189, 248, 0.4)',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              fontSize: '0.72rem',
+              color: '#fff',
+              pointerEvents: 'none',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'center',
+            }}>
+              <span style={{ fontWeight: 800, color: '#38bdf8' }}>{RESEARCH_RADAR_AXES[hoveredAxisIdx].label}:</span>
+              <span>{p1Short}: <strong>{getNode(p1, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).display_string}</strong> ({getNode(p1, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).tour_delta_string})</span>
+              <span>{p2Short}: <strong>{getNode(p2, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).display_string}</strong> ({getNode(p2, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).tour_delta_string})</span>
+            </div>
+          )}
+
           {/* Legend */}
           <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem', fontSize: '0.78rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#06b6d4', display: 'inline-block', boxShadow: '0 0 8px #06b6d4' }} />
-              <span style={{ color: '#fff', fontWeight: 800 }}>{p1FullName}</span>
+              <span style={{ color: '#fff', fontWeight: 800 }}>{p1FullName} ({p1Overall})</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f43f5e', display: 'inline-block', boxShadow: '0 0 8px #f43f5e' }} />
-              <span style={{ color: '#fff', fontWeight: 800 }}>{p2FullName}</span>
+              <span style={{ color: '#fff', fontWeight: 800 }}>{p2FullName} ({p2Overall})</span>
             </div>
           </div>
         </div>
@@ -609,7 +773,6 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.95rem' }}>
           {/* Serve Group */}
           <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.95rem', borderRadius: '14px', border: '1px solid rgba(34, 197, 94, 0.25)' }}>
-            {/* Symmetrical Header */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -623,7 +786,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#38bdf8' }}>{p1Short}</span>
               </div>
               <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Zap size={13} /> Serve Mastery
+                <Zap size={13} /> Serve Mastery (5 Pillars)
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#fb7185' }}>{p2Short}</span>
@@ -639,7 +802,6 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
 
           {/* Return & Pressure Group */}
           <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.95rem', borderRadius: '14px', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
-            {/* Symmetrical Header */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -653,7 +815,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#38bdf8' }}>{p1Short}</span>
               </div>
               <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Shield size={13} /> Return &amp; Pressure
+                <Shield size={13} /> Return &amp; Pressure (5 Pillars)
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#fb7185' }}>{p2Short}</span>
@@ -667,7 +829,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
             </div>
           </div>
 
-          {/* Overall Composite: Dominance & Efficiency (Both Players) */}
+          {/* Overall Macroeconomic Composites: Dominance Ratio & TSI (Section 4) */}
           <div style={{
             background: 'rgba(255, 255, 255, 0.025)',
             padding: '0.95rem',
@@ -675,44 +837,50 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
             border: '1px solid rgba(234, 179, 8, 0.25)',
           }}>
             <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#facc15', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Activity size={14} /> Tactical Dominance &amp; Tour Efficiency
+              <Activity size={14} /> Macroeconomic Composites: Dominance Ratio &amp; Total Synergy
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
               {/* Player 1 */}
               <div style={{ background: 'rgba(6, 182, 212, 0.06)', padding: '0.75rem 0.85rem', borderRadius: '10px', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
-                <div style={{ fontSize: '0.76rem', fontWeight: 900, color: '#38bdf8', marginBottom: '6px' }}>{p1Short}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#38bdf8' }}>{p1Short}</span>
+                  <span style={{ fontSize: '0.65rem', background: 'rgba(6, 182, 212, 0.2)', color: '#38bdf8', padding: '1px 5px', borderRadius: 3, fontWeight: 900 }}>Master {p1Overall}</span>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Dominance Ratio</span>
-                  <strong style={{ color: '#fff' }}>{p1.skills.dominanceRatioScore}/100</strong>
+                  <span>Dominance Ratio (DR)</span>
+                  <strong style={{ color: '#fff' }}>{p1Dr.display_string} ({p1Dr.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, marginBottom: '8px', overflow: 'hidden' }}>
-                  <div style={{ width: `${p1.skills.dominanceRatioScore}%`, height: '100%', background: '#06b6d4', borderRadius: 2 }} />
+                  <div style={{ width: `${Math.min(100, p1Dr.rating_score)}%`, height: '100%', background: '#06b6d4', borderRadius: 2 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Efficiency Index</span>
-                  <strong style={{ color: '#fff' }}>{p1.skills.matchEfficiencyScore}/100</strong>
+                  <span>Total Synergy (TSI)</span>
+                  <strong style={{ color: '#fff' }}>{p1Tsi.display_string} ({p1Tsi.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ width: `${p1.skills.matchEfficiencyScore}%`, height: '100%', background: '#3b82f6', borderRadius: 2 }} />
+                  <div style={{ width: `${Math.min(100, p1Tsi.rating_score)}%`, height: '100%', background: '#3b82f6', borderRadius: 2 }} />
                 </div>
               </div>
 
               {/* Player 2 */}
               <div style={{ background: 'rgba(244, 63, 94, 0.06)', padding: '0.75rem 0.85rem', borderRadius: '10px', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
-                <div style={{ fontSize: '0.76rem', fontWeight: 900, color: '#fb7185', marginBottom: '6px' }}>{p2Short}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#fb7185' }}>{p2Short}</span>
+                  <span style={{ fontSize: '0.65rem', background: 'rgba(244, 63, 94, 0.2)', color: '#fb7185', padding: '1px 5px', borderRadius: 3, fontWeight: 900 }}>Master {p2Overall}</span>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Dominance Ratio</span>
-                  <strong style={{ color: '#fff' }}>{p2.skills.dominanceRatioScore}/100</strong>
+                  <span>Dominance Ratio (DR)</span>
+                  <strong style={{ color: '#fff' }}>{p2Dr.display_string} ({p2Dr.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, marginBottom: '8px', overflow: 'hidden' }}>
-                  <div style={{ width: `${p2.skills.dominanceRatioScore}%`, height: '100%', background: '#f43f5e', borderRadius: 2 }} />
+                  <div style={{ width: `${Math.min(100, p2Dr.rating_score)}%`, height: '100%', background: '#f43f5e', borderRadius: 2 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Efficiency Index</span>
-                  <strong style={{ color: '#fff' }}>{p2.skills.matchEfficiencyScore}/100</strong>
+                  <span>Total Synergy (TSI)</span>
+                  <strong style={{ color: '#fff' }}>{p2Tsi.display_string} ({p2Tsi.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ width: `${p2.skills.matchEfficiencyScore}%`, height: '100%', background: '#ec4899', borderRadius: 2 }} />
+                  <div style={{ width: `${Math.min(100, p2Tsi.rating_score)}%`, height: '100%', background: '#ec4899', borderRadius: 2 }} />
                 </div>
               </div>
             </div>
@@ -744,32 +912,36 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
             <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8', fontWeight: 800 }}>PLAYER 1</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <BatteryCharging size={18} color="#22c55e" />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                <span style={{ color: '#22c55e' }}>{p1.readiness.statusLabel} ({p1.readiness.energyScore}%)</span>
-              </div>
-              <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${p1.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
-              </div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                Rest Window: {p1.readiness.restLabel}
+          {p1.readiness && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <BatteryCharging size={18} color="#22c55e" />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                  <span style={{ color: '#22c55e' }}>{p1.readiness.statusLabel} ({p1.readiness.energyScore}%)</span>
+                </div>
+                <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${p1.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                  Rest Window: {p1.readiness.restLabel}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <HeartHandshake size={18} color="#06b6d4" />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                <span style={{ color: '#38bdf8' }}>{p1.mental.verdict}</span>
-              </div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                1st Set Lead Win: {p1.mental.frontRunnerWinPct} · Comeback Rate: {p1.mental.comebackRatePct}
+          {p1.mental && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <HeartHandshake size={18} color="#06b6d4" />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                  <span style={{ color: '#38bdf8' }}>{p1.mental.verdict}</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                  1st Set Lead Win: {p1.mental.frontRunnerWinPct} · Comeback Rate: {p1.mental.comebackRatePct}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Player 2 Card */}
@@ -787,32 +959,36 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
             <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185', fontWeight: 800 }}>PLAYER 2</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <BatteryCharging size={18} color="#22c55e" />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                <span style={{ color: '#22c55e' }}>{p2.readiness.statusLabel} ({p2.readiness.energyScore}%)</span>
-              </div>
-              <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${p2.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
-              </div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                Rest Window: {p2.readiness.restLabel}
+          {p2.readiness && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <BatteryCharging size={18} color="#22c55e" />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                  <span style={{ color: '#22c55e' }}>{p2.readiness.statusLabel} ({p2.readiness.energyScore}%)</span>
+                </div>
+                <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${p2.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                  Rest Window: {p2.readiness.restLabel}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <HeartHandshake size={18} color="#f43f5e" />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                <span style={{ color: '#f472b6' }}>{p2.mental.verdict}</span>
-              </div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                1st Set Lead Win: {p2.mental.frontRunnerWinPct} · Comeback Rate: {p2.mental.comebackRatePct}
+          {p2.mental && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <HeartHandshake size={18} color="#f43f5e" />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                  <span style={{ color: '#f472b6' }}>{p2.mental.verdict}</span>
+                </div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                  1st Set Lead Win: {p2.mental.frontRunnerWinPct} · Comeback Rate: {p2.mental.comebackRatePct}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
