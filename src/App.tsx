@@ -762,14 +762,27 @@ export function App() {
 
   // Group by Tournament only — date separation is handled inside each group as a divider row
   const groupedByTournament = useMemo(() => {
-    const groups: Record<string, { surface?: string; items: Prediction[] }> = {};
+    const groups: Record<string, { displayName: string; surface?: string; items: Prediction[] }> = {};
 
     displayedList.forEach((p: Prediction) => {
-      const tourn = p.tournament_name || 'Tennis Tournament';
-      if (!groups[tourn]) {
-        groups[tourn] = { surface: p.surface, items: [] };
+      const raw = (p.tournament_name || '').trim();
+      // Strip leading tour prefixes ("WTA ", "ATP ", "ITF Men ", "ITF Women ", "WTA 125 ", etc.)
+      let stripped = raw
+        .replace(/^(?:WTA|ATP|ITF(?:\s+Men|\s+Women)?)\s+(?:125\s+|250\s+|500\s+|1000\s+)?/i, '')
+        .replace(/\s*,\s*(?:Women|Men|Singles|Doubles)$/i, '')
+        .trim();
+      if (!stripped) stripped = raw || 'Tennis Tournament';
+
+      // Canonical key for grouping (lowercase, single spaced)
+      const key = stripped.toLowerCase().replace(/\s+/g, ' ');
+
+      if (!groups[key]) {
+        groups[key] = { displayName: stripped, surface: p.surface, items: [] };
       }
-      groups[tourn].items.push(p);
+      if (!groups[key].surface && p.surface) {
+        groups[key].surface = p.surface;
+      }
+      groups[key].items.push(p);
     });
 
     // Sort items within each tournament: Live first, then chronological by datetime
@@ -786,13 +799,13 @@ export function App() {
 
     // Sort tournament groups by priority tier
     const sortedKeys = Object.keys(groups).sort((k1, k2) => {
-      const p1 = getTournamentPriority(k1);
-      const p2 = getTournamentPriority(k2);
+      const p1 = getTournamentPriority(groups[k1].displayName);
+      const p2 = getTournamentPriority(groups[k2].displayName);
       if (p1 !== p2) return p1 - p2;
-      return k1.localeCompare(k2);
+      return groups[k1].displayName.localeCompare(groups[k2].displayName);
     });
 
-    const sortedGroups: Record<string, { surface?: string; items: Prediction[] }> = {};
+    const sortedGroups: Record<string, { displayName: string; surface?: string; items: Prediction[] }> = {};
     sortedKeys.forEach(k => { sortedGroups[k] = groups[k]; });
     return sortedGroups;
   }, [displayedList]);
@@ -1001,38 +1014,38 @@ export function App() {
               canWatchLive={canWatchLive}
             />
           ) : Object.keys(groupedByTournament).length > 0 ? (
-            Object.entries(groupedByTournament).map(([tournName, tournData]) => {
-              const isCollapsed = !!collapsedTournaments[tournName];
+            Object.entries(groupedByTournament).map(([tournKey, tournData]) => {
+              const isCollapsed = !!collapsedTournaments[tournKey];
               const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
               const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
-              const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
+              const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournData.displayName) === 'women' ? 'WTA' : 'ATP');
               const isWta = tournBadge === 'WTA';
 
               return (
-                <div key={tournName} className={`tournament-group ${isWta ? 'tourn-group-wta' : 'tourn-group-atp'} ${isCollapsed ? 'is-collapsed' : ''}`}>
+                <div key={tournKey} className={`tournament-group ${isWta ? 'tourn-group-wta' : 'tourn-group-atp'} ${isCollapsed ? 'is-collapsed' : ''}`}>
                   {/* Tournament Header (Collapsible Accordion) */}
                   <div 
                     className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
-                    onClick={() => toggleTournament(tournName)}
+                    onClick={() => toggleTournament(tournKey)}
                     role="button"
                     tabIndex={0}
                     aria-expanded={!isCollapsed}
                   >
-                        <div className="tourn-title-left">
-                          <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
-                          <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
-                          <span className="tourn-name">{tournName}</span>
-                          {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span className="tourn-count">{tournData.items.length}</span>
-                          {isCollapsed ? (
-                            <ChevronDown size={15} color="var(--text-secondary)" />
-                          ) : (
-                            <ChevronUp size={15} color={isWta ? '#fb7185' : '#38bdf8'} />
-                          )}
-                        </div>
-                      </div>
+                    <div className="tourn-title-left">
+                      <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
+                      <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
+                      <span className="tourn-name">{tournData.displayName}</span>
+                      {tournData.surface && <span className="tourn-surf">• {tournData.surface}</span>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="tourn-count">{tournData.items.length}</span>
+                      {isCollapsed ? (
+                        <ChevronDown size={15} color="var(--text-secondary)" />
+                      ) : (
+                        <ChevronUp size={15} color={isWta ? '#fb7185' : '#38bdf8'} />
+                      )}
+                    </div>
+                  </div>
 
                   {/* Match Rows with inline Tomorrow separator */}
                   {!isCollapsed && (() => {
@@ -1051,7 +1064,7 @@ export function App() {
                       if (!tomorrowSeparatorShown && matchDateStr > todayStr) {
                         tomorrowSeparatorShown = true;
                         rows.push(
-                          <div key={`sep-tmr-${tournName}-${idx}`} className="date-separator-row">
+                          <div key={`sep-tmr-${tournKey}-${idx}`} className="date-separator-row">
                             <span className="date-separator-label">Tomorrow</span>
                           </div>
                         );

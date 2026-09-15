@@ -241,9 +241,9 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 
       {/* ── Match Details Content Body ── */}
       <div className="match-card-body-stack">
-        {/* Model Prediction Bar (Shown in 'all' and 'tactical') */}
+        {/* Unified AI Prediction & Tactical Dossier Hub (Shown in 'all' and 'tactical') */}
         {(activeTab === 'all' || activeTab === 'tactical') && (
-          <>
+          <div className="unified-ai-hub">
             <MatchPredictionPanel match={match} onUnlockClick={onUnlockClick} />
             <MatchDeepAnalysis
               match={match}
@@ -251,7 +251,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
               canSeeFullAi={canSeeFullAi}
               onUnlockClick={onUnlockClick}
             />
-          </>
+          </div>
         )}
 
         {/* Pro Tour Skills Decagon & Proprietary Intel (Shown in 'all' and 'stats') */}

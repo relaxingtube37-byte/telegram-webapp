@@ -1575,7 +1575,7 @@ body {
 .master-match-card-container {
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
+  gap: 0.7rem;
   padding: 0.25rem 0 2.5rem;
   width: 100%;
 }
@@ -1631,7 +1631,42 @@ body {
 .match-card-body-stack {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.75rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UNIFIED AI INTELLIGENCE MASTER HUB
+   ═══════════════════════════════════════════════════════════ */
+.unified-ai-hub {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease;
+}
+
+.unified-ai-hub:hover {
+  border-color: var(--border-focus);
+}
+
+.unified-ai-hub .ai-verdict-card {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+  padding: 1.1rem 1.25rem;
+}
+
+.unified-ai-hub .dossier-slider-container {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 1.1rem 1.25rem;
 }
 
 .match-card-preview-notice {
@@ -2463,19 +2498,24 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Tabular Players Table */
+/* Tabular Players Table (Unified Scoreboard Arena) */
 .scoreboard-players-table {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  overflow: hidden;
+  gap: 0;
 }
 
 .scoreboard-table-header {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
-  padding-right: 2px;
-  margin-bottom: -2px;
+  padding: 0.35rem 0.95rem 0.15rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .scoreboard-table-header .th-label {
@@ -2494,20 +2534,24 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.2s ease;
+  padding: 0.72rem 0.95rem;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.18s ease;
+}
+
+.scoreboard-player-row:last-child {
+  border-bottom: none;
 }
 
 .scoreboard-player-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.035);
 }
 
 .scoreboard-player-row.row-winner-picked {
-  background: linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border-color: rgba(34, 197, 94, 0.25);
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.09) 0%, transparent 100%);
 }
 
 /* Player Info (Avatar + Details) */
