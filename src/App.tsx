@@ -180,18 +180,19 @@ export function App() {
   }, [isVerified, isExplicitlyLoggedOut]);
 
   // STRICT 2-STEP REQUIREMENT: Both Step 1 (Account connected) AND Step 2 (1WIN partner registration) are strictly mandatory!
-  const effectiveVerified = !isExplicitlyLoggedOut && isAccountConnected && isPartnerActivated;
+  const isFreeAccess = accessMode === 'FREE';
+  const effectiveVerified = isFreeAccess || (!isExplicitlyLoggedOut && isAccountConnected && isPartnerActivated);
 
-  const effectiveAccessMode = isExplicitlyLoggedOut ? 'REGISTRATION_REQUIRED' : accessMode;
+  const effectiveAccessMode = isFreeAccess ? 'FREE' : (isExplicitlyLoggedOut ? 'REGISTRATION_REQUIRED' : accessMode);
 
-  const canSeeDeepAnalysis = !isExplicitlyLoggedOut && (
+  const canSeeDeepAnalysis = isFreeAccess || (!isExplicitlyLoggedOut && (
     effectiveAccessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_ai_full
-  );
+  ));
   const canWatchLive =
     (businessActions.watch_live_enabled !== false) &&
-    (!isExplicitlyLoggedOut
+    (isFreeAccess || (!isExplicitlyLoggedOut
       ? (effectiveAccessMode === 'FREE' || effectiveVerified || contentLayers.guest_can_see_watch_live)
-      : contentLayers.guest_can_see_watch_live);
+      : contentLayers.guest_can_see_watch_live));
 
   const handlePartnerActivation = (siteId?: number) => {
     try {
@@ -594,11 +595,12 @@ export function App() {
       }
 
       setIsVerified(verifiedStatus);
+      const isFreeMode = (predRes?.access_mode || accessMode) === 'FREE';
       if (predRes?.access_mode) setAccessMode(predRes.access_mode);
 
       const finalPreds = loadedPreds.map(p => ({
         ...p,
-        content_locked: !verifiedStatus ? true : (p.content_locked ?? false),
+        content_locked: isFreeMode ? false : (!verifiedStatus ? true : (p.content_locked ?? false)),
       }));
       setPredictions(finalPreds);
       if (!silent && statsRes) setStats(statsRes);
@@ -611,7 +613,7 @@ export function App() {
         if (updated) {
           return {
             ...updated,
-            content_locked: !verifiedStatus ? true : (updated.content_locked ?? false),
+            content_locked: isFreeMode ? false : (!verifiedStatus ? true : (updated.content_locked ?? false)),
           };
         }
         return prev;
