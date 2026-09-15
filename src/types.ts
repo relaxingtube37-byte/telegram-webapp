@@ -94,6 +94,62 @@ export interface DeepAnalyticsTeaser {
   explanationCards?: { title: string; body: string; severity?: string }[];
 }
 
+export interface PlayerSkillsDecagon {
+  serveGames: number;
+  firstServePts: number;
+  firstServeAcc: number;
+  secondServePts: number;
+  bpsSaved: number;
+  tbsWon: number;
+  returnGames: number;
+  returnFirstPts: number;
+  returnSecondPts: number;
+  returnBpsWon: number;
+}
+
+export interface PlayerIntelPackage {
+  name: string;
+  rank: number | null;
+  countryCode: string | null;
+  radar: PlayerSkillsDecagon;
+  skills: {
+    serveWonPct: string;
+    firstServeWonPct: string;
+    secondServeWonPct: string;
+    bpSavedPct: string;
+    returnGamesWonPct: string;
+    return1stPtsPct: string;
+    return2ndPtsPct: string;
+    bpConvertedPct: string;
+    dominanceRatioScore: number;
+    matchEfficiencyScore: number;
+  };
+  readiness: {
+    energyScore: number;
+    statusLabel: string;
+    restLabel: string;
+  };
+  mental: {
+    clutchScore: number;
+    verdict: string;
+    frontRunnerWinPct: string;
+    comebackRatePct: string;
+  };
+}
+
+export interface ProIntelligencePayload {
+  version: string;
+  meta: {
+    fixtureId: number;
+    tour: string;
+    surface: string;
+    courtSpeedLabel: string;
+    generatedAt: string;
+  };
+  player1: PlayerIntelPackage;
+  player2: PlayerIntelPackage;
+}
+
 declare global {
   interface Window {
     Telegram?: {

@@ -14,6 +14,8 @@ import { MatchAnalyticsGrid } from './MatchAnalyticsGrid';
 import { MatchDeepAnalysis } from './MatchDeepAnalysis';
 import { MatchBusinessActions } from './MatchBusinessActions';
 import { MatchEditorialSummary } from './MatchEditorialSummary';
+import { ProIntelligenceCard } from './ProIntelligenceCard';
+import type { ProIntelligencePayload } from '../../types';
 import { Sparkles, BarChart3, Newspaper, Layers } from 'lucide-react';
 
 interface MatchAnalysisPageProps {
@@ -61,6 +63,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     content_locked: !isClientVerified,
   }));
   const [analytics, setAnalytics] = useState<MappedDeepAnalytics | null>(null);
+  const [proIntel, setProIntel] = useState<ProIntelligencePayload | null>(null);
   const [serverVerified, setServerVerified] = useState<boolean>(isClientVerified);
   const [loadState, setLoadState] = useState<LoadState>('loading');
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
@@ -81,7 +84,8 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
       setLoadState('loading');
       setAnalyticsError(null);
       try {
-        const [matchesRes, deepRes] = await Promise.all([
+        const fixtureTargetId = seed.fixture_id || seed.id;
+        const [matchesRes, deepRes, proIntelRes] = await Promise.all([
           fetchWebMatches(webApiBase, sessionToken).catch(() => null),
           fetchDeepAnalytics(webApiBase, sessionToken, {
             p1: seed.home_name,
@@ -92,9 +96,16 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
             setAnalyticsError(e.message || 'Failed to load analytics');
             return null;
           }),
+          fixtureTargetId
+            ? fetch(`${webApiBase}/matches/${fixtureTargetId}/pro-intelligence`)
+                .then(r => r.ok ? r.json() : null)
+                .then(j => j?.data || null)
+                .catch(() => null)
+            : Promise.resolve(null),
         ]);
 
         if (cancelled) return;
+        if (proIntelRes) setProIntel(proIntelRes);
 
         if (matchesRes?.matches) {
           const found = findMatchInWebList(matchesRes.matches, seed);
@@ -241,6 +252,16 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
               onUnlockClick={onUnlockClick}
             />
           </>
+        )}
+
+        {/* Pro Tour Skills Decagon & Proprietary Intel (Shown in 'all' and 'stats') */}
+        {(activeTab === 'all' || activeTab === 'stats') && proIntel && (
+          <ProIntelligenceCard
+            intel={proIntel}
+            surface={match.surface}
+            isLocked={contentLocked}
+            onUnlockClick={contentLocked ? onUnlockClick : undefined}
+          />
         )}
 
         {/* Deep Stats & Dynamics (Shown in 'all' and 'stats') */}
