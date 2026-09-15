@@ -97,8 +97,8 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
             return null;
           }),
           fixtureTargetId
-            ? fetch(`${webApiBase}/matches/${fixtureTargetId}/pro-intelligence`)
-                .then(r => r.ok ? r.json() : null)
+            ? fetch(`${(webappApiBase || '').replace(/\/+$/, '')}/matches/${fixtureTargetId}/pro-intelligence`)
+                .then(r => r.ok ? r.json() : fetch(`${webApiBase}/matches/${fixtureTargetId}/pro-intelligence`).then(r2 => r2.ok ? r2.json() : null))
                 .then(j => j?.data || null)
                 .catch(() => null)
             : Promise.resolve(null),
