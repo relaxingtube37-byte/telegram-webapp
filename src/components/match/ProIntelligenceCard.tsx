@@ -32,17 +32,60 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
 
   const { player1: p1, player2: p2, meta } = intel;
 
-  // Center and Radius for 10-axis decagon
-  const size = 320;
-  const center = size / 2;
-  const maxRadius = 105;
+  // SVG Canvas and Radius dimensions for 10-axis decagon
+  const svgWidth = 380;
+  const svgHeight = 330;
+  const centerX = svgWidth / 2; // 190
+  const centerY = svgHeight / 2; // 165
+  const maxRadius = 90; // Web radius
 
   const getCoordinates = (index: number, scoreRatio: number) => {
     const angle = (Math.PI * 2 * index) / 10 - Math.PI / 2;
-    const r = Math.max(10, Math.min(maxRadius, maxRadius * scoreRatio));
+    const r = Math.max(12, Math.min(maxRadius, maxRadius * scoreRatio));
     return {
-      x: center + r * Math.cos(angle),
-      y: center + r * Math.sin(angle),
+      x: centerX + r * Math.cos(angle),
+      y: centerY + r * Math.sin(angle),
+    };
+  };
+
+  const getLabelProps = (index: number) => {
+    const angle = (Math.PI * 2 * index) / 10 - Math.PI / 2;
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
+
+    // Top: index 0 (Serve Games)
+    if (index === 0) {
+      return {
+        x: centerX,
+        y: centerY - maxRadius - 16,
+        textAnchor: 'middle' as const,
+        dominantBaseline: 'auto' as const,
+      };
+    }
+    // Bottom: index 5 (TBs Won)
+    if (index === 5) {
+      return {
+        x: centerX,
+        y: centerY + maxRadius + 22,
+        textAnchor: 'middle' as const,
+        dominantBaseline: 'hanging' as const,
+      };
+    }
+    // Right hemisphere: indices 1, 2, 3, 4 (1st Serve Pts, 1st Serve Acc, 2nd Serve Pts, BPs Saved)
+    if (cosA > 0.1) {
+      return {
+        x: centerX + (maxRadius + 14) * cosA + 10,
+        y: centerY + (maxRadius + 14) * sinA,
+        textAnchor: 'start' as const,
+        dominantBaseline: 'central' as const,
+      };
+    }
+    // Left hemisphere: indices 6, 7, 8, 9 (Return Games, Return 1st Pts, Return 2nd Pts, Return BPs Won)
+    return {
+      x: centerX + (maxRadius + 14) * cosA - 10,
+      y: centerY + (maxRadius + 14) * sinA,
+      textAnchor: 'end' as const,
+      dominantBaseline: 'central' as const,
     };
   };
 
@@ -168,7 +211,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       }}>
         {/* Left Column: 10-Axis Decagon Spider Radar */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ overflow: 'visible', maxWidth: '100%', height: 'auto' }}>
+          <svg width={svgWidth} height={svgHeight} viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ overflow: 'visible', maxWidth: '100%', height: 'auto' }}>
             <defs>
               <linearGradient id="p1Grad" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.55" />
@@ -202,8 +245,8 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               return (
                 <line
                   key={i}
-                  x1={center}
-                  y1={center}
+                  x1={centerX}
+                  y1={centerY}
                   x2={edge.x}
                   y2={edge.y}
                   stroke="rgba(255, 255, 255, 0.09)"
@@ -237,7 +280,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
 
             {/* Vertices & Outer Labels */}
             {RADAR_METRICS.map((m, i) => {
-              const labelPos = getCoordinates(i, 1.25);
+              const labelPos = getLabelProps(i);
               const vP1 = getCoordinates(i, (p1.radar[m.key] || 50) / 100);
               const vP2 = getCoordinates(i, (p2.radar[m.key] || 50) / 100);
 
@@ -259,12 +302,16 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                   <text
                     x={labelPos.x}
                     y={labelPos.y}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill={isHovered ? '#38bdf8' : 'rgba(255, 255, 255, 0.75)'}
+                    textAnchor={labelPos.textAnchor}
+                    dominantBaseline={labelPos.dominantBaseline}
+                    fill={isHovered ? '#38bdf8' : 'rgba(255, 255, 255, 0.85)'}
                     fontSize="9.5"
                     fontWeight={isHovered ? 800 : 600}
-                    style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                    style={{
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.9)',
+                    }}
                   >
                     {m.label}
                   </text>
