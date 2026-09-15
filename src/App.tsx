@@ -1003,22 +1003,21 @@ export function App() {
           ) : Object.keys(groupedByTournament).length > 0 ? (
             Object.entries(groupedByTournament).map(([tournName, tournData]) => {
               const isCollapsed = !!collapsedTournaments[tournName];
+              const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
+              const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
+              const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
+              const isWta = tournBadge === 'WTA';
+
               return (
-                <div key={tournName} className="tournament-group">
+                <div key={tournName} className={`tournament-group ${isWta ? 'tourn-group-wta' : 'tourn-group-atp'} ${isCollapsed ? 'is-collapsed' : ''}`}>
                   {/* Tournament Header (Collapsible Accordion) */}
-                  {(() => {
-                    const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
-                    const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
-                    const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournName) === 'women' ? 'WTA' : 'ATP');
-                    const isWta = tournBadge === 'WTA';
-                    return (
-                      <div 
-                        className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
-                        onClick={() => toggleTournament(tournName)}
-                        role="button"
-                        tabIndex={0}
-                        aria-expanded={!isCollapsed}
-                      >
+                  <div 
+                    className={`tournament-group-header ${isWta ? 'tourn-header-wta' : 'tourn-header-atp'}`}
+                    onClick={() => toggleTournament(tournName)}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={!isCollapsed}
+                  >
                         <div className="tourn-title-left">
                           <span className={`tour-badge-sm ${isWta ? 'tour-badge-wta' : tournBadge === 'ATP/WTA' ? 'tour-badge-mixed' : 'tour-badge-atp'}`}>{tournBadge}</span>
                           <span className="tourn-emoji">{getSurfaceEmoji(tournData.surface)}</span>
@@ -1034,8 +1033,6 @@ export function App() {
                           )}
                         </div>
                       </div>
-                    );
-                  })()}
 
                   {/* Match Rows with inline Tomorrow separator */}
                   {!isCollapsed && (() => {
