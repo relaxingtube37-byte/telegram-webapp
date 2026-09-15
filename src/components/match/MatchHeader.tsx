@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Share2, Clock, Sparkles, Tv, Lock } from 'lucide-react';
+import { ArrowLeft, Share2, Clock, Sparkles, Tv, Lock, Layers, BarChart3, Newspaper } from 'lucide-react';
 import type { Prediction, ReferralSite } from '../../types';
 import {
   formatMatchTime,
@@ -29,6 +29,8 @@ interface MatchHeaderProps {
   businessActions?: BusinessActionsPublic;
   onUnlockClick?: () => void;
   onVerified?: () => void;
+  activeTab?: 'all' | 'tactical' | 'stats' | 'editorial';
+  onTabChange?: (tab: 'all' | 'tactical' | 'stats' | 'editorial') => void;
 }
 
 export const MatchHeader: React.FC<MatchHeaderProps> = ({
@@ -46,6 +48,8 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
     payment_mode_placeholder_enabled: false,
   },
   onUnlockClick,
+  activeTab = 'all',
+  onTabChange,
 }) => {
   const gender = getMatchGender(
     match.tournament_name,
@@ -93,9 +97,9 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   };
 
   return (
-    <div className="match-card-header-hero">
-      {/* ── 1. Top Navigation & Tournament Bar ── */}
-      <div className="match-hero-nav-bar">
+    <div className={`match-master-header-card ${isWomen ? 'arena-wta' : 'arena-atp'}`}>
+      {/* ── 1. Integrated Top Navigation & Tournament Bar ── */}
+      <div className="match-master-nav-row">
         <button
           type="button"
           onClick={onBack}
@@ -137,8 +141,8 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
         )}
       </div>
 
-      {/* ── 2. Modern Tabular Sports Scoreboard Arena (SofaScore / Google Sports style) ── */}
-      <div className={`match-scoreboard-arena ${isWomen ? 'arena-wta' : 'arena-atp'}`}>
+      {/* ── 2. Unified Tabular Scoreboard Body ── */}
+      <div className="match-master-scoreboard-body">
         {/* Scoreboard Meta Header */}
         <div className="scoreboard-meta-line">
           <div className="scoreboard-time-chip">
@@ -250,7 +254,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           </div>
         </div>
 
-        {/* ── 3. Integrated Action Footer (No separate ugly box) ── */}
+        {/* ── Integrated Action Footer ── */}
         {(showWatch || showRegister) && (
           <div className="scoreboard-action-footer">
             {showWatch && (
@@ -276,6 +280,44 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           </div>
         )}
       </div>
+
+      {/* ── 3. Docked Sub-Navigation Tabs Strip (Flashscore / SofaScore style) ── */}
+      {onTabChange && (
+        <div className="match-master-docked-subtabs">
+          <button
+            type="button"
+            className={`docked-subtab-btn ${activeTab === 'all' ? 'active' : ''}`}
+            onClick={() => onTabChange('all')}
+          >
+            <Layers size={13} />
+            <span>All Intel</span>
+          </button>
+          <button
+            type="button"
+            className={`docked-subtab-btn ${activeTab === 'tactical' ? 'active' : ''}`}
+            onClick={() => onTabChange('tactical')}
+          >
+            <Sparkles size={13} />
+            <span>AI Tactical</span>
+          </button>
+          <button
+            type="button"
+            className={`docked-subtab-btn ${activeTab === 'stats' ? 'active' : ''}`}
+            onClick={() => onTabChange('stats')}
+          >
+            <BarChart3 size={13} />
+            <span>Deep Stats</span>
+          </button>
+          <button
+            type="button"
+            className={`docked-subtab-btn ${activeTab === 'editorial' ? 'active' : ''}`}
+            onClick={() => onTabChange('editorial')}
+          >
+            <Newspaper size={13} />
+            <span>Editorial</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

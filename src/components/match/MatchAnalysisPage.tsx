@@ -16,7 +16,6 @@ import { MatchBusinessActions } from './MatchBusinessActions';
 import { MatchEditorialSummary } from './MatchEditorialSummary';
 import { ProIntelligenceCard } from './ProIntelligenceCard';
 import type { ProIntelligencePayload } from '../../types';
-import { Sparkles, BarChart3, Newspaper, Layers } from 'lucide-react';
 
 interface MatchAnalysisPageProps {
   prediction: Prediction;
@@ -188,7 +187,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 
   return (
     <div className="master-match-card-container">
-      {/* ── Hero Scoreboard & Navigation (Integrated Action Footer) ── */}
+      {/* ── Unified Master Match Header (Hero, Scoreboard & Docked Sub-tabs) ── */}
       <MatchHeader
         match={match}
         selectedTimezone={selectedTimezone}
@@ -201,43 +200,9 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         businessActions={businessActions}
         onUnlockClick={onUnlockClick}
         onVerified={onVerified}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
-
-      {/* ── Internal Match Card Sub-Tabs ── */}
-      <div className="match-card-subtabs">
-        <button
-          type="button"
-          className={`card-subtab-btn ${activeTab === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveTab('all')}
-        >
-          <Layers size={13} />
-          <span>All Intel</span>
-        </button>
-        <button
-          type="button"
-          className={`card-subtab-btn ${activeTab === 'tactical' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tactical')}
-        >
-          <Sparkles size={13} />
-          <span>AI Tactical</span>
-        </button>
-        <button
-          type="button"
-          className={`card-subtab-btn ${activeTab === 'stats' ? 'active' : ''}`}
-          onClick={() => setActiveTab('stats')}
-        >
-          <BarChart3 size={13} />
-          <span>Deep Stats</span>
-        </button>
-        <button
-          type="button"
-          className={`card-subtab-btn ${activeTab === 'editorial' ? 'active' : ''}`}
-          onClick={() => setActiveTab('editorial')}
-        >
-          <Newspaper size={13} />
-          <span>Editorial</span>
-        </button>
-      </div>
 
       {/* ── Match Details Content Body ── */}
       <div className="match-card-body-stack">
