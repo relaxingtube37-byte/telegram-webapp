@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { buildAuthHeaders } from '../../utils/webApi';
+import { useTranslation } from '../../i18n';
 
 export interface MatchEditorialView {
   fixture_id?: number;
@@ -34,6 +35,7 @@ export const MatchEditorialSummary: React.FC<MatchEditorialSummaryProps> = ({
   slugHint,
   sessionToken,
 }) => {
+  const { t, language } = useTranslation();
   const [editorial, setEditorial] = useState<MatchEditorialView | null>(null);
   const [state, setState] = useState<'idle' | 'loading' | 'ready' | 'empty' | 'error'>('idle');
 
@@ -46,7 +48,7 @@ export const MatchEditorialSummary: React.FC<MatchEditorialSummaryProps> = ({
     }
     setState('loading');
     const base = apiBase.replace(/\/+$/, '');
-    fetch(`${base}/matches/${encodeURIComponent(String(key))}/editorial`, {
+    fetch(`${base}/matches/${encodeURIComponent(String(key))}/editorial?lang=${encodeURIComponent(language)}`, {
       headers: buildAuthHeaders(sessionToken),
     })
       .then(async (r) => {
@@ -82,12 +84,12 @@ export const MatchEditorialSummary: React.FC<MatchEditorialSummaryProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [apiBase, fixtureId, slugHint, sessionToken]);
+  }, [apiBase, fixtureId, slugHint, sessionToken, language]);
 
   if (state === 'loading') {
     return (
       <section className="glass" style={{ padding: '1rem', borderRadius: 14, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-        Loading editorial preview…
+        {t('editorialSummary.loading', 'Loading tournament insights...')}
       </section>
     );
   }
@@ -100,7 +102,7 @@ export const MatchEditorialSummary: React.FC<MatchEditorialSummaryProps> = ({
   return (
     <section className="glass" style={{ padding: '1rem 1.1rem', borderRadius: 14, display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
       <div style={{ fontSize: '0.72rem', letterSpacing: '0.06em', color: 'var(--text-secondary)', fontWeight: 700 }}>
-        EDITORIAL PREVIEW
+        {t('editorialSummary.title', 'EDITORIAL PREVIEW')}
       </div>
       {title && <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800 }}>{title}</h2>}
       {editorial.subtitle && (
@@ -116,7 +118,7 @@ export const MatchEditorialSummary: React.FC<MatchEditorialSummaryProps> = ({
       )}
       {editorial.content_locked && (
         <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-          Guest-safe editorial teaser · full dossier unlocks for members
+          {t('editorialSummary.guestTeaser', 'Guest-safe editorial teaser · full dossier unlocks for members')}
         </div>
       )}
     </section>

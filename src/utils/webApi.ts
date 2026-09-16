@@ -27,8 +27,19 @@ export function buildAuthHeaders(sessionToken: string | null | undefined): Heade
   return headers;
 }
 
+function getActiveLanguage(): string {
+  if (typeof window !== 'undefined') {
+    try {
+      return localStorage.getItem('user_language') || 'en';
+    } catch {}
+  }
+  return 'en';
+}
+
 export interface WebMatchesResponse {
   status?: string;
+  lang?: string;
+  default_lang?: string;
   verified?: boolean;
   access_mode?: string;
   layers?: {
@@ -41,6 +52,8 @@ export interface WebMatchesResponse {
 
 export interface WebDeepAnalyticsResponse {
   status?: string;
+  lang?: string;
+  default_lang?: string;
   verified?: boolean;
   access_mode?: string;
   guest_stats_level?: string;
@@ -52,9 +65,11 @@ export interface WebDeepAnalyticsResponse {
 export async function fetchWebMatches(
   webApiBase: string,
   sessionToken: string | null | undefined,
-  limit = 100
+  limit = 100,
+  lang?: string
 ): Promise<WebMatchesResponse> {
-  const res = await fetch(`${webApiBase}/matches?limit=${limit}`, {
+  const activeLang = lang || getActiveLanguage();
+  const res = await fetch(`${webApiBase}/matches?limit=${limit}&lang=${encodeURIComponent(activeLang)}`, {
     headers: buildAuthHeaders(sessionToken),
   });
   if (!res.ok) throw new Error(`Matches HTTP ${res.status}`);
@@ -64,12 +79,14 @@ export async function fetchWebMatches(
 export async function fetchDeepAnalytics(
   webApiBase: string,
   sessionToken: string | null | undefined,
-  params: { p1: string; p2: string; surface?: string; asOfDate?: string }
+  params: { p1: string; p2: string; surface?: string; asOfDate?: string; lang?: string }
 ): Promise<WebDeepAnalyticsResponse> {
+  const activeLang = params.lang || getActiveLanguage();
   const q = new URLSearchParams({
     p1: params.p1,
     p2: params.p2,
     surface: params.surface || 'Hard',
+    lang: activeLang,
   });
   if (params.asOfDate) q.set('asOfDate', params.asOfDate.slice(0, 10));
   const res = await fetch(`${webApiBase}/matches/deep-analytics?${q.toString()}`, {

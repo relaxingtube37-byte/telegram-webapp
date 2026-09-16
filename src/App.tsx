@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Header } from './components/Header';
 import { CompactMatchRow } from './components/CompactMatchRow';
 import { MatchAnalysisPage } from './components/match/MatchAnalysisPage';
@@ -15,6 +15,8 @@ import { getInitialTimezone, TIMEZONE_KEY, getSurfaceEmoji, matchMatchesDateFilt
 import { buildMatchSlug, parseMatchParamFromUrl, findMatchByParam } from './utils/seo';
 import { Analytics } from '@vercel/analytics/react';
 import { track } from '@vercel/analytics';
+import { useTranslation } from './i18n';
+
 
 const PRODUCTION_API_BASE = 'https://telegram-backend-2yck.onrender.com/api/webapp';
 const LOCAL_API_BASE = 'http://localhost:8080/api/webapp';
@@ -67,7 +69,7 @@ function buildAuthHeaders(sessionToken: string | null, isExplicitlyLoggedOut: bo
 }
 
 export function App() {
-
+  const { t, language, setLanguage, isRtl } = useTranslation();
   const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [stats, setStats] = useState<StatsOverviewData | null>(null);
@@ -551,6 +553,15 @@ export function App() {
     loadData();
   }, []);
 
+  const isLangFirstMount = useRef(true);
+  useEffect(() => {
+    if (isLangFirstMount.current) {
+      isLangFirstMount.current = false;
+      return;
+    }
+    loadData(undefined, undefined, true);
+  }, [language]);
+
   const loadData = async (forcedVerified?: boolean, forcedToken?: string | null, silent: boolean = false) => {
     if (!silent) setLoading(true);
     try {
@@ -563,7 +574,7 @@ export function App() {
       const headers = buildAuthHeaders(token, isLoggedOut);
 
       const [predRes, statsRes, refRes] = await Promise.all([
-        fetch(`${API_BASE}/predictions`, { headers }).then(r => r.json()).catch(() => ({})),
+        fetch(`${API_BASE}/predictions?lang=${encodeURIComponent(language)}`, { headers }).then(r => r.json()).catch(() => ({})),
         silent ? Promise.resolve(null) : fetch(`${API_BASE}/stats`, { headers }).then(r => r.json()).catch(() => null),
         silent ? Promise.resolve(null) : fetch(`${API_BASE}/referrals`).then(r => r.json()).catch(() => []),
       ]);
@@ -893,12 +904,12 @@ export function App() {
         <>
           {/* Search Input & Date Filters Row */}
           <div className="search-date-combined-row">
-            {/* Search Bar (Half width) */}
-            <div className="search-bar-wrapper">
-              <Search size={14} color="var(--text-secondary)" className="search-icon" />
+            {/* Search Input */}
+            <div className="search-input-wrapper">
+              <Search size={16} className="search-icon" />
               <input
                 type="text"
-                placeholder="Search player..."
+                placeholder={t('app.searchPlayer', 'Search player...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
@@ -914,19 +925,19 @@ export function App() {
                 className={`date-filter-btn ${dateFilter === 'today' ? 'active' : ''}`}
                 onClick={() => setDateFilter(prev => prev === 'today' ? 'all' : 'today')}
               >
-                Today
+                {t('app.tabs.today', 'Today')}
               </button>
               <button
                 className={`date-filter-btn ${dateFilter === 'tomorrow' ? 'active' : ''}`}
                 onClick={() => setDateFilter(prev => prev === 'tomorrow' ? 'all' : 'tomorrow')}
               >
-                Tomorrow
+                {t('app.tabs.tomorrow', 'Tomorrow')}
               </button>
               <button
                 className={`date-filter-btn ${dateFilter === 'week' ? 'active' : ''}`}
                 onClick={() => setDateFilter(prev => prev === 'week' ? 'all' : 'week')}
               >
-                Week
+                {t('app.tabs.week', 'Week')}
               </button>
             </div>
           </div>
@@ -937,25 +948,25 @@ export function App() {
               className={`filter-chip ${filterChip === 'all' ? 'active' : ''}`}
               onClick={() => setFilterChip('all')}
             >
-              All Matches
+              {t('app.tabs.allMatches', 'All Matches')}
             </button>
             <button
               className={`filter-chip ${filterChip === 'high_prob' ? 'active' : ''}`}
               onClick={() => setFilterChip(prev => prev === 'high_prob' ? 'all' : 'high_prob')}
             >
-              🎯 70%+ Win Prob
+              {t('app.filterProb70', '🎯 70%+ Win Prob')}
             </button>
             <button
               className={`filter-chip ${filterChip === 'hard' ? 'active' : ''}`}
               onClick={() => setFilterChip(prev => prev === 'hard' ? 'all' : 'hard')}
             >
-              🟦 Hard
+              {t('app.filterHard', '🟦 Hard')}
             </button>
             <button
               className={`filter-chip ${filterChip === 'clay' ? 'active' : ''}`}
               onClick={() => setFilterChip(prev => prev === 'clay' ? 'all' : 'clay')}
             >
-              🧱 Clay
+              {t('app.filterClay', '🧱 Clay')}
             </button>
           </div>
 
@@ -966,13 +977,13 @@ export function App() {
                 className={`nav-tab ${activeTab === 'active' ? 'active' : ''}`}
                 onClick={() => setActiveTab('active')}
               >
-                🔥 Active ({activePredictions.length})
+                {t('app.tabActive', '🔥 Active')} ({activePredictions.length})
               </button>
               <button
                 className={`nav-tab ${activeTab === 'history' ? 'active' : ''}`}
                 onClick={() => setActiveTab('history')}
               >
-                📊 History ({historyPredictions.length})
+                {t('app.tabHistory', '📊 History')} ({historyPredictions.length})
               </button>
             </div>
 
@@ -980,7 +991,7 @@ export function App() {
               onClick={() => loadData()}
               disabled={loading}
               className="btn-refresh"
-              title="Refresh Predictions"
+              title={t('app.refresh', 'Refresh Predictions')}
             >
               <RefreshCw size={17} className={loading ? 'spin' : ''} />
             </button>
@@ -988,9 +999,9 @@ export function App() {
             <button
               onClick={() => setShowReferralModal(true)}
               className={`btn-vip-badge ${accessMode === 'FREE' || effectiveVerified ? 'vip-active' : 'vip-locked'}`}
-              title="Member Access & Full Dossiers"
+              title={t('app.memberAccess', 'Member Access & Full Dossiers')}
             >
-              <Key size={13} /> {accessMode === 'FREE' ? 'OPEN ACCESS 🔓' : effectiveVerified ? 'MEMBER ✓' : 'FULL ACCESS 🔓'}
+              <Key size={13} /> {accessMode === 'FREE' ? t('app.openAccess', 'OPEN ACCESS 🔓') : effectiveVerified ? t('app.memberVerified', 'MEMBER ✓') : t('app.fullAccess', 'FULL ACCESS 🔓')}
             </button>
           </div>
 
@@ -998,7 +1009,7 @@ export function App() {
           {loading ? (
             <div className="loading-state">
               <Trophy size={42} className="loading-icon" />
-              <div className="loading-text">Loading AI Predictions & Analysis...</div>
+              <div className="loading-text">{t('app.loading', 'Loading AI Predictions & Analysis...')}</div>
             </div>
           ) : activeTab === 'history' ? (
             <HistoryTimelineView
@@ -1065,7 +1076,7 @@ export function App() {
                         tomorrowSeparatorShown = true;
                         rows.push(
                           <div key={`sep-tmr-${tournKey}-${idx}`} className="date-separator-row">
-                            <span className="date-separator-label">Tomorrow</span>
+                            <span className="date-separator-label">{t('app.tabs.tomorrow', 'Tomorrow')}</span>
                           </div>
                         );
                       }
@@ -1097,10 +1108,10 @@ export function App() {
             <div className="glass empty-state-box">
               <Flame size={44} className="empty-icon" />
               <h3 className="empty-title">
-                {searchQuery || dateFilter !== 'all' ? 'No matching matches found' : activeTab === 'active' ? 'No Active Matches Right Now' : 'No Settled History Yet'}
+                {searchQuery || dateFilter !== 'all' ? t('app.noMatchesFound', 'No matching matches found') : activeTab === 'active' ? t('app.noActiveMatches', 'No Active Matches Right Now') : t('app.noSettledMatches', 'No Settled History Yet')}
               </h3>
               <p className="empty-desc">
-                {searchQuery || dateFilter !== 'all' ? 'Try changing your date filter or search terms.' : 'Check back soon for new ATP/WTA match analyses.'}
+                {searchQuery || dateFilter !== 'all' ? t('app.tryChangingFilters', 'Try changing your date filter or search terms.') : t('app.checkBackSoon', 'Check back soon for new ATP/WTA match analyses.')}
               </p>
             </div>
           )}

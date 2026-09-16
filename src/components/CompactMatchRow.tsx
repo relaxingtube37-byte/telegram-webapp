@@ -16,6 +16,7 @@ import {
 import { buildPartnerWatchUrl, openExternalLink, shouldShowWatchLive } from '../utils/referralLinks';
 import { PlayerAvatar } from './PlayerAvatar';
 import { getPlayerImageUrl } from '../utils/playerImage';
+import { useTranslation } from '../i18n';
 
 export interface CompactMatchRowProps {
   prediction: Prediction;
@@ -43,6 +44,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
   trackingId = 'anonymous',
   canWatchLive = true,
 }) => {
+  const { t } = useTranslation();
   const matchGender = getMatchGender(
     prediction.tournament_name,
     prediction.round_name,
@@ -92,7 +94,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       return (
         <span className="tennis-status-badge badge-won">
           <CheckCircle2 size={11} />
-          <span>WON</span>
+          <span>{t('matchRow.status.won', 'WON')}</span>
         </span>
       );
     }
@@ -100,7 +102,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       return (
         <span className="tennis-status-badge badge-lost">
           <XCircle size={11} />
-          <span>LOST</span>
+          <span>{t('matchRow.status.lost', 'LOST')}</span>
         </span>
       );
     }
@@ -108,7 +110,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       return (
         <span className="tennis-status-badge badge-live">
           <span className="live-dot-pulse" />
-          <span>LIVE</span>
+          <span>{t('matchRow.status.live', 'LIVE')}</span>
         </span>
       );
     }
@@ -116,7 +118,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       return (
         <span className="tennis-status-badge badge-interrupted" title="Match Interrupted / Rain Delay">
           <PauseCircle size={11} />
-          <span>PAUSED</span>
+          <span>{t('matchRow.status.paused', 'PAUSED')}</span>
         </span>
       );
     }
@@ -124,17 +126,17 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
       return (
         <span className="tennis-status-badge badge-postponed" title="Match Postponed">
           <Clock size={10} className="status-clock-icon" />
-          <span>POSTP.</span>
+          <span>{t('matchRow.status.postponed', 'POSTP.')}</span>
         </span>
       );
     }
     if (effectiveStatus === 'VOID') {
-      return <span className="tennis-status-badge badge-void">VOID</span>;
+      return <span className="tennis-status-badge badge-void">{t('matchRow.status.void', 'VOID')}</span>;
     }
     return (
       <span className="tennis-status-badge badge-upcoming" title={matchTimeStr !== '--:--' ? `Time: ${matchTimeStr}` : 'Upcoming Match'}>
         <Clock size={10} className="status-clock-icon" />
-        <span className="match-time-text">{matchTimeStr}</span>
+        <span className="match-time-text">{matchTimeStr !== '--:--' ? matchTimeStr : t('matchRow.status.upcoming', 'Upcoming')}</span>
       </span>
     );
   };
@@ -186,7 +188,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               }}
             >
               <Tv size={11} />
-              <span>Live</span>
+              <span>{t('matchRow.liveStream', 'Live')}</span>
             </button>
           )}
 
@@ -200,7 +202,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               }}
             >
               <Lock size={10} />
-              <span>VIP</span>
+              <span>{t('matchRow.vipBadge', 'VIP')}</span>
             </span>
           ) : winProb ? (
             <span className="mobile-winprob-indicator" title={`AI Model Win Probability: ${winProb}%`}>
@@ -278,13 +280,13 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
           {/* Micro Headers: SET, GM, PTS */}
           {isLive && parsedScore ? (
             <div className="score-col-headers">
-              <span className="score-header-label">SET</span>
-              <span className="score-header-label">GM</span>
-              <span className="score-header-label">PTS</span>
+              <span className="score-header-label">{t('matchRow.table.set', 'SET')}</span>
+              <span className="score-header-label">{t('matchRow.table.game', 'GM')}</span>
+              <span className="score-header-label">{t('matchRow.table.pts', 'PTS')}</span>
             </div>
           ) : isFinished && parsedScore && parsedScore.homeSets !== undefined ? (
             <div className="score-col-headers single-col">
-              <span className="score-header-label">SET</span>
+              <span className="score-header-label">{t('matchRow.table.set', 'SET')}</span>
             </div>
           ) : null}
 
@@ -370,10 +372,10 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             >
               <div className="ai-pred-headline">
                 <span className="ai-pred-label" style={{ color: '#fbbf24' }}>
-                  <Lock size={9} className="ai-sparkle-icon" /> VIP Pick
+                  <Lock size={9} className="ai-sparkle-icon" /> {t('matchRow.vipPick', 'VIP Pick')}
                 </span>
                 <span className="ai-prob-pct" style={{ fontSize: '0.64rem', color: 'var(--text-secondary)' }}>
-                  🔒 Locked
+                  🔒 {t('matchRow.locked', 'Locked')}
                 </span>
               </div>
 
@@ -387,7 +389,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
               <div className="ai-meta-subrow">
                 <span className="ai-winner-name compact-winner-name ai-unlock-cta" style={{ color: '#fbbf24', fontSize: '0.62rem', fontWeight: 700 }}>
-                  Unlock Analysis ➔
+                  {t('matchRow.unlockAnalysis', 'Unlock Analysis ➔')}
                 </span>
               </div>
             </div>
@@ -395,7 +397,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
             <>
               <div className="ai-pred-headline">
                 <span className="ai-pred-label">
-                  <Sparkles size={10} className="ai-sparkle-icon" /> AI Forecast
+                  <Sparkles size={10} className="ai-sparkle-icon" /> {t('matchRow.aiForecast', 'AI Forecast')}
                 </span>
                 <span className="ai-prob-pct">{winProb}%</span>
               </div>
@@ -410,7 +412,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
 
               <div className="ai-meta-subrow">
                 <span className="ai-winner-name compact-winner-name truncate-text">
-                  {prediction.predicted_winner ? formatPlayerDisplayName(prediction.predicted_winner) : 'Pick'}
+                  {prediction.predicted_winner ? formatPlayerDisplayName(prediction.predicted_winner) : t('matchRow.pick', 'Pick')}
                 </span>
                 {prediction.confidence && (
                   <span className="ai-conf-chip">★ {prediction.confidence}</span>
@@ -435,7 +437,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               }}
             >
               <Tv size={11} />
-              <span className="hide-on-mobile">Live</span>
+              <span className="hide-on-mobile">{t('matchRow.liveStream', 'Live')}</span>
             </button>
           )}
 
@@ -450,7 +452,7 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
               }}
             >
               <Lock size={10} />
-              <span>VIP</span>
+              <span>{t('matchRow.vipBadge', 'VIP')}</span>
             </span>
           ) : winProb ? (
             <span className="mobile-winprob-indicator" title={`AI Model Win Probability: ${winProb}%`}>

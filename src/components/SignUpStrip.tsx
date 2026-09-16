@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, CheckCircle, ChevronRight, Gift, ArrowRight, UserCheck } from 'lucide-react';
 import type { ReferralSite } from '../types';
 import { buildGoReferralUrl, openExternalLink } from '../utils/referralLinks';
+import { useTranslation } from '../i18n';
 
 interface SignUpStripProps {
   isVerified: boolean;
@@ -28,13 +29,15 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
   isLoggedIn = false,
   userName,
 }) => {
+  const { t } = useTranslation();
+
   if (accessMode === 'FREE') {
     return (
       <div className="signup-strip-container strip-free-mode">
         <div className="signup-strip-content">
           <Sparkles size={16} color="#4ade80" />
           <span className="strip-title-text">
-            <strong>Open Access Mode Active:</strong> All specialist AI match analyses &amp; tactical dossiers are free to explore.
+            <strong>{t('signUpStrip.openAccessActive', 'Open Access Mode Active:')}</strong> {t('signUpStrip.openAccessDesc', 'All specialist AI match analyses & tactical dossiers are free to explore.')}
           </span>
         </div>
       </div>
@@ -47,10 +50,10 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
         <div className="signup-strip-content">
           <CheckCircle size={16} color="#4ade80" />
           <span className="strip-title-text">
-            <strong>Pro Member Access Active:</strong> Full match predictions, simulation models &amp; live stream access unlocked.
+            <strong>{t('signUpStrip.memberActive', 'Pro Member Access Active:')}</strong> {t('signUpStrip.memberActiveDesc', 'Full match predictions, simulation models & live stream access unlocked.')}
           </span>
         </div>
-        <span className="strip-vip-pill">VERIFIED ✓</span>
+        <span className="strip-vip-pill">{t('signUpStrip.verified', 'VERIFIED ✓')}</span>
       </div>
     );
   }
@@ -91,21 +94,21 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
           <div className="strip-text-box">
             <div className="strip-badge-row">
               <span className="strip-badge-gold">
-                <Sparkles size={11} /> {effectiveLoggedIn ? 'STEP 2: 1WIN ACTIVATION' : 'PRO MEMBER ACCESS'}
+                <Sparkles size={11} /> {effectiveLoggedIn ? t('signUpStrip.step2Activation', 'STEP 2: 1WIN ACTIVATION') : t('signUpStrip.proMemberAccess', 'PRO MEMBER ACCESS')}
               </span>
               <span className={effectiveLoggedIn ? 'strip-badge-green' : 'strip-badge-blue'}>
-                {effectiveLoggedIn ? `✓ ${userName || 'Connected'}` : '100% Free Access'}
+                {effectiveLoggedIn ? `✓ ${userName || t('signUpStrip.connected', 'Connected')}` : t('sideBanner.freeAccess', '100% Free Access')}
               </span>
             </div>
             <h4 className="strip-headline">
               {effectiveLoggedIn
-                ? 'Step 2: Activate 1WIN Partner to Unlock All Match Intelligence'
-                : 'Unlock Pro Predictions: 1. Sign In ➔ 2. Activate 1WIN Partner'}
+                ? t('signUpStrip.step2Headline', 'Step 2: Activate 1WIN Partner to Unlock All Match Intelligence')
+                : t('signUpStrip.step1Headline', 'Unlock Pro Predictions: 1. Sign In ➔ 2. Activate 1WIN Partner')}
             </h4>
             <p className="strip-subtext">
               {effectiveLoggedIn
-                ? 'Register with 1WIN to claim your 500% welcome bonus and permanently unlock all AI predictions.'
-                : 'Connect your account in 1 click, then complete 1WIN partner activation to get full VIP access.'}
+                ? t('signUpStrip.step2Subtext', 'Register with 1WIN to claim your 500% welcome bonus and permanently unlock all AI predictions.')
+                : t('signUpStrip.step1Subtext', 'Connect your account in 1 click, then complete 1WIN partner activation to get full VIP access.')}
             </p>
           </div>
         </div>
@@ -113,12 +116,12 @@ export const SignUpStrip: React.FC<SignUpStripProps> = ({
           {effectiveLoggedIn ? (
             <button onClick={handleStep2Click} className="strip-cta-btn btn-step2 pulse-glow" id="strip-step2-cta-btn">
               <Gift size={15} />
-              <span>Activate 1WIN (+500% Bonus)</span>
+              <span>{t('signUpStrip.activateBtn', 'Activate 1WIN (+500% Bonus)')}</span>
             </button>
           ) : (
             <button onClick={() => onOpenModal(1)} className="strip-cta-btn btn-step1 pulse-glow" id="strip-step1-cta-btn">
               <Sparkles size={15} />
-              <span>Unlock Pro Access (Free)</span>
+              <span>{t('signUpStrip.unlockBtn', 'Unlock Pro Access (Free)')}</span>
             </button>
           )}
         </div>

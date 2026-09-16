@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart3, Lock, Activity } from 'lucide-react';
 import type { DeepAnalyticsTeaser } from '../types';
+import { useTranslation } from '../i18n';
 
 interface DeepAnalyticsPanelProps {
   apiBase: string;
@@ -36,6 +37,7 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
   canSeeStats,
   onUnlockClick,
 }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [report, setReport] = useState<DeepAnalyticsTeaser | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
   if (loading) {
     return (
       <div className="glass" style={{ padding: '1rem', borderRadius: 12, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-        Loading match statistics…
+        {t('deepAnalytics.loading', 'Loading match statistics…')}
       </div>
     );
   }
@@ -86,7 +88,7 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
   if (error) {
     return (
       <div className="glass" style={{ padding: '1rem', borderRadius: 12, color: '#fca5a5', fontSize: '0.85rem' }}>
-        Stats unavailable: {error}
+        {t('deepAnalytics.statsUnavailable', 'Stats unavailable:')} {error}
       </div>
     );
   }
@@ -101,7 +103,7 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-        <BarChart3 size={16} /> Match Data & Form
+        <BarChart3 size={16} /> {t('deepAnalytics.title', 'Match Data & Form')}
       </div>
 
       <div className="glass" style={{ padding: '1rem', borderRadius: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
@@ -111,22 +113,22 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
             {f.last5WinRatePct != null && f.matchesEvaluated !== 0 ? (
               <>
                 <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                  Last 5: <strong style={{ color: 'white' }}>{f.last5WinRatePct}%</strong>
+                  {t('deepAnalytics.last5', 'Last 5:')} <strong style={{ color: 'white' }}>{f.last5WinRatePct}%</strong>
                 </div>
                 {f.currentStreak && f.currentStreak !== 'N/A' && (
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Streak: <strong style={{ color: 'white' }}>{f.currentStreak}</strong>
+                    {t('deepAnalytics.streak', 'Streak:')} <strong style={{ color: 'white' }}>{f.currentStreak}</strong>
                   </div>
                 )}
                 {!locked && f.last10WinRatePct != null && (
                   <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Last 10: <strong style={{ color: 'white' }}>{f.last10WinRatePct}%</strong>
+                    {t('deepAnalytics.last10', 'Last 10:')} <strong style={{ color: 'white' }}>{f.last10WinRatePct}%</strong>
                   </div>
                 )}
               </>
             ) : (
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                No recent tour form
+                {t('deepAnalytics.noRecentForm', 'No recent tour form')}
               </div>
             )}
           </div>
@@ -138,11 +140,11 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
           <Activity size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
           {h2h.totalPreMatchEncounters > 0 ? (
             <>
-              H2H: <strong style={{ color: 'white' }}>{h2h.p1Wins}-{h2h.p2Wins}</strong>
-              {' '}({h2h.totalPreMatchEncounters} meetings)
+              {t('deepAnalytics.h2h', 'H2H:')} <strong style={{ color: 'white' }}>{h2h.p1Wins}-{h2h.p2Wins}</strong>
+              {' '}({h2h.totalPreMatchEncounters} {t('deepAnalytics.meetings', 'meetings')})
             </>
           ) : (
-            <span style={{ color: '#38bdf8', fontWeight: 700 }}>First career tour meeting</span>
+            <span style={{ color: '#38bdf8', fontWeight: 700 }}>{t('deepAnalytics.firstMeeting', 'First career tour meeting')}</span>
           )}
         </div>
       )}
@@ -158,13 +160,13 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
           }}
         >
           <Lock size={20} color="#fbbf24" style={{ marginBottom: 8 }} />
-          <div style={{ fontWeight: 800, color: 'white', marginBottom: 6 }}>Deep stats locked</div>
+          <div style={{ fontWeight: 800, color: 'white', marginBottom: 6 }}>{t('deepAnalytics.lockedTitle', 'Deep stats locked')}</div>
           <p style={{ margin: '0 0 0.8rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-            Surface mastery, fatigue, clutch metrics and full H2H unlock after registration.
+            {t('deepAnalytics.lockedDesc', 'Surface mastery, fatigue, clutch metrics and full H2H unlock after registration.')}
           </p>
           {onUnlockClick && (
             <button type="button" className="btn-primary" onClick={onUnlockClick} style={{ padding: '0.55rem 1.2rem', fontWeight: 800 }}>
-              Unlock full analysis
+              {t('deepAnalytics.unlockBtn', 'Unlock full analysis')}
             </button>
           )}
         </div>
@@ -179,7 +181,7 @@ export const DeepAnalyticsPanel: React.FC<DeepAnalyticsPanelProps> = ({
                   </div>
                   {s.winRatePct != null && (s.holdRatePct != null || s.breakRatePct != null) ? (
                     <div style={{ color: 'var(--text-secondary)' }}>
-                      Win {s.winRatePct}% · Hold {s.holdRatePct != null ? `${s.holdRatePct}%` : '—'} · Break {s.breakRatePct != null ? `${s.breakRatePct}%` : '—'}
+                      {t('deepAnalytics.win', 'Win')} {s.winRatePct}% · {t('deepAnalytics.hold', 'Hold')} {s.holdRatePct != null ? `${s.holdRatePct}%` : '—'} · {t('deepAnalytics.break', 'Break')} {s.breakRatePct != null ? `${s.breakRatePct}%` : '—'}
                     </div>
                   ) : (
                     <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', fontSize: '0.75rem' }}>

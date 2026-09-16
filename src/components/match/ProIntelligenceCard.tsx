@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { ProIntelligencePayload, IPlayerTelemetryCard, IMetricNode } from '../../types';
 import { Sparkles, Shield, Zap, BatteryCharging, HeartHandshake, Activity, Award } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 interface ProIntelligenceCardProps {
   intel: ProIntelligencePayload;
@@ -27,6 +28,19 @@ const RESEARCH_RADAR_AXES: { key: string; label: string; group: 'SERVE' | 'RETUR
   { key: 'return_2nd_pts_won', label: 'Return 2nd Pts %', group: 'RETURN' },
   { key: 'bps_converted', label: 'BPs Converted %', group: 'RETURN' },
 ];
+
+const AXIS_I18N_MAP: Record<string, string> = {
+  hold_rate: 'proIntelligence.axes.holdRate',
+  first_serve_pts_won: 'proIntelligence.axes.firstServePtsWon',
+  first_serve_accuracy: 'proIntelligence.axes.firstServeAccuracy',
+  second_serve_pts_won: 'proIntelligence.axes.secondServePtsWon',
+  bps_saved: 'proIntelligence.axes.bpsSaved',
+  tiebreaks_won: 'proIntelligence.axes.tiebreaksWon',
+  break_rate: 'proIntelligence.axes.breakRate',
+  return_1st_pts_won: 'proIntelligence.axes.return1stPtsWon',
+  return_2nd_pts_won: 'proIntelligence.axes.return2ndPtsWon',
+  bps_converted: 'proIntelligence.axes.bpsConverted',
+};
 
 function getPlayerLastName(fullName?: string, fallbackName?: string): string {
   const target = (fallbackName || fullName || '').trim();
@@ -85,6 +99,7 @@ interface DualBarItem {
 }
 
 function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: { item: DualBarItem; p1Color?: string; p2Color?: string }) {
+  const { t } = useTranslation();
   const p1Leads = item.r1 >= item.r2;
   const p2Leads = item.r2 >= item.r1;
 
@@ -110,7 +125,7 @@ function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: 
             padding: '1px 5px',
             borderRadius: '4px',
             border: p1Leads ? '1px solid rgba(6, 182, 212, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
-          }} title="Tour Normalization Rating (40-100)">
+          }} title={t('proIntelligence.tourRating', 'Tour Normalization Rating (40-100)')}>
             {item.r1}
           </span>
         </div>
@@ -138,7 +153,7 @@ function SymmetricalDualBar({ item, p1Color = '#38bdf8', p2Color = '#fb7185' }: 
             padding: '1px 5px',
             borderRadius: '4px',
             border: p2Leads ? '1px solid rgba(244, 63, 94, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
-          }} title="Tour Normalization Rating (40-100)">
+          }} title={t('proIntelligence.tourRating', 'Tour Normalization Rating (40-100)')}>
             {item.r2}
           </span>
           <span style={{
@@ -231,6 +246,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   isLocked = false,
   onUnlockClick,
 }) => {
+  const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<'both' | 'p1' | 'p2'>('both');
   const [hoveredAxisIdx, setHoveredAxisIdx] = useState<number | null>(null);
 
@@ -376,7 +392,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   // Serve & Return Dual Bar Lists
   const serveItems: DualBarItem[] = [
     {
-      label: 'Service Games (Hold %)',
+      label: t('proIntelligence.axes.holdRate', 'Service Games (Hold %)'),
       r1: getNode(p1, 'hold_rate').rating_score,
       r2: getNode(p2, 'hold_rate').rating_score,
       v1: getNode(p1, 'hold_rate').display_string,
@@ -385,7 +401,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'hold_rate').tour_delta_string,
     },
     {
-      label: '1st Serve Pts Won %',
+      label: t('proIntelligence.axes.firstServePtsWon', '1st Serve Pts Won %'),
       r1: getNode(p1, 'first_serve_pts_won').rating_score,
       r2: getNode(p2, 'first_serve_pts_won').rating_score,
       v1: getNode(p1, 'first_serve_pts_won').display_string,
@@ -394,7 +410,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'first_serve_pts_won').tour_delta_string,
     },
     {
-      label: '1st Serve Accuracy %',
+      label: t('proIntelligence.axes.firstServeAccuracy', '1st Serve Accuracy %'),
       r1: getNode(p1, 'first_serve_accuracy').rating_score,
       r2: getNode(p2, 'first_serve_accuracy').rating_score,
       v1: getNode(p1, 'first_serve_accuracy').display_string,
@@ -403,7 +419,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'first_serve_accuracy').tour_delta_string,
     },
     {
-      label: '2nd Serve Pts Won %',
+      label: t('proIntelligence.axes.secondServePtsWon', '2nd Serve Pts Won %'),
       r1: getNode(p1, 'second_serve_pts_won').rating_score,
       r2: getNode(p2, 'second_serve_pts_won').rating_score,
       v1: getNode(p1, 'second_serve_pts_won').display_string,
@@ -412,7 +428,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'second_serve_pts_won').tour_delta_string,
     },
     {
-      label: 'Break Points Saved %',
+      label: t('proIntelligence.axes.bpsSaved', 'Break Points Saved %'),
       r1: getNode(p1, 'bps_saved').rating_score,
       r2: getNode(p2, 'bps_saved').rating_score,
       v1: getNode(p1, 'bps_saved').display_string,
@@ -424,7 +440,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
 
   const returnItems: DualBarItem[] = [
     {
-      label: 'Return Games (Break %)',
+      label: t('proIntelligence.axes.breakRate', 'Return Games (Break %)'),
       r1: getNode(p1, 'break_rate').rating_score,
       r2: getNode(p2, 'break_rate').rating_score,
       v1: getNode(p1, 'break_rate').display_string,
@@ -433,7 +449,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'break_rate').tour_delta_string,
     },
     {
-      label: 'Return 1st Pts Won %',
+      label: t('proIntelligence.axes.return1stPtsWon', 'Return 1st Pts Won %'),
       r1: getNode(p1, 'return_1st_pts_won').rating_score,
       r2: getNode(p2, 'return_1st_pts_won').rating_score,
       v1: getNode(p1, 'return_1st_pts_won').display_string,
@@ -442,7 +458,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'return_1st_pts_won').tour_delta_string,
     },
     {
-      label: 'Return 2nd Pts Won %',
+      label: t('proIntelligence.axes.return2ndPtsWon', 'Return 2nd Pts Won %'),
       r1: getNode(p1, 'return_2nd_pts_won').rating_score,
       r2: getNode(p2, 'return_2nd_pts_won').rating_score,
       v1: getNode(p1, 'return_2nd_pts_won').display_string,
@@ -451,7 +467,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'return_2nd_pts_won').tour_delta_string,
     },
     {
-      label: 'Break Points Converted %',
+      label: t('proIntelligence.axes.bpsConverted', 'Break Points Converted %'),
       r1: getNode(p1, 'bps_converted').rating_score,
       r2: getNode(p2, 'bps_converted').rating_score,
       v1: getNode(p1, 'bps_converted').display_string,
@@ -460,7 +476,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
       d2: getNode(p2, 'bps_converted').tour_delta_string,
     },
     {
-      label: 'Tiebreaks Won % (Bayes Adj.)',
+      label: t('proIntelligence.axes.tiebreaksWon', 'Tiebreaks Won % (Bayes Adj.)'),
       r1: getNode(p1, 'tiebreaks_won').rating_score,
       r2: getNode(p2, 'tiebreaks_won').rating_score,
       v1: getNode(p1, 'tiebreaks_won').display_string,
@@ -508,6 +524,42 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   const p1Overall = p1.composites?.overall_rating || calcLegacyOverall(p1);
   const p2Overall = p2.composites?.overall_rating || calcLegacyOverall(p2);
 
+  const getReadinessLabel = (rawStatus?: string): string => {
+    if (!rawStatus) return '';
+    const norm = rawStatus.toUpperCase().replace(/\s+/g, '_');
+    switch (norm) {
+      case 'PEAK_READINESS':
+        return t('proIntelligence.readiness.peakReadiness', 'PEAK READINESS');
+      case 'OPTIMAL':
+        return t('proIntelligence.readiness.optimal', 'OPTIMAL');
+      case 'MODERATE_LOAD':
+        return t('proIntelligence.readiness.moderateLoad', 'MODERATE LOAD');
+      case 'HIGH_FATIGUE':
+        return t('proIntelligence.readiness.highFatigue', 'HIGH FATIGUE');
+      case 'FRESH':
+        return t('analyticsGrid.fresh', 'Fresh');
+      default:
+        return rawStatus.replace(/_/g, ' ');
+    }
+  };
+
+  const getMentalVerdict = (rawVerdict?: string): string => {
+    if (!rawVerdict) return '';
+    const norm = rawVerdict.toUpperCase().replace(/\s+/g, '_');
+    switch (norm) {
+      case 'ELITE_CLUTCH':
+        return t('proIntelligence.mental.eliteClutch', 'ELITE CLUTCH');
+      case 'RESOLUTE':
+        return t('proIntelligence.mental.resolute', 'RESOLUTE');
+      case 'STEADY':
+        return t('proIntelligence.mental.steady', 'STEADY');
+      case 'VULNERABLE':
+        return t('proIntelligence.mental.vulnerable', 'VULNERABLE');
+      default:
+        return rawVerdict.replace(/_/g, ' ');
+    }
+  };
+
   return (
     <div className="glass" style={{
       padding: '1.25rem',
@@ -544,13 +596,13 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
           </div>
           <div>
             <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#fff', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>{tourName} TOUR SKILLS &amp; PERFORMANCE RADAR</span>
+              <span>{tourName} {t('proIntelligence.tourSkillsRadar', 'TOUR SKILLS & PERFORMANCE RADAR')}</span>
               <span style={{ fontSize: '0.65rem', background: 'rgba(6, 182, 212, 0.2)', color: '#38bdf8', padding: '2px 7px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)' }}>
                 {surfaceName}
               </span>
             </div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-              10-Axis Decagon Spider Radar · 52-Week EWMA (90d Half-Life) &amp; Empirical Bayes Normalization
+              {t('proIntelligence.radarSubtitle', '10-Axis Decagon Spider Radar · 52-Week EWMA (90d Half-Life) & Empirical Bayes Normalization')}
             </div>
           </div>
         </div>
@@ -572,7 +624,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               transition: 'all 0.2s ease',
             }}
           >
-            H2H Overlay
+            {t('proIntelligence.h2hOverlay', 'H2H Overlay')}
           </button>
           <button
             type="button"
@@ -644,9 +696,9 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
           textAlign: 'center',
         }}>
           {h2hSummary && h2hSummary.total > 0 ? (
-            <span>H2H: <strong style={{ color: '#fff' }}>{h2hSummary.p1Wins} - {h2hSummary.p2Wins}</strong></span>
+            <span>{t('deepAnalytics.h2h', 'H2H:')} <strong style={{ color: '#fff' }}>{h2hSummary.p1Wins} - {h2hSummary.p2Wins}</strong></span>
           ) : (
-            <span style={{ color: '#38bdf8' }}>Tour Skills Clash</span>
+            <span style={{ color: '#38bdf8' }}>{t('proIntelligence.tourSkillsClash', 'Tour Skills Clash')}</span>
           )}
         </div>
 
@@ -795,7 +847,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                       textShadow: '0 2px 4px rgba(0, 0, 0, 0.9)',
                     }}
                   >
-                    {axis.label}
+                    {t(AXIS_I18N_MAP[axis.key] || '', axis.label)}
                   </text>
                 </g>
               );
@@ -819,7 +871,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               gap: '12px',
               alignItems: 'center',
             }}>
-              <span style={{ fontWeight: 800, color: '#38bdf8' }}>{RESEARCH_RADAR_AXES[hoveredAxisIdx].label}:</span>
+              <span style={{ fontWeight: 800, color: '#38bdf8' }}>{t(AXIS_I18N_MAP[RESEARCH_RADAR_AXES[hoveredAxisIdx].key] || '', RESEARCH_RADAR_AXES[hoveredAxisIdx].label)}:</span>
               <span>{p1Short}: <strong>{getNode(p1, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).display_string}</strong> ({getNode(p1, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).tour_delta_string})</span>
               <span>{p2Short}: <strong>{getNode(p2, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).display_string}</strong> ({getNode(p2, RESEARCH_RADAR_AXES[hoveredAxisIdx].key).tour_delta_string})</span>
             </div>
@@ -855,7 +907,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#38bdf8' }}>{p1Short}</span>
               </div>
               <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Zap size={13} /> Serve Mastery (5 Pillars)
+                <Zap size={13} /> {t('proIntelligence.serveMastery', 'Serve Mastery (5 Pillars)')}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#fb7185' }}>{p2Short}</span>
@@ -884,7 +936,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#38bdf8' }}>{p1Short}</span>
               </div>
               <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Shield size={13} /> Return &amp; Pressure (5 Pillars)
+                <Shield size={13} /> {t('proIntelligence.returnMastery', 'Return & Pressure (5 Pillars)')}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#fb7185' }}>{p2Short}</span>
@@ -906,24 +958,24 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
             border: '1px solid rgba(234, 179, 8, 0.25)',
           }}>
             <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#facc15', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <Activity size={14} /> Macroeconomic Composites: Dominance Ratio &amp; Total Synergy
+              <Activity size={14} /> {t('proIntelligence.macroComposites', 'Macroeconomic Composites: Dominance Ratio & Total Synergy')}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
               {/* Player 1 */}
               <div style={{ background: 'rgba(6, 182, 212, 0.06)', padding: '0.75rem 0.85rem', borderRadius: '10px', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#38bdf8' }}>{p1Short}</span>
-                  <span style={{ fontSize: '0.65rem', background: 'rgba(6, 182, 212, 0.2)', color: '#38bdf8', padding: '1px 5px', borderRadius: 3, fontWeight: 900 }}>Master {p1Overall}</span>
+                  <span style={{ fontSize: '0.65rem', background: 'rgba(6, 182, 212, 0.2)', color: '#38bdf8', padding: '1px 5px', borderRadius: 3, fontWeight: 900 }}>{t('proIntelligence.master', 'Master')} {p1Overall}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Dominance Ratio (DR)</span>
+                  <span>{t('proIntelligence.dominanceRatio', 'Dominance Ratio (DR)')}</span>
                   <strong style={{ color: '#fff' }}>{p1Dr.display_string} ({p1Dr.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, marginBottom: '8px', overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min(100, p1Dr.rating_score)}%`, height: '100%', background: '#06b6d4', borderRadius: 2 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Total Synergy (TSI)</span>
+                  <span>{t('proIntelligence.totalSynergy', 'Total Synergy (TSI)')}</span>
                   <strong style={{ color: '#fff' }}>{p1Tsi.display_string} ({p1Tsi.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, overflow: 'hidden' }}>
@@ -935,17 +987,17 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               <div style={{ background: 'rgba(244, 63, 94, 0.06)', padding: '0.75rem 0.85rem', borderRadius: '10px', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#fb7185' }}>{p2Short}</span>
-                  <span style={{ fontSize: '0.65rem', background: 'rgba(244, 63, 94, 0.2)', color: '#fb7185', padding: '1px 5px', borderRadius: 3, fontWeight: 900 }}>Master {p2Overall}</span>
+                  <span style={{ fontSize: '0.65rem', background: 'rgba(244, 63, 94, 0.2)', color: '#fb7185', padding: '1px 5px', borderRadius: 3, fontWeight: 900 }}>{t('proIntelligence.master', 'Master')} {p2Overall}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Dominance Ratio (DR)</span>
+                  <span>{t('proIntelligence.dominanceRatio', 'Dominance Ratio (DR)')}</span>
                   <strong style={{ color: '#fff' }}>{p2Dr.display_string} ({p2Dr.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, marginBottom: '8px', overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min(100, p2Dr.rating_score)}%`, height: '100%', background: '#f43f5e', borderRadius: 2 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-secondary)', marginBottom: '3px' }}>
-                  <span>Total Synergy (TSI)</span>
+                  <span>{t('proIntelligence.totalSynergy', 'Total Synergy (TSI)')}</span>
                   <strong style={{ color: '#fff' }}>{p2Tsi.display_string} ({p2Tsi.rating_score})</strong>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, overflow: 'hidden' }}>
@@ -978,7 +1030,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#38bdf8' }}>{p1FullName}</span>
-            <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8', fontWeight: 800 }}>PLAYER 1</span>
+            <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8', fontWeight: 800 }}>{t('proIntelligence.player1', 'PLAYER 1')}</span>
           </div>
 
           {p1.readiness && (
@@ -986,13 +1038,13 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               <BatteryCharging size={18} color="#22c55e" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#22c55e' }}>{p1.readiness.statusLabel} ({p1.readiness.energyScore}%)</span>
+                  <span style={{ color: '#22c55e' }}>{getReadinessLabel(p1.readiness.statusLabel)} ({p1.readiness.energyScore}%)</span>
                 </div>
                 <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${p1.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  Rest Window: {p1.readiness.restLabel}
+                  {t('proIntelligence.restWindow', 'Rest Window')}: {p1.readiness.restLabel}
                 </div>
               </div>
             </div>
@@ -1003,10 +1055,10 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               <HeartHandshake size={18} color="#06b6d4" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#38bdf8' }}>{p1.mental.verdict}</span>
+                  <span style={{ color: '#38bdf8' }}>{getMentalVerdict(p1.mental.verdict)}</span>
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  1st Set Lead Win: {p1.mental.frontRunnerWinPct} · Comeback Rate: {p1.mental.comebackRatePct}
+                  {t('proIntelligence.firstSetLeadWin', '1st Set Lead Win')}: {p1.mental.frontRunnerWinPct} · {t('proIntelligence.comebackRate', 'Comeback Rate')}: {p1.mental.comebackRatePct}
                 </div>
               </div>
             </div>
@@ -1025,7 +1077,7 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#fb7185' }}>{p2FullName}</span>
-            <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185', fontWeight: 800 }}>PLAYER 2</span>
+            <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185', fontWeight: 800 }}>{t('proIntelligence.player2', 'PLAYER 2')}</span>
           </div>
 
           {p2.readiness && (
@@ -1033,13 +1085,13 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               <BatteryCharging size={18} color="#22c55e" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#22c55e' }}>{p2.readiness.statusLabel} ({p2.readiness.energyScore}%)</span>
+                  <span style={{ color: '#22c55e' }}>{getReadinessLabel(p2.readiness.statusLabel)} ({p2.readiness.energyScore}%)</span>
                 </div>
                 <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${p2.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  Rest Window: {p2.readiness.restLabel}
+                  {t('proIntelligence.restWindow', 'Rest Window')}: {p2.readiness.restLabel}
                 </div>
               </div>
             </div>
@@ -1050,10 +1102,10 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
               <HeartHandshake size={18} color="#f43f5e" />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#f472b6' }}>{p2.mental.verdict}</span>
+                  <span style={{ color: '#f472b6' }}>{getMentalVerdict(p2.mental.verdict)}</span>
                 </div>
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  1st Set Lead Win: {p2.mental.frontRunnerWinPct} · Comeback Rate: {p2.mental.comebackRatePct}
+                  {t('proIntelligence.firstSetLeadWin', '1st Set Lead Win')}: {p2.mental.frontRunnerWinPct} · {t('proIntelligence.comebackRate', 'Comeback Rate')}: {p2.mental.comebackRatePct}
                 </div>
               </div>
             </div>

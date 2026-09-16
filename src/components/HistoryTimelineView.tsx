@@ -5,6 +5,7 @@ import {
   Calendar, ChevronDown, ChevronUp, Trophy, CheckCircle2,
   Sparkles, TrendingUp, Flame, Percent
 } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 export interface HistoryTimelineViewProps {
   predictions: Prediction[];
@@ -45,6 +46,7 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
   contentLayers,
   canWatchLive,
 }) => {
+  const { t } = useTranslation();
   // Selected Month filter: 'all' or specific Month Year (e.g. 'September 2026')
   const [selectedMonth, setSelectedMonth] = useState<string>('all');
 
@@ -138,8 +140,8 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
       let monthYear = '';
       let relativeLabel = '';
 
-      if (key === todayKey) relativeLabel = 'Today';
-      else if (key === yesterdayKey) relativeLabel = 'Yesterday';
+      if (key === todayKey) relativeLabel = t('historyTimeline.today', 'Today');
+      else if (key === yesterdayKey) relativeLabel = t('historyTimeline.yesterday', 'Yesterday');
 
       if (key !== 'unknown') {
         try {
@@ -238,10 +240,10 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
         <div className="kpi-banner-top">
           <div className="kpi-banner-title">
             <TrendingUp size={16} className="kpi-banner-icon" />
-            <span>Historical Accuracy & Performance</span>
+            <span>{t('historyTimeline.title', 'Historical Accuracy & Performance')}</span>
           </div>
           <span className="kpi-settled-count">
-            {globalStats.total} Settled Predictions
+            {globalStats.total} {t('historyTimeline.settledPredictions', 'Settled Predictions')}
           </span>
         </div>
 
@@ -252,7 +254,7 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
               {globalStats.winRate}%
             </span>
             <span className="kpi-metric-lbl">
-              <Percent size={11} /> Win Rate
+              <Percent size={11} /> {t('historyTimeline.winRate', 'Win Rate')}
             </span>
           </div>
 
@@ -267,7 +269,7 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
               )}
             </div>
             <span className="kpi-metric-lbl">
-              <CheckCircle2 size={11} /> Win-Loss Record
+              <CheckCircle2 size={11} /> {t('historyTimeline.winLossRecord', 'Win-Loss Record')}
             </span>
           </div>
 
@@ -277,17 +279,17 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
               @{globalStats.avgOdds}
             </span>
             <span className="kpi-metric-lbl">
-              <Sparkles size={11} /> Avg Pick Odds
+              <Sparkles size={11} /> {t('historyTimeline.avgOdds', 'Avg Pick Odds')}
             </span>
           </div>
 
           {/* Profitable Hits Tag */}
           <div className="kpi-metric-card">
             <span className="kpi-metric-val kpi-streak-val">
-              🔥 {globalStats.won} Hits
+              🔥 {globalStats.won} {t('historyTimeline.hits', 'Hits')}
             </span>
             <span className="kpi-metric-lbl">
-              <Trophy size={11} /> Verified Results
+              <Trophy size={11} /> {t('historyTimeline.verifiedResults', 'Verified Results')}
             </span>
           </div>
         </div>
@@ -302,7 +304,7 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
             className={`month-pill ${selectedMonth === 'all' ? 'active' : ''}`}
             onClick={() => setSelectedMonth('all')}
           >
-            All Dates ({dayGroups.length} Days)
+            {t('historyTimeline.allDates', 'All Dates')} ({dayGroups.length} {t('historyTimeline.days', 'Days')})
           </button>
           {monthsList.map(m => (
             <button
@@ -319,10 +321,10 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
         {/* Expand / Collapse All Buttons */}
         <div className="history-expand-controls">
           <button type="button" className="btn-history-toggle" onClick={expandAll}>
-            Expand All
+            {t('historyTimeline.expandAll', 'Expand All')}
           </button>
           <button type="button" className="btn-history-toggle" onClick={collapseAll}>
-            Collapse All
+            {t('historyTimeline.collapseAll', 'Collapse All')}
           </button>
         </div>
       </div>
@@ -365,7 +367,7 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
                         )}
                       </div>
                       <span className="history-match-count-sub">
-                        {day.total} {day.total === 1 ? 'Match' : 'Matches'}
+                        {day.total} {day.total === 1 ? t('historyTimeline.match', 'Match') : t('historyTimeline.matches', 'Matches')}
                       </span>
                     </div>
                   </div>
@@ -375,7 +377,7 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
                     {/* Sweep Badge */}
                     {day.isSweep && (
                       <span className="history-sweep-badge" title="100% Win Rate Clean Sweep">
-                        <Flame size={12} /> 100% Sweep
+                        <Flame size={12} /> {t('historyTimeline.sweep', '100% Sweep')}
                       </span>
                     )}
 
@@ -444,9 +446,9 @@ export const HistoryTimelineView: React.FC<HistoryTimelineViewProps> = ({
       ) : (
         <div className="glass empty-state-box">
           <Calendar size={42} className="empty-icon" />
-          <h3 className="empty-title">No Settled Matches for this Date</h3>
+          <h3 className="empty-title">{t('historyTimeline.noHistory', 'No Settled Matches for this Date')}</h3>
           <p className="empty-desc">
-            Try switching to another month or clearing filters to view historical match results.
+            {t('historyTimeline.noHistoryDesc', 'Try switching to another month or clearing filters to view historical match results.')}
           </p>
         </div>
       )}

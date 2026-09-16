@@ -3,6 +3,7 @@ import { CheckCircle2, Sparkles, X, Gift, ArrowRight, UserCheck, ShieldCheck, Re
 import type { ReferralSite } from '../types';
 import { buildPartnerRegisterUrl, openExternalLink } from '../utils/referralLinks';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { useTranslation } from '../i18n';
 
 interface ReferralModalProps {
   sites: ReferralSite[];
@@ -37,6 +38,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
   onVerified,
   onAccountConnected,
 }) => {
+  const { t } = useTranslation();
   const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
   const hasTelegramInitData = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.initData);
   const isTgEnvironment = !isLoggedOut && Boolean(
@@ -299,11 +301,11 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               <Sparkles size={18} color="#d4a843" />
             </div>
             <div>
-              <h2 className="ref-modal-title">Unlock Pro AI Predictions</h2>
-              <p className="ref-modal-subtitle">2-Step Access: 1. Sign In ➔ 2. Activate Partner</p>
+              <h2 className="ref-modal-title">{t('referralModal.modalTitle')}</h2>
+              <p className="ref-modal-subtitle">{t('referralModal.modalSubtitle')}</p>
             </div>
           </div>
-          <button onClick={onClose} className="ref-modal-close-btn" aria-label="Close modal">
+          <button onClick={onClose} className="ref-modal-close-btn" aria-label={t('referralModal.closeModal')}>
             <X size={18} />
           </button>
         </div>
@@ -357,10 +359,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               </div>
               <div style={{ lineHeight: 1.2 }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: currentStep === 1 ? '#38bdf8' : isUserAuthenticated ? '#4ade80' : '#d4d4d8' }}>
-                  Step 1: Account
+                  {t('referralModal.step1Tab')}
                 </div>
                 <div style={{ fontSize: '0.66rem', color: 'var(--text-secondary)' }}>
-                  {isUserAuthenticated ? 'Connected ✓' : 'Google Sign In'}
+                  {isUserAuthenticated ? t('referralModal.connected') : t('referralModal.googleSignIn')}
                 </div>
               </div>
             </button>
@@ -401,10 +403,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               </div>
               <div style={{ lineHeight: 1.2 }}>
                 <div style={{ fontSize: '0.75rem', fontWeight: 700, color: currentStep === 2 ? '#fbbf24' : '#d4d4d8' }}>
-                  Step 2: 1WIN
+                  {t('referralModal.step2Tab')}
                 </div>
                 <div style={{ fontSize: '0.66rem', color: 'var(--text-secondary)' }}>
-                  500% Bonus
+                  {t('referralModal.bonus500')}
                 </div>
               </div>
             </button>
@@ -430,10 +432,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
               <CheckCircle2 size={36} color="#4ade80" />
             </div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#4ade80', margin: '0 0 0.5rem 0' }}>
-              🎉 Predictions Unlocked!
+              {t('referralModal.successTitle')}
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
-              Your account is registered and verified. All AI match predictions, value odds &amp; tactical simulations are now permanently unlocked.
+              {t('referralModal.successDesc')}
             </p>
             <button
               type="button"
@@ -454,7 +456,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 gap: '0.5rem',
               }}
             >
-              <span>View Predictions</span>
+              <span>{t('referralModal.viewPredictions')}</span>
               <ArrowRight size={16} />
             </button>
           </div>
@@ -484,10 +486,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                   )}
                 </div>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#4ade80', margin: '0 0 0.35rem 0' }}>
-                  Step 1 Completed!
+                  {t('referralModal.step1Completed')}
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1rem 0' }}>
-                  Connected as <strong>{activeUser?.first_name || activeUser?.username || activeUser?.email || 'Member'}</strong>
+                  {t('referralModal.connectedAs')} <strong>{activeUser?.first_name || activeUser?.username || activeUser?.email || t('referralModal.member')}</strong>
                 </p>
                 <button
                   type="button"
@@ -509,7 +511,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                     cursor: 'pointer',
                   }}
                 >
-                  <span>Proceed to Step 2: Activate 1WIN</span>
+                  <span>{t('referralModal.proceedToStep2')}</span>
                   <ArrowRight size={16} />
                 </button>
               </div>
@@ -519,11 +521,11 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.4rem' }}>
                   <UserCheck size={18} color="#38bdf8" />
                   <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
-                    Step 1 of 2: Sign in
+                    {t('referralModal.step1Title')}
                   </span>
                 </div>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: '0 0 1.15rem 0', lineHeight: 1.45 }}>
-                  Sign in in 1-click to auto-link your dedicated tracking ID, then activate your 500% bonus in Step 2.
+                  {t('referralModal.step1Desc')}
                 </p>
 
                 {hasTelegramInitData && (
@@ -550,12 +552,12 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                       }}
                     >
                       <Sparkles size={16} />
-                      <span>{isReconnectingTg ? 'Connecting Telegram...' : 'Connect Telegram Account (1-Click)'}</span>
+                      <span>{isReconnectingTg ? t('referralModal.connectingTelegram') : t('referralModal.connectTelegram')}</span>
                     </button>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0.85rem 0', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem' }}>
                       <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
-                      <span>OR CONTINUE WITH GOOGLE</span>
+                      <span>{t('referralModal.orGoogle')}</span>
                       <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.1)' }} />
                     </div>
                   </div>
@@ -625,15 +627,15 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                   color: '#fbbf24',
                 }}>
                   <Clock size={12} />
-                  <span>AWAITING 1WIN CONFIRMATION</span>
+                  <span>{t('referralModal.awaitingConfirmation')}</span>
                 </div>
 
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff', margin: '0 0 0.4rem 0' }}>
-                  Awaiting 1WIN Registration Confirmation...
+                  {t('referralModal.awaitingTitle')}
                 </h3>
 
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: '0 0 1.25rem 0' }}>
-                  The 1WIN registration page has opened in a new window. Complete your registration there. Once 1WIN sends the confirmation postback, your full Pro AI predictions will unlock automatically.
+                  {t('referralModal.awaitingDesc')}
                 </p>
 
                 {/* Check Status Now button */}
@@ -660,7 +662,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                   }}
                 >
                   <RefreshCw size={15} style={{ animation: isCheckingStatus ? 'spin 1s linear infinite' : 'none' }} />
-                  <span>{isCheckingStatus ? 'Checking Status...' : 'Check Status Now'}</span>
+                  <span>{isCheckingStatus ? t('referralModal.checking') : t('referralModal.checkStatus')}</span>
                 </button>
 
                 {/* Reopen 1WIN Link if popup was closed/blocked */}
@@ -683,7 +685,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                     }}
                   >
                     <ExternalLink size={13} />
-                    <span>Reopen 1WIN Registration Page</span>
+                    <span>{t('referralModal.reopenPartner')}</span>
                   </button>
                 )}
               </div>
@@ -708,10 +710,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                     <CheckCircle2 size={14} color="#4ade80" />
-                    <span style={{ color: '#4ade80', fontWeight: 700 }}>Step 1:</span>
-                    <span style={{ color: '#e4e4e7' }}>{activeUser?.first_name || activeUser?.email || (isTgEnvironment ? 'Telegram Connected' : 'Ready')}</span>
+                    <span style={{ color: '#4ade80', fontWeight: 700 }}>{t('referralModal.step1Label')}</span>
+                    <span style={{ color: '#e4e4e7' }}>{activeUser?.first_name || activeUser?.email || (isTgEnvironment ? t('referralModal.telegramConnected') : t('referralModal.ready'))}</span>
                   </div>
-                  <span style={{ color: '#fbbf24', fontWeight: 700 }}>➔ Step 2: Final Step</span>
+                  <span style={{ color: '#fbbf24', fontWeight: 700 }}>{t('referralModal.step2Final')}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -719,10 +721,10 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                     <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fbbf24' }}>
                       {primarySite?.name ? primarySite.name.toUpperCase() : '1WIN'}
                     </span>
-                    <span className="ref-verified-pill">✓ Official Partner</span>
+                    <span className="ref-verified-pill">{t('referralModal.officialPartner')}</span>
                   </div>
                   <span className="ref-bonus-tag" style={{ background: 'linear-gradient(135deg, #d4a843, #fbbf24)', color: '#09090b', fontWeight: 800 }}>
-                    🎁 500% Welcome Bonus
+                    {t('referralModal.welcomeBonusTag')}
                   </span>
                 </div>
 
@@ -730,15 +732,15 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.82rem', color: '#e4e4e7', marginBottom: '1.15rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                     <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
-                    <span>Instant access to <strong>AI match predictions</strong> &amp; tactical dossiers</span>
+                    <span>{t('referralModal.perk1')}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                     <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
-                    <span>Full simulation models &amp; high-value betting odds</span>
+                    <span>{t('referralModal.perk2')}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
                     <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
-                    <span>Claim a <strong>500% Welcome Bonus</strong> on registration</span>
+                    <span>{t('referralModal.perk3')}</span>
                   </div>
                 </div>
 
@@ -765,7 +767,7 @@ export const ReferralModal: React.FC<ReferralModalProps> = ({
                   }}
                 >
                   <Gift size={16} />
-                  <span>Step 2: Register on 1WIN &amp; Unlock</span>
+                  <span>{t('referralModal.registerAndUnlock')}</span>
                 </button>
               </div>
             )}

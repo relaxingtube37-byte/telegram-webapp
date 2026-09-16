@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Globe, Sparkles, CheckCircle, Search, Gift, ChevronDown, ShieldCheck, LogOut } from 'lucide-react';
 import type { StatsOverviewData } from '../types';
 import { getDeviceTimezoneCityName } from '../utils/formatters';
+import { useTranslation, SUPPORTED_LANGUAGES } from '../i18n';
+import type { SupportedLanguage } from '../i18n';
 
 interface HeaderProps {
   stats: StatsOverviewData | null;
@@ -38,6 +40,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   onLogout,
   effectiveTrackingId,
 }) => {
+  const { t, language, setLanguage } = useTranslation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -61,7 +64,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
     };
   }, [showProfileMenu]);
 
-  const userName = telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Guest');
+  const userName = telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : t('header.guest', 'Guest'));
   const userInitial = (telegramUser?.first_name || telegramUser?.username || 'U').charAt(0).toUpperCase().replace('@', '');
 
   return (
@@ -78,9 +81,9 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             />
           </div>
           <div>
-            <div className="header-brand-title">PTIN AI</div>
+            <div className="header-brand-title">{t('header.title', 'PTIN AI')}</div>
             <div className="header-brand-tagline">
-              Pro Tennis Intelligence &nbsp;·&nbsp; Hi, <span className="header-user-highlight">{userName}</span>
+              {t('header.tagline', 'Pro Tennis Intelligence')} &nbsp;·&nbsp; {t('header.hi', 'Hi,')} <span className="header-user-highlight">{userName}</span>
             </div>
           </div>
         </div>
@@ -91,28 +94,45 @@ export const Header: React.FC<HeaderProps> = React.memo(({
             className={`tour-nav-btn ${genderFilter === 'all' ? 'active' : ''}`}
             onClick={() => onGenderFilterChange('all')}
           >
-            <span>All Matches</span>
+            <span>{t('header.allMatches', 'All Matches')}</span>
           </button>
           <button
             className={`tour-nav-btn btn-atp ${genderFilter === 'men' ? 'active' : ''}`}
             onClick={() => onGenderFilterChange('men')}
           >
-            <span className="tour-badge-pill tour-pill-atp">ATP</span>
-            <span>ATP Men</span>
+            <span className="tour-badge-pill tour-pill-atp">{t('header.atp', 'ATP')}</span>
+            <span>{t('header.atpMen', 'ATP Men')}</span>
             {atpCount > 0 && <span className="tour-count-pill">{atpCount}</span>}
           </button>
           <button
             className={`tour-nav-btn btn-wta ${genderFilter === 'women' ? 'active' : ''}`}
             onClick={() => onGenderFilterChange('women')}
           >
-            <span className="tour-badge-pill tour-pill-wta">WTA</span>
-            <span>WTA Women</span>
+            <span className="tour-badge-pill tour-pill-wta">{t('header.wta', 'WTA')}</span>
+            <span>{t('header.wtaWomen', 'WTA Women')}</span>
             {wtaCount > 0 && <span className="tour-count-pill">{wtaCount}</span>}
           </button>
         </div>
 
-        {/* Right actions: Timezone, VIP Register / Profile */}
+        {/* Right actions: Language, Timezone, VIP Register / Profile */}
         <div className="header-right-actions">
+
+          {/* Language Selector */}
+          <div className="timezone-pill language-pill">
+            <span style={{ fontSize: '0.8rem', lineHeight: 1 }}>{SUPPORTED_LANGUAGES[language]?.flag || '🌐'}</span>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as SupportedLanguage)}
+              className="timezone-select"
+              aria-label={t('header.language', 'Language')}
+            >
+              {Object.entries(SUPPORTED_LANGUAGES).map(([code, meta]) => (
+                <option key={code} value={code}>
+                  {meta.flag} {meta.nativeName}
+                </option>
+              ))}
+            </select>
+          </div>
 
           {/* Timezone Selector */}
           <div className="timezone-pill">
@@ -140,7 +160,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                   <button
                     onClick={() => onOpenVipModal?.(2)}
                     className="header-signup-btn pulse-glow"
-                    title="Activate 1WIN Partner for 500% Welcome Bonus"
+                    title={t('header.activate1Win', 'Activate 1WIN')}
                     style={{
                       background: 'linear-gradient(135deg, #d4a843, #fbbf24)',
                       color: '#09090b',
@@ -150,7 +170,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                     }}
                   >
                     <Gift size={13} />
-                    <span>Activate 1WIN</span>
+                    <span>{t('header.activate1Win', 'Activate 1WIN')}</span>
                   </button>
                 )}
 
@@ -214,14 +234,14 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                   {/* Name and verified pill */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
                     <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff', maxWidth: 85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Member')}
+                      {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : t('header.member', 'Member'))}
                     </span>
                     <span style={{
                       fontSize: '0.56rem',
                       fontWeight: 800,
                       color: isVerified ? '#4ade80' : '#fbbf24',
                     }}>
-                      {isVerified ? 'PRO MEMBER ✓' : 'STEP 2 PENDING'}
+                      {isVerified ? t('header.proMember', 'PRO MEMBER ✓') : t('header.step2Pending', 'STEP 2 PENDING')}
                     </span>
                   </div>
 
@@ -241,7 +261,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 }}
               >
                 <Sparkles size={13} />
-                <span className="header-btn-text">Sign In / Join</span>
+                <span className="header-btn-text">{t('header.signIn', 'Sign In / Join')}</span>
               </button>
             )}
 
@@ -292,7 +312,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : 'Pro Member')}
+                      {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : t('header.proMember', 'Pro Member'))}
                     </div>
                     {telegramUser?.email && (
                       <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -311,7 +331,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                       color: 'var(--gold-bright)',
                     }}>
                       <ShieldCheck size={11} color="#4ade80" />
-                      <span>Tracking ID: #{effectiveTrackingId || 'anonymous'}</span>
+                      <span>{t('header.trackingId', 'Tracking ID:')} #{effectiveTrackingId || 'anonymous'}</span>
                     </div>
                   </div>
                 </div>
@@ -326,16 +346,16 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: isVerified ? '#4ade80' : '#fbbf24' }}>
-                      {isVerified ? 'PRO ACCESS: ACTIVE ✓' : 'STEP 2: ACTIVATION PENDING'}
+                      {isVerified ? t('header.proAccessActive', 'PRO ACCESS: ACTIVE ✓') : t('header.activationPending', 'STEP 2: ACTIVATION PENDING')}
                     </span>
                     <span style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.35)', padding: '0.06rem 0.32rem', borderRadius: 4, color: '#4ade80', fontWeight: 700 }}>
-                      Verified
+                      {t('header.verified', 'Verified')}
                     </span>
                   </div>
                   <p style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
                     {isVerified
-                      ? 'Full AI models, tactical simulation dossiers & live feeds permanently unlocked.'
-                      : 'Activate 1WIN partner to claim your 500% bonus and auto-unlock full AI predictive models.'}
+                      ? t('header.proDescActive', 'Full AI models, tactical simulation dossiers & live feeds permanently unlocked.')
+                      : t('header.proDescPending', 'Activate 1WIN partner to claim your 500% bonus and auto-unlock full AI predictive models.')}
                   </p>
                   {!isVerified && (
                     <button
@@ -356,7 +376,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                         cursor: 'pointer',
                       }}
                     >
-                      Activate 1WIN (+500% Bonus) ➔
+                      {t('header.activate1WinBonus', 'Activate 1WIN (+500% Bonus) ➔')}
                     </button>
                   )}
                 </div>
@@ -365,11 +385,11 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.68rem', color: '#d4d4d8', padding: '0.2rem 0.2rem 0.4rem 0.2rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
-                    <span>Deep Tactical Head-to-Head Dossiers</span>
+                    <span>{t('header.dossiersCheck', 'Deep Tactical Head-to-Head Dossiers')}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ color: '#4ade80', fontWeight: 'bold' }}>✓</span>
-                    <span>256-Bit SSL Encrypted &amp; Non-Custodial</span>
+                    <span>{t('header.encryptedCheck', '256-Bit SSL Encrypted & Non-Custodial')}</span>
                   </div>
                 </div>
 
@@ -400,7 +420,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                   }}
                 >
                   <LogOut size={13} />
-                  <span>Log Out</span>
+                  <span>{t('header.logOut', 'Log Out')}</span>
                 </button>
               </div>
             )}
@@ -412,20 +432,20 @@ export const Header: React.FC<HeaderProps> = React.memo(({
       {stats && (
         <div className="header-stats-ticker">
           <div className="ticker-item">
-            <span className="ticker-label">WIN RATE:</span>
+            <span className="ticker-label">{t('header.winRate', 'WIN RATE:')}</span>
             <span className="ticker-val ticker-val-green">{stats.winRatePct}%</span>
           </div>
           <div className="ticker-divider">•</div>
           <div className="ticker-item">
-            <span className="ticker-label">RECORD:</span>
+            <span className="ticker-label">{t('header.record', 'RECORD:')}</span>
             <span className="ticker-val">
               <span className="text-green">{stats.won}W</span> - <span className="text-rose">{stats.lost}L</span>
             </span>
           </div>
           <div className="ticker-divider">•</div>
           <div className="ticker-item">
-            <span className="ticker-label">ACTIVE PICKS:</span>
-            <span className="ticker-val ticker-val-gold">{stats.upcoming} Upcoming</span>
+            <span className="ticker-label">{t('header.activePicks', 'ACTIVE PICKS:')}</span>
+            <span className="ticker-val ticker-val-gold">{stats.upcoming} {t('header.upcoming', 'Upcoming')}</span>
           </div>
         </div>
       )}

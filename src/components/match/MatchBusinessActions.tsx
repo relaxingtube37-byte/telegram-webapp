@@ -6,6 +6,7 @@ import {
   shouldShowWatchLive,
   type BusinessActionsPublic,
 } from '../../utils/referralLinks';
+import { useTranslation } from '../../i18n';
 
 interface MatchBusinessActionsProps {
   match: Prediction;
@@ -28,6 +29,7 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
   onRegisterInfoClick,
   onVerified,
 }) => {
+  const { t } = useTranslation();
   const primary = sites[0];
   const showRegister =
     businessActions.registration_referral_enabled !== false && !isVerified && !!primary;
@@ -62,7 +64,7 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
       }}
     >
       <div style={{ fontSize: '0.72rem', letterSpacing: '0.06em', color: 'var(--text-secondary)', fontWeight: 700 }}>
-        MATCH ACTIONS
+        {t('businessActions.matchActions', 'MATCH ACTIONS')}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', alignItems: 'center' }}>
         {showWatch && (
@@ -72,7 +74,7 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
             onClick={() => go('watch_live')}
             style={{ padding: '0.55rem 1.1rem', fontWeight: 700 }}
           >
-            Watch live
+            {t('businessActions.watchLive', 'Watch live')}
           </button>
         )}
         {showRegister && (
@@ -86,7 +88,7 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
               opacity: isVerified ? 0.45 : 1,
             }}
           >
-            Register for full analysis
+            {t('businessActions.registerForAnalysis', 'Register for full analysis')}
           </button>
         )}
         {showRegister && onRegisterInfoClick && (
@@ -102,17 +104,17 @@ export const MatchBusinessActions: React.FC<MatchBusinessActionsProps> = ({
               fontWeight: 600,
             }}
           >
-            How membership works
+            {t('businessActions.howMembershipWorks', 'How membership works')}
           </button>
         )}
       </div>
       {businessActions.payment_mode_placeholder_enabled && (
         <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-          Payment unlock is prepared for a later release — not active yet.
+          {t('businessActions.paymentPlaceholder', 'Payment unlock is prepared for a later release — not active yet.')}
         </p>
       )}
       <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-        Opens partner page via secure redirect. No stream is played on this site.
+        {t('businessActions.redirectDisclaimer', 'Opens partner page via secure redirect. No stream is played on this site.')}
       </p>
     </section>
   );

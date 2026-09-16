@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, Target, Shield, CheckCircle2, Lock } from 'lucide-react';
 import type { Prediction } from '../../types';
 import { formatPlayerDisplayName } from '../../utils/formatters';
+import { useTranslation } from '../../i18n';
 
 interface MatchPredictionPanelProps {
   match: Prediction;
@@ -9,6 +10,7 @@ interface MatchPredictionPanelProps {
 }
 
 export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ match, onUnlockClick }) => {
+  const { t } = useTranslation();
   const isLocked = match.content_locked === true || !match.predicted_winner || match.predicted_winner === 'LOCKED';
 
   if (isLocked) {
@@ -17,19 +19,19 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
         <div className="ai-verdict-header">
           <div className="ai-verdict-title">
             <Lock size={14} color="#fbbf24" />
-            <span style={{ color: '#fbbf24' }}>AI Model Verdict (Gated)</span>
+            <span style={{ color: '#fbbf24' }}>{t('predictionPanel.verdictGated', 'AI Model Verdict (Gated)')}</span>
           </div>
           <span className="ai-confidence-pill conf-low" style={{ background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.3)' }}>
-            2-Step Unlock Required
+            {t('predictionPanel.unlockRequired', '2-Step Unlock Required')}
           </span>
         </div>
 
         <div style={{ textAlign: 'center', padding: '1.25rem 1rem' }}>
           <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f4f4f5', marginBottom: '0.35rem' }}>
-            🔒 Projected Winner &amp; Win Probability Hidden
+            🔒 {t('predictionPanel.gatedHeadline', 'Projected Winner & Win Probability Hidden')}
           </div>
           <p style={{ margin: '0 0 1rem 0', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
-            Specialist model verdict, projected match winner, edge ratings, and expected set scores require verified membership.
+            {t('predictionPanel.gatedDesc', 'Specialist model verdict, projected match winner, edge ratings, and expected set scores require verified membership.')}
           </p>
           <button
             type="button"
@@ -50,7 +52,7 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
               boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
             }}
           >
-            <Lock size={14} /> Complete 2-Step Registration to Unlock
+            <Lock size={14} /> {t('predictionPanel.unlockBtn', 'Complete 2-Step Registration to Unlock')}
           </button>
         </div>
       </div>
@@ -76,7 +78,7 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
   const awayLean = rawAwayLean && !rawHomeLean;
 
   const displayedWinnerName = isNeutralOrNoBet
-    ? 'Neutral / Model Pass'
+    ? t('predictionPanel.neutralModelPass', 'Neutral / Model Pass')
     : formatPlayerDisplayName(match.predicted_winner);
 
   const favoredOdds = homeLean ? match.home_odds : awayLean ? match.away_odds : null;
@@ -87,11 +89,11 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
       <div className="ai-verdict-header">
         <div className="ai-verdict-title">
           <Sparkles size={14} className="ai-sparkle-cyan" />
-          <span>AI Model Verdict</span>
+          <span>{t('predictionPanel.verdictTitle', 'AI Model Verdict')}</span>
         </div>
         {match.confidence && (
           <span className={`ai-confidence-pill conf-${match.confidence.toLowerCase()}`}>
-            {match.confidence} CONFIDENCE
+            {match.confidence} {t('predictionPanel.confidence', 'CONFIDENCE')}
           </span>
         )}
       </div>
@@ -99,7 +101,7 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
       {/* Hero Winner & Probability Display */}
       <div className="ai-verdict-main">
         <div className="ai-winner-focus">
-          <span className="ai-winner-caption">Projected Winner</span>
+          <span className="ai-winner-caption">{t('predictionPanel.projectedWinner', 'Projected Winner')}</span>
           <div className="ai-winner-display">
             {!isNeutralOrNoBet && <CheckCircle2 size={16} className="text-green-accent" />}
             <span className="ai-winner-name">{displayedWinnerName}</span>
@@ -110,7 +112,7 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
         </div>
         <div className="ai-prob-number-wrap">
           <span className="ai-prob-val">{isNeutralOrNoBet ? '50%' : `${winProb}%`}</span>
-          <span className="ai-prob-caption">Win Probability</span>
+          <span className="ai-prob-caption">{t('predictionPanel.winProbability', 'Win Probability')}</span>
         </div>
       </div>
 
@@ -127,15 +129,15 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
         {match.predicted_score && (
           <div className="ai-metric-pill">
             <Target size={12} className="metric-icon" />
-            <span className="metric-label">Score:</span>
+            <span className="metric-label">{t('predictionPanel.score', 'Score:')}</span>
             <strong className="metric-val">{match.predicted_score}</strong>
           </div>
         )}
         <div className="ai-metric-pill">
           <Shield size={12} className="metric-icon" />
-          <span className="metric-label">Action:</span>
+          <span className="metric-label">{t('predictionPanel.action', 'Action:')}</span>
           <strong className="metric-val">
-            {isNeutralOrNoBet ? 'Pass / Hold' : 'High Edge'}
+            {isNeutralOrNoBet ? t('predictionPanel.passHold', 'Pass / Hold') : t('predictionPanel.highEdge', 'High Edge')}
           </strong>
         </div>
       </div>

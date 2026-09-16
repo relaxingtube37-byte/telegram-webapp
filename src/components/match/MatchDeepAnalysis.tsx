@@ -13,6 +13,7 @@ import {
 import type { Prediction } from '../../types';
 import type { MappedDeepAnalytics } from '../../match/mapDeepAnalytics';
 import { parseAiDossierSections } from '../../utils/formatters';
+import { useTranslation } from '../../i18n';
 
 interface MatchDeepAnalysisProps {
   match: Prediction;
@@ -40,6 +41,7 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
   canSeeFullAi,
   onUnlockClick,
 }) => {
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [viewMode, setViewMode] = useState<'slider' | 'stack'>('slider');
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -114,13 +116,13 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
       items.push({
         id: 'key-factors',
         type: 'factors',
-        title: 'KEY DECISIVE FACTORS',
-        shortTitle: 'Key Factors',
+        title: t('deepAnalysis.keyDecisiveFactors', 'KEY DECISIVE FACTORS'),
+        shortTitle: t('deepAnalysis.shortFactors', 'Key Factors'),
         icon: <ShieldCheck size={16} className="text-emerald" />,
         color: '#34d399',
         bgTint: 'rgba(52, 211, 153, 0.04)',
         borderColor: 'rgba(52, 211, 153, 0.22)',
-        badge: 'DECISIVE EDGES',
+        badge: t('deepAnalysis.decisiveEdges', 'DECISIVE EDGES'),
         content: (
           <ul className="dossier-factors-list">
             {match.key_factors.map((f, i) => (
@@ -136,8 +138,8 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
       items.push({
         id: 'upset-risk',
         type: 'risk',
-        title: 'CRITICAL UPSET SCENARIO',
-        shortTitle: 'Upset Risk',
+        title: t('deepAnalysis.criticalUpsetRisk', 'CRITICAL UPSET SCENARIO'),
+        shortTitle: t('deepAnalysis.shortUpsetRisk', 'Upset Risk'),
         icon: <AlertTriangle size={16} className="text-rose" />,
         color: '#f87171',
         bgTint: 'rgba(239, 68, 68, 0.04)',
@@ -256,9 +258,9 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
           <div className="dossier-gate-lock-icon">
             <Lock size={20} />
           </div>
-          <h3 className="dossier-gate-title">Full Tactical Dossier &amp; Simulation</h3>
+          <h3 className="dossier-gate-title">{t('deepAnalysis.gateTitle', 'Full Tactical Dossier & Simulation')}</h3>
           <p className="dossier-gate-subtitle">
-            Advanced serve/return KPIs, matchup exploit analysis, and upset scenarios are available for members.
+            {t('deepAnalysis.gateSubtitle', 'Advanced serve/return KPIs, matchup exploit analysis, and upset scenarios are available for members.')}
           </p>
           {onUnlockClick && (
             <button
@@ -266,7 +268,7 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
               className="btn-primary dossier-gate-btn"
               onClick={onUnlockClick}
             >
-              <span>Connect Account for Full Access</span>
+              <span>{t('deepAnalysis.connectForAccess', 'Connect Account for Full Access')}</span>
             </button>
           )}
         </div>
@@ -280,10 +282,10 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
       <div className="dossier-container">
         <div className="dossier-section-header">
           <Sparkles size={14} className="text-cyan" />
-          <span>Tactical Match Dossier</span>
+          <span>{t('deepAnalysis.tacticalDossier', 'Tactical Match Dossier')}</span>
         </div>
         <div className="dossier-card" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-          Detailed dossier text is not available for this match yet.
+          {t('deepAnalysis.notAvailable', 'Detailed dossier text is not available for this match yet.')}
         </div>
       </div>
     );
@@ -296,16 +298,16 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
         <div className="dossier-section-header" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Sparkles size={14} className="text-cyan" />
-            <span>Tactical Match Dossier</span>
+            <span>{t('deepAnalysis.tacticalDossier', 'Tactical Match Dossier')}</span>
           </div>
           <button
             type="button"
             className="dossier-toggle-btn"
             onClick={() => setViewMode('slider')}
-            title="Switch to Slide View"
+            title={t('deepAnalysis.slideView', 'Slide View')}
           >
             <Sliders size={12} />
-            <span>Slide View</span>
+            <span>{t('deepAnalysis.slideView', 'Slide View')}</span>
           </button>
         </div>
 
@@ -342,7 +344,7 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
         <div className="dossier-slider-title-group">
           <div className="dossier-slider-title">
             <Sparkles size={14} className="text-cyan" />
-            <span>Tactical Match Dossier</span>
+            <span>{t('deepAnalysis.tacticalDossier', 'Tactical Match Dossier')}</span>
           </div>
           {slides.length > 1 && (
             <div className="dossier-slider-badge-counter">
@@ -361,8 +363,8 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
                 className="dossier-icon-nav-btn"
                 onClick={() => setActiveIndex(prev => Math.max(0, prev - 1))}
                 disabled={activeIndex === 0}
-                title="Previous Slide"
-                aria-label="Previous Slide"
+                title={t('deepAnalysis.prev', 'Prev')}
+                aria-label={t('deepAnalysis.prev', 'Prev')}
               >
                 <ChevronLeft size={15} />
               </button>
@@ -371,8 +373,8 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
                 className="dossier-icon-nav-btn"
                 onClick={() => setActiveIndex(prev => Math.min(slides.length - 1, prev + 1))}
                 disabled={activeIndex === slides.length - 1}
-                title="Next Slide"
-                aria-label="Next Slide"
+                title={t('deepAnalysis.next', 'Next')}
+                aria-label={t('deepAnalysis.next', 'Next')}
               >
                 <ChevronRight size={15} />
               </button>
@@ -383,10 +385,10 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
             type="button"
             className="dossier-toggle-btn"
             onClick={() => setViewMode('stack')}
-            title="View all sections as list"
+            title={t('deepAnalysis.viewAll', 'View All')}
           >
             <Layers size={12} />
-            <span>View All</span>
+            <span>{t('deepAnalysis.viewAll', 'View All')}</span>
           </button>
         </div>
       </div>
@@ -462,7 +464,7 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
             disabled={activeIndex === 0}
           >
             <ChevronLeft size={14} />
-            <span>Prev</span>
+            <span>{t('deepAnalysis.prev', 'Prev')}</span>
           </button>
 
           <div className="dossier-dots">
@@ -485,7 +487,7 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
             onClick={() => setActiveIndex(prev => Math.min(slides.length - 1, prev + 1))}
             disabled={activeIndex === slides.length - 1}
           >
-            <span>Next</span>
+            <span>{t('deepAnalysis.next', 'Next')}</span>
             <ChevronRight size={14} />
           </button>
         </div>

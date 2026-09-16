@@ -1,7 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
+    <script>
+      (function() {
+        try {
+          var lang = localStorage.getItem('user_language') || 'en';
+          var rtlLangs = ['fa', 'ar'];
+          document.documentElement.lang = lang;
+          document.documentElement.dir = rtlLangs.indexOf(lang) !== -1 ? 'rtl' : 'ltr';
+        } catch(e) {}
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Ptin AI — Pro Tennis Intelligence & Tactical Match Previews</title>
     <meta name="description" content="Next-generation tennis AI analytics, predictive win probabilities, player conditioning breakdowns, and deep tactical match dossiers on Ptin AI." />

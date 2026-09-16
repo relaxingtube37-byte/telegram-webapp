@@ -2,6 +2,7 @@ import React from 'react';
 import { ShieldCheck, ExternalLink, Flame, Send } from 'lucide-react';
 import type { ReferralSite } from '../types';
 import { buildPartnerRegisterUrl, openExternalLink } from '../utils/referralLinks';
+import { useTranslation } from '../i18n';
 
 interface SideBannerProps {
   sites: ReferralSite[];
@@ -21,6 +22,7 @@ export const SideBanner: React.FC<SideBannerProps> = ({
   apiBase = 'https://telegram-backend-2yck.onrender.com/api/webapp',
   isLoggedIn = false,
 }) => {
+  const { t } = useTranslation();
   const primarySite = sites[0];
 
   const buildTrackingUrl = (site?: ReferralSite) => {
@@ -54,9 +56,9 @@ export const SideBanner: React.FC<SideBannerProps> = ({
         <div className="side-sponsor-top">
           <div className="sponsor-verified-tag">
             <ShieldCheck size={13} color="#4ade80" />
-            <span>Official Sponsor</span>
+            <span>{t('sideBanner.officialPartner', 'Official Sponsor')}</span>
           </div>
-          <span className="sponsor-perk-badge">100% Free Access</span>
+          <span className="sponsor-perk-badge">{t('sideBanner.freeAccess', '100% Free Access')}</span>
         </div>
 
         <div className="side-sponsor-brand">
@@ -65,11 +67,11 @@ export const SideBanner: React.FC<SideBannerProps> = ({
 
         <div className="side-bonus-pill">
           <Flame size={14} color="#f87171" />
-          <span>+500% Deposit Bonus &amp; Full Access Unlocked</span>
+          <span>{t('sideBanner.bonusTag', '+500% Deposit Bonus & Full Access Unlocked')}</span>
         </div>
 
         <p className="side-sponsor-desc">
-          Sign up with our official bookmaker partner to automatically unlock full AI win matrices, tactical dossiers and daily value bets with zero subscription fees.
+          {t('sideBanner.partnerDesc', 'Sign up with our official bookmaker partner to automatically unlock full AI win matrices, tactical dossiers and daily value bets with zero subscription fees.')}
         </p>
 
         <button
@@ -77,11 +79,11 @@ export const SideBanner: React.FC<SideBannerProps> = ({
           onClick={primaryTrackingUrl ? (e) => handleOpenLink(primaryTrackingUrl, e) : onOpenModal}
           id="side-sponsor-register-btn"
         >
-          <ExternalLink size={14} /> Register with {primarySite?.name || '1win'} (Free)
+          <ExternalLink size={14} /> {t('sideBanner.registerNow', 'Register with')} {primarySite?.name || '1win'} ({t('sideBanner.free', 'Free')})
         </button>
 
         <div className="side-sponsor-auto-sync">
-          <span>✓ Tracking ID <code>{effectiveId || 'auto'}</code> automatically linked</span>
+          <span>✓ {t('sideBanner.trackingLinked', 'Tracking ID automatically linked')} (<code>{effectiveId || 'auto'}</code>)</span>
         </div>
       </div>
 
@@ -92,8 +94,8 @@ export const SideBanner: React.FC<SideBannerProps> = ({
             <Send size={15} color="#38bdf8" />
           </div>
           <div>
-            <div className="side-tg-heading">Telegram Live Alerts</div>
-            <div className="side-tg-subheading">Instant push notifications for high-EV bets</div>
+            <div className="side-tg-heading">{t('sideBanner.telegramAlerts', 'Telegram Live Alerts')}</div>
+            <div className="side-tg-subheading">{t('sideBanner.telegramDesc', 'Instant push notifications for high-EV bets')}</div>
           </div>
         </div>
 
@@ -109,7 +111,7 @@ export const SideBanner: React.FC<SideBannerProps> = ({
             }
           }}
         >
-          Join Telegram Channel ↗
+          {t('sideBanner.joinTelegram', 'Join Telegram Channel ➔')}
         </a>
       </div>
     </div>

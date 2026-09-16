@@ -8,6 +8,7 @@ import {
   Clock, 
   Layers
 } from 'lucide-react';
+import { useTranslation } from '../i18n';
 
 interface SportsNavSidebarProps {
   activeTab: 'active' | 'history';
@@ -42,11 +43,13 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
   isVerified,
   onOpenModal,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <nav className="sports-nav-sidebar" aria-label="Tennis Tournament Navigation">
       {/* ── SECTION 1: TIMELINE & STATUS ── */}
       <div className="nav-section">
-        <div className="nav-section-title">TIMELINE &amp; STATUS</div>
+        <div className="nav-section-title">{t('sportsNav.timelineSection', 'TIMELINE & STATUS')}</div>
         <div className="nav-items-list">
           <button
             className={`nav-item-btn ${activeTab === 'active' && dateFilter === 'all' ? 'active' : ''}`}
@@ -57,9 +60,9 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
           >
             <div className="nav-item-left">
               <Flame size={15} color="#f87171" className={liveCount > 0 ? 'pulse-icon' : ''} />
-              <span>All Active Matches</span>
+              <span>{t('sportsNav.allActiveMatches', 'All Active Matches')}</span>
             </div>
-            {liveCount > 0 && <span className="nav-live-dot">{liveCount} Live</span>}
+            {liveCount > 0 && <span className="nav-live-dot">{liveCount} {t('sportsNav.live', 'Live')}</span>}
           </button>
 
           <button
@@ -71,7 +74,7 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
           >
             <div className="nav-item-left">
               <Clock size={15} color="#d4a843" />
-              <span>Today's Matches</span>
+              <span>{t('sportsNav.todaysMatches', "Today's Matches")}</span>
             </div>
             <span className="nav-item-badge">{todayCount}</span>
           </button>
@@ -85,7 +88,7 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
           >
             <div className="nav-item-left">
               <Calendar size={15} color="#38bdf8" />
-              <span>Tomorrow's Schedule</span>
+              <span>{t('sportsNav.tomorrowsSchedule', "Tomorrow's Schedule")}</span>
             </div>
           </button>
 
@@ -95,7 +98,7 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
           >
             <div className="nav-item-left">
               <History size={15} color="#a3e635" />
-              <span>Settled Results &amp; ROI</span>
+              <span>{t('sportsNav.settledResults', 'Settled Results & ROI')}</span>
             </div>
           </button>
         </div>
@@ -103,7 +106,7 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
 
       {/* ── SECTION 2: TOURS (ATP / WTA FOCUS) ── */}
       <div className="nav-section">
-        <div className="nav-section-title">PROFESSIONAL TOURS</div>
+        <div className="nav-section-title">{t('sportsNav.proTours', 'PROFESSIONAL TOURS')}</div>
         <div className="nav-items-list">
           <button
             className={`nav-item-btn ${genderFilter === 'all' ? 'active' : ''}`}
@@ -111,7 +114,7 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
           >
             <div className="nav-item-left">
               <Trophy size={15} color="#d4a843" />
-              <span>All Tours (Combined)</span>
+              <span>{t('sportsNav.allTours', 'All Tours (Combined)')}</span>
             </div>
             <span className="nav-item-badge">{atpCount + wtaCount}</span>
           </button>
@@ -122,7 +125,7 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
           >
             <div className="nav-item-left">
               <span className="tour-badge-pill tour-pill-atp">ATP</span>
-              <span>ATP Men's Tour</span>
+              <span>{t('sportsNav.atpMensTour', "ATP Men's Tour")}</span>
             </div>
             <span className="nav-item-badge badge-atp-count">{atpCount}</span>
           </button>
@@ -133,7 +136,7 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
           >
             <div className="nav-item-left">
               <span className="tour-badge-pill tour-pill-wta">WTA</span>
-              <span>WTA Women's Tour</span>
+              <span>{t('sportsNav.wtaWomensTour', "WTA Women's Tour")}</span>
             </div>
             <span className="nav-item-badge badge-wta-count">{wtaCount}</span>
           </button>
@@ -142,25 +145,25 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
 
       {/* ── SECTION 3: COURT SURFACE ── */}
       <div className="nav-section">
-        <div className="nav-section-title">COURT SURFACE</div>
+        <div className="nav-section-title">{t('sportsNav.courtSurface', 'COURT SURFACE')}</div>
         <div className="surface-pills-row">
           <button
             className={`surface-pill-btn ${surfaceFilter === 'all' ? 'active' : ''}`}
             onClick={() => onSurfaceFilterChange('all')}
           >
-            All
+            {t('sportsNav.surfaceAll', 'All')}
           </button>
           <button
             className={`surface-pill-btn ${surfaceFilter === 'hard' ? 'active' : ''}`}
             onClick={() => onSurfaceFilterChange('hard')}
           >
-            🟦 Hard
+            🟦 {t('sportsNav.surfaceHard', 'Hard')}
           </button>
           <button
             className={`surface-pill-btn ${surfaceFilter === 'clay' ? 'active' : ''}`}
             onClick={() => onSurfaceFilterChange('clay')}
           >
-            🧱 Clay
+            🧱 {t('sportsNav.surfaceClay', 'Clay')}
           </button>
         </div>
       </div>
@@ -170,17 +173,17 @@ export const SportsNavSidebar: React.FC<SportsNavSidebarProps> = ({
         <div className="nav-ai-status-top">
           <div className="nav-ai-status-indicator">
             <span className="ai-live-beacon" />
-            <span className="nav-ai-status-label">PREDICTIVE AI v3.2</span>
+            <span className="nav-ai-status-label">{t('sportsNav.predictiveAi', 'PREDICTIVE AI v3.2')}</span>
           </div>
-          <span className="nav-ai-status-badge">77 KPIs Active</span>
+          <span className="nav-ai-status-badge">{t('sportsNav.kpisActive', '77 KPIs Active')}</span>
         </div>
-        <div className="nav-ai-status-title">5-Agent Neural Pipeline</div>
+        <div className="nav-ai-status-title">{t('sportsNav.neuralPipeline', '5-Agent Neural Pipeline')}</div>
         <div className="nav-ai-status-desc">
-          Continuous Bayesian updating for physical stamina, court ELO &amp; tactical simulations.
+          {t('sportsNav.neuralPipelineDesc', 'Continuous Bayesian updating for physical stamina, court ELO & tactical simulations.')}
         </div>
         <div className="nav-ai-status-footer">
           <span className="ai-footer-dot" />
-          <span>Real-time odds &amp; injury feeds active</span>
+          <span>{t('sportsNav.feedsActive', 'Real-time odds & injury feeds active')}</span>
         </div>
       </div>
     </nav>

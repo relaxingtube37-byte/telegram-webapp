@@ -16,6 +16,7 @@ import { MatchBusinessActions } from './MatchBusinessActions';
 import { MatchEditorialSummary } from './MatchEditorialSummary';
 import { ProIntelligenceCard } from './ProIntelligenceCard';
 import type { ProIntelligencePayload } from '../../types';
+import { useTranslation } from '../../i18n';
 
 interface MatchAnalysisPageProps {
   prediction: Prediction;
@@ -53,6 +54,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   },
   onVerified,
 }) => {
+  const { t, language } = useTranslation();
   const webApiBase = useMemo(() => resolveWebApiBase(webappApiBase), [webappApiBase]);
   const isFreeMode = accessMode === 'FREE';
   const isLoggedOut = typeof window !== 'undefined' && localStorage.getItem('ptin_user_logged_out') === 'true';
@@ -73,13 +75,14 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   const contentLocked = !member;
   const canSeeFullAi = member;
 
+  // Keep shallow seed updates in sync (e.g. score changes from live polling)
   useEffect(() => {
     setMatch(prev => ({
       ...prev,
-      ...seed,
-      content_locked: isFreeMode ? false : (!isClientVerified ? true : (seed.content_locked ?? false)),
+      result_score: seed.result_score,
+      status: seed.status,
+      content_locked: isFreeMode ? false : (!isClientVerified ? true : (prev.content_locked ?? false)),
     }));
-    setServerVerified(isClientVerified);
   }, [seed.id, seed.fixture_id, seed.result_score, seed.status, isClientVerified, isFreeMode]);
 
   useEffect(() => {
@@ -90,19 +93,20 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
       try {
         const fixtureTargetId = seed.fixture_id || seed.id;
         const [matchesRes, deepRes, proIntelRes] = await Promise.all([
-          fetchWebMatches(webApiBase, sessionToken).catch(() => null),
+          fetchWebMatches(webApiBase, sessionToken, 100, language).catch(() => null),
           fetchDeepAnalytics(webApiBase, sessionToken, {
             p1: seed.home_name,
             p2: seed.away_name,
             surface: seed.surface,
             asOfDate: seed.match_date,
+            lang: language,
           }).catch((e: Error) => {
             setAnalyticsError(e.message || 'Failed to load analytics');
             return null;
           }),
           fixtureTargetId
-            ? fetch(`${(webappApiBase || '').replace(/\/+$/, '')}/matches/${fixtureTargetId}/pro-intelligence`)
-                .then(r => r.ok ? r.json() : fetch(`${webApiBase}/matches/${fixtureTargetId}/pro-intelligence`).then(r2 => r2.ok ? r2.json() : null))
+            ? fetch(`${(webappApiBase || '').replace(/\/+$/, '')}/matches/${fixtureTargetId}/pro-intelligence?lang=${encodeURIComponent(language)}`)
+                .then(r => r.ok ? r.json() : fetch(`${webApiBase}/matches/${fixtureTargetId}/pro-intelligence?lang=${encodeURIComponent(language)}`).then(r2 => r2.ok ? r2.json() : null))
                 .then(j => j?.data || null)
                 .catch(() => null)
             : Promise.resolve(null),
@@ -152,7 +156,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [webApiBase, sessionToken, seed.home_name, seed.away_name, seed.surface, seed.match_date, seed.id, seed.fixture_id, isClientVerified, isLoggedOut]);
+  }, [webApiBase, sessionToken, seed.home_name, seed.away_name, seed.surface, seed.match_date, seed.id, seed.fixture_id, isClientVerified, isLoggedOut, language]);
 
   // SEO document title
   useEffect(() => {
@@ -261,7 +265,7 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
 
         {loadState === 'ready' && contentLocked && (
           <div className="match-card-preview-notice">
-            Public preview · deeper dossiers reserved for registered members
+            {t('matchAnalysisPage.previewNotice', 'Public preview · deeper dossiers reserved for registered members')}
           </div>
         )}
       </div>

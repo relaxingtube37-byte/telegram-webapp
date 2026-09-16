@@ -13,6 +13,7 @@ import {
   Award
 } from 'lucide-react';
 import type { MappedDeepAnalytics } from '../../match/mapDeepAnalytics';
+import { useTranslation } from '../../i18n';
 
 interface MatchAnalyticsGridProps {
   analytics: MappedDeepAnalytics | null;
@@ -147,6 +148,7 @@ function FormPills({
   scores?: string[];
   accentColor?: string;
 }) {
+  const { t } = useTranslation();
   const badges = (scores || []).slice(0, 5).map((s) => (s.startsWith('W') ? 'W' : 'L'));
 
   return (
@@ -174,7 +176,7 @@ function FormPills({
           </span>
         ))
       ) : (
-        <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>Recent tour record</span>
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{t('analyticsGrid.recentTourRecord', 'Recent tour record')}</span>
       )}
       {streak && streak !== 'N/A' && (
         <span
@@ -207,6 +209,8 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
   awayOdds,
   onUnlockClick,
 }) => {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div
@@ -220,7 +224,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
         }}
       >
         <Activity className="animate-spin" size={20} style={{ margin: '0 auto 8px', color: '#38bdf8' }} />
-        Analyzing 100,000+ tour historical points…
+        {t('analyticsGrid.analyzing', 'Analyzing 100,000+ tour historical points…')}
       </div>
     );
   }
@@ -238,7 +242,9 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
   const hasSurfaceMatches = (p1Surface?.winRatePct != null || p2Surface?.winRatePct != null);
   const p1WinRate = hasSurfaceMatches ? p1Surface?.winRatePct : p1Form?.last5WinRatePct;
   const p2WinRate = hasSurfaceMatches ? p2Surface?.winRatePct : p2Form?.last5WinRatePct;
-  const winRateTitle = hasSurfaceMatches ? `Surface Win Rate (${surface || 'Hard'})` : 'Tour Form (Last 5)';
+  const winRateTitle = hasSurfaceMatches
+    ? `${t('analyticsGrid.surfaceWinRate', 'Surface Win Rate')} (${surface || 'Hard'})`
+    : t('analyticsGrid.tourFormLast5', 'Tour Form (Last 5)');
 
   const p1Hold = p1Surface?.holdRatePct;
   const p2Hold = p2Surface?.holdRatePct;
@@ -275,7 +281,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <BarChart3 size={16} />
-          <span>Head-to-Head &amp; Performance Radar</span>
+          <span>{t('analyticsGrid.sectionTitle', 'Head-to-Head & Performance Radar')}</span>
         </div>
         <span
           style={{
@@ -329,7 +335,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
               {h2hTotal > 0 ? `${h2hP1} - ${h2hP2}` : '0 - 0'}
             </div>
             <div style={{ fontSize: '0.65rem', color: h2hTotal > 0 ? 'var(--text-secondary)' : '#38bdf8', fontWeight: 700 }}>
-              {h2hTotal > 0 ? `${h2hTotal} meets` : '1st meeting'}
+              {h2hTotal > 0 ? `${h2hTotal} ${t('analyticsGrid.h2hMeets', 'meets')}` : t('analyticsGrid.firstMeeting', '1st meeting')}
             </div>
           </div>
 
@@ -359,7 +365,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
         }}
       >
         <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 14 }}>
-          📊 Matchup Comparison &amp; Edge Radar
+          {t('analyticsGrid.matchupComparison', '📊 Matchup Comparison & Edge Radar')}
         </div>
 
         <DualComparisonBar
@@ -372,7 +378,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
 
         {(p1Hold != null || p2Hold != null) && (
           <DualComparisonBar
-            title="Service Hold Efficiency"
+            title={t('analyticsGrid.serviceHoldEfficiency', 'Service Hold Efficiency')}
             leftVal={p1Hold}
             rightVal={p2Hold}
             leftNum={p1Hold}
@@ -382,7 +388,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
 
         {(p1Break != null || p2Break != null) && (
           <DualComparisonBar
-            title="Break Point Conversion"
+            title={t('analyticsGrid.breakPointConversion', 'Break Point Conversion')}
             leftVal={p1Break}
             rightVal={p2Break}
             leftNum={p1Break}
@@ -392,7 +398,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
 
         {(p1ClutchScore != null || p2ClutchScore != null) && (
           <DualComparisonBar
-            title="Deciding 3rd Set Clutch"
+            title={t('analyticsGrid.deciding3rdSetClutch', 'Deciding 3rd Set Clutch')}
             leftVal={p1ClutchScore}
             rightVal={p2ClutchScore}
             leftNum={p1ClutchScore}
@@ -402,7 +408,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
 
         {analytics?.matchupGaps && (analytics.matchupGaps.p1AceAvg != null || analytics.matchupGaps.p2AceAvg != null) && (
           <DualComparisonBar
-            title="Ace per Match Baseline"
+            title={t('analyticsGrid.acePerMatchBaseline', 'Ace per Match Baseline')}
             leftVal={analytics.matchupGaps.p1AceAvg}
             rightVal={analytics.matchupGaps.p2AceAvg}
             leftNum={analytics.matchupGaps.p1AceAvg}
@@ -433,17 +439,17 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <Battery size={15} color="#38bdf8" />
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase' }}>
-              Physical Battery
+              {t('analyticsGrid.physicalBattery', 'Physical Battery')}
             </span>
           </div>
           <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'white', marginBottom: 2 }}>
             {homeName}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#4ade80', fontWeight: 700, marginBottom: 4 }}>
-            Energy Tank: {p1Energy}%
+            {t('analyticsGrid.energyTank', 'Energy Tank:')} {p1Energy}%
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-            Rest Period: <strong>{p1Rest != null ? `${p1Rest}d` : 'Fresh'}</strong> · Optimal Recovery
+            {t('analyticsGrid.restPeriod', 'Rest Period:')} <strong>{p1Rest != null ? `${p1Rest}d` : t('analyticsGrid.fresh', 'Fresh')}</strong> · {t('analyticsGrid.optimalRecovery', 'Optimal Recovery')}
           </div>
         </div>
 
@@ -460,17 +466,17 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
             <Battery size={15} color="#fb7185" />
             <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fb7185', textTransform: 'uppercase' }}>
-              Physical Battery
+              {t('analyticsGrid.physicalBattery', 'Physical Battery')}
             </span>
           </div>
           <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'white', marginBottom: 2 }}>
             {awayName}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#4ade80', fontWeight: 700, marginBottom: 4 }}>
-            Energy Tank: {p2Energy}%
+            {t('analyticsGrid.energyTank', 'Energy Tank:')} {p2Energy}%
           </div>
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-            Rest Period: <strong>{p2Rest != null ? `${p2Rest}d` : 'Fresh'}</strong> · Optimal Recovery
+            {t('analyticsGrid.restPeriod', 'Rest Period:')} <strong>{p2Rest != null ? `${p2Rest}d` : t('analyticsGrid.fresh', 'Fresh')}</strong> · {t('analyticsGrid.optimalRecovery', 'Optimal Recovery')}
           </div>
         </div>
       </div>
@@ -493,7 +499,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Lock size={16} color="#fbbf24" style={{ flexShrink: 0 }} />
             <span style={{ fontSize: '0.78rem', color: '#fef08a', lineHeight: 1.4 }}>
-              Unlock deeper point-by-point simulation &amp; set betting odds.
+              {t('analyticsGrid.unlockNotice', 'Unlock deeper point-by-point simulation & set betting odds.')}
             </span>
           </div>
           <button
@@ -511,7 +517,7 @@ export const MatchAnalyticsGrid: React.FC<MatchAnalyticsGridProps> = ({
               whiteSpace: 'nowrap',
             }}
           >
-            Unlock VIP
+            {t('analyticsGrid.unlockVip', 'Unlock VIP')}
           </button>
         </div>
       )}

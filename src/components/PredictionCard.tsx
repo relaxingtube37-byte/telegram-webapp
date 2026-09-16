@@ -2,6 +2,7 @@ import { getMatchGender, parseAiDossierSections, parseTennisScore } from '../uti
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Lock, Key } from 'lucide-react';
 import type { Prediction } from '../types';
+import { useTranslation } from '../i18n';
 
 interface PredictionCardProps {
   prediction: Prediction;
@@ -10,6 +11,7 @@ interface PredictionCardProps {
 }
 
 export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLocked = false, onUnlockClick }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`, prediction.home_name, prediction.away_name);
   const isWomen = matchGender === 'women';
@@ -20,19 +22,18 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
   const parsedScore = parseTennisScore(prediction.result_score, prediction.status);
 
   const statusBadge = prediction.status === 'WON' ? (
-    <span className="badge badge-won"><CheckCircle size={12} /> WON ({parsedScore?.setsScore || '2-0'})</span>
+    <span className="badge badge-won"><CheckCircle size={12} /> {t('matchRow.status.won', 'WON')} ({parsedScore?.setsScore || '2-0'})</span>
   ) : prediction.status === 'LOST' ? (
-    <span className="badge badge-lost"><XCircle size={12} /> LOST ({parsedScore?.setsScore || '0-2'})</span>
+    <span className="badge badge-lost"><XCircle size={12} /> {t('matchRow.status.lost', 'LOST')} ({parsedScore?.setsScore || '0-2'})</span>
   ) : prediction.status === 'INTERRUPTED' ? (
-    <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>⏸ INTERRUPTED</span>
+    <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>⏸ {t('liveStatus.interrupted', 'PAUSED')}</span>
   ) : prediction.status === 'VOID' ? (
-    <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>🔄 VOID</span>
+    <span className="badge" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid #fbbf24' }}>🔄 {t('matchRow.status.void', 'VOID')}</span>
   ) : prediction.status === 'LIVE' ? (
-    <span className="badge badge-live">● LIVE {parsedScore?.summaryText ? `• ${parsedScore.summaryText}` : ''}</span>
+    <span className="badge badge-live">● {t('liveStatus.live', 'LIVE')} {parsedScore?.summaryText ? `• ${parsedScore.summaryText}` : ''}</span>
   ) : (
-    <span className="badge badge-upcoming"><Clock size={12} /> UPCOMING</span>
+    <span className="badge badge-upcoming"><Clock size={12} /> {t('liveStatus.upcoming', 'UPCOMING')}</span>
   );
-
 
   return (
     <div className={`glass ${isWomen ? 'match-row-wta' : 'match-row-atp'}`} style={{ padding: '1.2rem', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
@@ -41,7 +42,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
         <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <span className={`tour-badge ${isWomen ? 'tour-badge-wta' : 'tour-badge-atp'}`}>{isWomen ? 'WTA' : 'ATP'}</span>
           <span>{surfaceEmoji}</span>
-          <span>{prediction.tournament_name || 'Tennis Match'}</span>
+          <span>{prediction.tournament_name || t('matchSeo.tennisMatch', 'Tennis Match')}</span>
           {prediction.round_name && <span style={{ opacity: 0.7 }}>• {prediction.round_name}</span>}
         </div>
         {statusBadge}
@@ -73,17 +74,17 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
         <div style={{ background: 'rgba(251, 191, 36, 0.08)', border: '1px border-dashed rgba(251, 191, 36, 0.4)', borderRadius: '12px', padding: '1.2rem', textAlign: 'center' }}>
           <Lock size={28} color="var(--accent-amber)" style={{ marginBottom: '0.4rem' }} />
           <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'white', marginBottom: '0.3rem' }}>
-            🔒 PREDICTION LOCKED
+            🔒 {t('predictionCard.lockedPrediction', 'PREDICTION LOCKED')}
           </h4>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.9rem', lineHeight: 1.4 }}>
-            Connect your account to access all daily AI match predictions & deep tactical insights!
+            {t('predictionCard.connectDesc', 'Connect your account to access all daily AI match predictions & deep tactical insights!')}
           </p>
           <button
             onClick={onUnlockClick}
             className="btn-primary"
             style={{ width: '100%', fontSize: '0.82rem', padding: '0.65rem' }}
           >
-            <Key size={14} /> Connect Account & Unlock Analysis
+            <Key size={14} /> {t('predictionCard.unlockAnalysis', 'Connect Account & Unlock Analysis')}
           </button>
         </div>
       ) : (
@@ -92,7 +93,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
       <div style={{ background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '10px', padding: '0.9rem', marginBottom: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
           <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-cyan)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            AI PREDICTED WINNER
+            {t('predictionCard.aiPick', 'AI PREDICTED WINNER')}
           </div>
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
             {prediction.confidence && (
@@ -101,7 +102,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
               </span>
             )}
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-green)' }}>
-              {prediction.win_probability || 65}% Win Prob
+              {prediction.win_probability || 65}% {t('predictionCard.winProbability', 'Win Prob')}
             </span>
           </div>
         </div>
@@ -109,7 +110,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
         <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{prediction.predicted_winner}</span>
           <span style={{ fontSize: '0.85rem', color: 'var(--accent-amber)', background: 'rgba(251, 191, 36, 0.15)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
-            {prediction.predicted_score ? `Projected: ${prediction.predicted_score}` : 'Projected Winner'}
+            {prediction.predicted_score ? `${t('predictionPanel.score', 'Score:')} ${prediction.predicted_score}` : t('predictionCard.projectedWinner', 'Projected Winner')}
           </span>
         </div>
       </div>
@@ -119,7 +120,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
         onClick={() => setExpanded(prev => !prev)}
         style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem', cursor: 'pointer', paddingTop: '0.4rem' }}
       >
-        {expanded ? <>Show Less <ChevronUp size={14} /></> : <>Show Full AI Breakdown <ChevronDown size={14} /></>}
+        {expanded ? <>{t('predictionCard.showLess', 'Show Less')} <ChevronUp size={14} /></> : <>{t('predictionCard.showFullBreakdown', 'Show Full AI Breakdown')} <ChevronDown size={14} /></>}
       </button>
 
       {/* Expanded Breakdown Content */}
@@ -155,7 +156,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
 
           {Array.isArray(prediction.key_factors) && prediction.key_factors.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', marginBottom: '0.3rem' }}>⚡ Key Decisive Factors</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-amber)', marginBottom: '0.3rem' }}>⚡ {t('deepAnalysis.keyDecisiveFactors', 'Key Decisive Factors')}</div>
               <ul style={{ paddingLeft: '1.2rem', fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {prediction.key_factors.map((f, i) => (
                   <li key={i}>{f}</li>
@@ -166,7 +167,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
 
           {prediction.devils_advocate_risk && !parseAiDossierSections(prediction.ai_summary).some(s => s.type === 'risk') && (
             <div style={{ fontSize: '0.78rem', color: '#fca5a5', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '0.6rem 0.8rem', borderRadius: 8, lineHeight: 1.4 }}>
-              <span style={{ fontWeight: 700, color: '#f87171' }}>⚠️ Critical Upset Scenario: </span>
+              <span style={{ fontWeight: 700, color: '#f87171' }}>⚠️ {t('deepAnalysis.criticalUpsetRisk', 'Critical Upset Scenario')}: </span>
               {prediction.devils_advocate_risk}
             </div>
           )}

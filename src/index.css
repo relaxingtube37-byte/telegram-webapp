@@ -46,6 +46,27 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Multilingual typography & RTL font rules */
+body.font-fa,
+body.font-fa * {
+  font-family: 'Vazirmatn', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+body.font-ar,
+body.font-ar * {
+  font-family: 'Noto Sans Arabic', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
 html, body {
   width: 100%;
   max-width: 100vw;

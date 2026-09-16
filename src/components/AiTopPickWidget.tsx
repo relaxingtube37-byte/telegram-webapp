@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Sparkles, Trophy, Lock, Key, ArrowRight, Zap } from 'lucide-react';
 import type { Prediction } from '../types';
 import { formatPlayerDisplayName, getSurfaceEmoji, getMatchGender } from '../utils/formatters';
+import { useTranslation } from '../i18n';
 
 interface AiTopPickWidgetProps {
   predictions: Prediction[];
@@ -16,6 +17,8 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
   isVerified,
   onUnlockClick,
 }) => {
+  const { t } = useTranslation();
+
   // Dynamically select the single top pick with the highest confidence / win probability from active predictions
   const topPick = useMemo(() => {
     const active = predictions.filter(p => p.status === 'UPCOMING' || p.status === 'LIVE');
@@ -55,10 +58,10 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
       <div className="top-pick-widget empty-pick">
         <div className="top-pick-header">
           <Sparkles size={14} color="#d4a843" />
-          <span>TOP AI VALUE PICK</span>
+          <span>{t('aiTopPick.title', 'TOP AI VALUE PICK')}</span>
         </div>
         <p className="top-pick-empty-text">
-          Our machine learning models are analyzing upcoming ATP &amp; WTA fixtures. Check back soon for the next high-EV pick.
+          {t('aiTopPick.analyzing', 'Our machine learning models are analyzing upcoming ATP & WTA fixtures. Check back soon for the next high-EV pick.')}
         </p>
       </div>
     );
@@ -79,7 +82,7 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
       <div className="top-pick-badge-top">
         <div className="top-pick-title-left">
           <Zap size={14} color="#fbbf24" />
-          <span>FEATURED AI PICK</span>
+          <span>{t('aiTopPick.featuredPick', 'FEATURED AI PICK')}</span>
         </div>
         <span className={`tour-pill ${isWta ? 'tour-pill-wta' : 'tour-pill-atp'}`}>
           {isWta ? 'WTA' : 'ATP'}
@@ -92,7 +95,7 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
           {getSurfaceEmoji(topPick.surface)} {topPick.tournament_name?.split(',')[0]}
         </span>
         {topPick.status === 'LIVE' && (
-          <span className="top-pick-live-tag">LIVE</span>
+          <span className="top-pick-live-tag">{t('liveStatus.live', 'LIVE')}</span>
         )}
       </div>
 
@@ -104,7 +107,7 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
             {topPick.home_odds && <span className="top-pick-odds">{topPick.home_odds}</span>}
           </div>
           {isVerified && !topPick.content_locked && topPick.predicted_winner && topPick.predicted_winner !== 'LOCKED' && topPick.predicted_winner.toLowerCase().includes(topPick.home_name?.toLowerCase() || '') && (
-            <span className="pick-marker">PICK</span>
+            <span className="pick-marker">{t('aiTopPick.pick', 'PICK')}</span>
           )}
         </div>
         <div className="top-pick-vs">vs</div>
@@ -114,7 +117,7 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
             {topPick.away_odds && <span className="top-pick-odds">{topPick.away_odds}</span>}
           </div>
           {isVerified && !topPick.content_locked && topPick.predicted_winner && topPick.predicted_winner !== 'LOCKED' && topPick.predicted_winner.toLowerCase().includes(topPick.away_name?.toLowerCase() || '') && (
-            <span className="pick-marker">PICK</span>
+            <span className="pick-marker">{t('aiTopPick.pick', 'PICK')}</span>
           )}
         </div>
       </div>
@@ -122,8 +125,8 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
       {/* Probability Gauge */}
       <div className="top-pick-gauge-box">
         <div className="gauge-header">
-          <span className="gauge-label">AI Win Probability</span>
-          <span className="gauge-val">{!isVerified || topPick.content_locked ? '🔒 Gated' : `${winProb}%`}</span>
+          <span className="gauge-label">{t('aiTopPick.winProbability', 'AI Win Probability')}</span>
+          <span className="gauge-val">{!isVerified || topPick.content_locked ? `🔒 ${t('aiTopPick.gated', 'Gated')}` : `${winProb}%`}</span>
         </div>
         <div className="gauge-track">
           <div className="gauge-fill" style={{ width: !isVerified || topPick.content_locked ? '0%' : `${Math.max(winProb, 20)}%` }} />
@@ -133,7 +136,7 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
       {/* Market recommendation */}
       {isVerified && !topPick.content_locked && topPick.best_bet_market && topPick.best_bet_market !== 'NO_BET' && (
         <div className="top-pick-market">
-          <span className="market-label">Recommended Market:</span>
+          <span className="market-label">{t('aiTopPick.recommendedMarket', 'Recommended Market:')}</span>
           <span className="market-value">{topPick.best_bet_market}</span>
         </div>
       )}
@@ -144,14 +147,14 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
           onClick={onUnlockClick}
           className="top-pick-action-btn btn-unlock-pick pulse-glow"
         >
-          <Lock size={13} /> Unlock Full Tactical Dossier
+          <Lock size={13} /> {t('aiTopPick.unlockPick', 'Unlock Full Tactical Dossier')}
         </button>
       ) : (
         <button
           onClick={() => onSelectMatch(topPick)}
           className="top-pick-action-btn btn-view-pick"
         >
-          <span>View Deep Match Dossier</span>
+          <span>{t('aiTopPick.viewMatch', 'View Deep Match Dossier')}</span>
           <ArrowRight size={14} />
         </button>
       )}

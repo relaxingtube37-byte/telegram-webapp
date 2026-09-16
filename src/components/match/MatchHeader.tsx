@@ -16,6 +16,7 @@ import {
 import { MatchLiveStatus } from './MatchLiveStatus';
 import { PlayerAvatar } from '../PlayerAvatar';
 import { getPlayerImageUrl } from '../../utils/playerImage';
+import { useTranslation } from '../../i18n';
 
 interface MatchHeaderProps {
   match: Prediction;
@@ -51,6 +52,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
   activeTab = 'all',
   onTabChange,
 }) => {
+  const { t } = useTranslation();
   const gender = getMatchGender(
     match.tournament_name,
     match.round_name,
@@ -104,10 +106,10 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           type="button"
           onClick={onBack}
           className="btn-back-to-matches"
-          title="Back to matches list"
+          title={t('matchHeader.backToList', 'Back to matches list')}
         >
           <ArrowLeft size={16} />
-          <span>All Matches</span>
+          <span>{t('matchHeader.allMatches', 'All Matches')}</span>
         </button>
 
         <div className="match-hero-meta-capsule">
@@ -134,7 +136,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             type="button"
             onClick={onShare}
             className="btn-share-match"
-            title="Share Match Intelligence"
+            title={t('matchHeader.shareTitle', 'Share Match Intelligence')}
           >
             <Share2 size={14} />
           </button>
@@ -157,9 +159,9 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
           {/* Header Column Labels for Live Scores (SET, GM, PTS) */}
           {isLive && parsedScore && (
             <div className="scoreboard-table-header">
-              <span className="th-label">SET</span>
-              <span className="th-label">GM</span>
-              <span className="th-label">PTS</span>
+              <span className="th-label">{t('matchHeader.set', 'SET')}</span>
+              <span className="th-label">{t('matchHeader.game', 'GM')}</span>
+              <span className="th-label">{t('matchHeader.pts', 'PTS')}</span>
             </div>
           )}
 
@@ -178,7 +180,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
                 </span>
                 {isHomeWinner && (
                   <span className="scoreboard-pick-chip">
-                    <Sparkles size={10} /> AI Pick
+                    <Sparkles size={10} /> {t('matchHeader.aiPick', 'AI Pick')}
                   </span>
                 )}
               </div>
@@ -223,7 +225,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
                 </span>
                 {isAwayWinner && (
                   <span className="scoreboard-pick-chip">
-                    <Sparkles size={10} /> AI Pick
+                    <Sparkles size={10} /> {t('matchHeader.aiPick', 'AI Pick')}
                   </span>
                 )}
               </div>
@@ -264,7 +266,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
                 onClick={() => handlePartnerAction('watch_live')}
               >
                 <Tv size={13} />
-                <span>Watch Live Stream</span>
+                <span>{t('matchHeader.watchLive', 'Watch Live Stream')}</span>
               </button>
             )}
             {showRegister && (
@@ -274,7 +276,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
                 onClick={() => handlePartnerAction('registration')}
               >
                 <Lock size={12} />
-                <span>Unlock Full AI Dossier &amp; Value Edge</span>
+                <span>{t('matchHeader.unlockFullDossier', 'Unlock Full AI Dossier & Value Edge')}</span>
               </button>
             )}
           </div>
@@ -290,7 +292,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             onClick={() => onTabChange('all')}
           >
             <Layers size={13} />
-            <span>All Intel</span>
+            <span>{t('matchHeader.subtabs.all', 'All Intel')}</span>
           </button>
           <button
             type="button"
@@ -298,7 +300,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             onClick={() => onTabChange('tactical')}
           >
             <Sparkles size={13} />
-            <span>AI Tactical</span>
+            <span>{t('matchHeader.subtabs.tactical', 'AI Tactical')}</span>
           </button>
           <button
             type="button"
@@ -306,7 +308,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             onClick={() => onTabChange('stats')}
           >
             <BarChart3 size={13} />
-            <span>Deep Stats</span>
+            <span>{t('matchHeader.subtabs.stats', 'Deep Stats')}</span>
           </button>
           <button
             type="button"
@@ -314,7 +316,7 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
             onClick={() => onTabChange('editorial')}
           >
             <Newspaper size={13} />
-            <span>Editorial</span>
+            <span>{t('matchHeader.subtabs.editorial', 'Editorial')}</span>
           </button>
         </div>
       )}
