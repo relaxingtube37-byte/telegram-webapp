@@ -77,31 +77,55 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
     const items: DossierSlideItem[] = [];
 
     const toShortTitle = (title: string, fallback: string): string => {
-      const t = title.toLowerCase();
-      if (t.includes('executive') || t.includes('overview')) return 'Overview';
-      if (t.includes('statistical') || t.includes('dynamics') || t.includes('surface')) return 'Dynamics';
-      if (t.includes('physical') || t.includes('fatigue') || t.includes('conditioning')) return 'Physical';
-      if (t.includes('historical') || t.includes('fortitude') || t.includes('mental')) return 'Mental';
-      if (t.includes('strategic') || t.includes('projection') || t.includes('verdict')) return 'Strategy';
-      if (t.includes('factor')) return 'Factors';
-      if (t.includes('upset') || t.includes('risk') || t.includes('devil')) return 'Upset Risk';
+      const lower = title.toLowerCase();
+      if (lower.includes('executive') || lower.includes('overview') || lower.includes('چکیده') || lower.includes('خلاصه') || lower.includes('özet') || lower.includes('visão') || lower.includes('ملخص')) {
+        return t('deepAnalysis.shortOverview', 'Overview');
+      }
+      if (lower.includes('statistical') || lower.includes('dynamics') || lower.includes('surface') || lower.includes('دینامیک') || lower.includes('آماری') || lower.includes('dinamik') || lower.includes('dinâmica') || lower.includes('ديناميك')) {
+        return t('deepAnalysis.shortDynamics', 'Dynamics');
+      }
+      if (lower.includes('physical') || lower.includes('fatigue') || lower.includes('conditioning') || lower.includes('فیزیکی') || lower.includes('خستگی') || lower.includes('fiziksel') || lower.includes('física') || lower.includes('بدني')) {
+        return t('deepAnalysis.shortPhysical', 'Physical');
+      }
+      if (lower.includes('historical') || lower.includes('fortitude') || lower.includes('mental') || lower.includes('روانی') || lower.includes('ذهنی') || lower.includes('zihinsel') || lower.includes('ذهني')) {
+        return t('deepAnalysis.shortMental', 'Mental');
+      }
+      if (lower.includes('strategic') || lower.includes('projection') || lower.includes('verdict') || lower.includes('استراتژی') || lower.includes('پیش‌بینی') || lower.includes('strateji') || lower.includes('estratégia') || lower.includes('استراتيج')) {
+        return t('deepAnalysis.shortStrategy', 'Strategy');
+      }
+      if (lower.includes('factor') || lower.includes('عوامل') || lower.includes('faktör') || lower.includes('fator')) {
+        return t('deepAnalysis.shortFactors', 'Key Factors');
+      }
+      if (lower.includes('upset') || lower.includes('risk') || lower.includes('devil') || lower.includes('ریسک') || lower.includes('شگفتی') || lower.includes('sürpriz') || lower.includes('zebra') || lower.includes('مفاجأة')) {
+        return t('deepAnalysis.shortUpsetRisk', 'Upset Risk');
+      }
       return fallback;
+    };
+
+    const getLocalizedSectionTitle = (type: string, rawTitle: string): string => {
+      if (type === 'overview') return t('deepAnalysis.titleOverview', 'Executive Match Overview');
+      if (type === 'statistical') return t('deepAnalysis.titleDynamics', 'Statistical & Surface Dynamics');
+      if (type === 'physical') return t('deepAnalysis.titlePhysical', 'Physical Conditioning & Fatigue Analysis');
+      if (type === 'historical') return t('deepAnalysis.titleMental', 'Historical Matchup & Mental Fortitude');
+      if (type === 'verdict') return t('deepAnalysis.titleStrategy', 'Strategic Consensus Verdict');
+      if (type === 'tactical') return t('deepAnalysis.titleTactical', 'Tactical Match Dossier');
+      return rawTitle;
     };
 
     // 1. AI Text Sections
     sections.forEach((sec, idx) => {
-      let badge = 'TACTICAL INTEL';
-      if (sec.type === 'overview') badge = 'EXECUTIVE SUMMARY';
-      else if (sec.type === 'statistical') badge = 'SURFACE & STATS';
-      else if (sec.type === 'physical') badge = 'STAMINA & REST';
-      else if (sec.type === 'historical') badge = 'H2H & PSYCHOLOGY';
-      else if (sec.type === 'verdict') badge = 'AI PROJECTION';
+      let badge = t('deepAnalysis.tacticalIntel', 'TACTICAL INTEL');
+      if (sec.type === 'overview') badge = t('deepAnalysis.executiveSummary', 'EXECUTIVE SUMMARY');
+      else if (sec.type === 'statistical') badge = t('deepAnalysis.surfaceAndStats', 'SURFACE & STATS');
+      else if (sec.type === 'physical') badge = t('deepAnalysis.staminaAndRest', 'STAMINA & REST');
+      else if (sec.type === 'historical') badge = t('deepAnalysis.h2hPsychology', 'H2H & PSYCHOLOGY');
+      else if (sec.type === 'verdict') badge = t('deepAnalysis.aiProjection', 'AI PROJECTION');
 
       items.push({
         id: `sec-${idx}`,
         type: sec.type,
-        title: sec.title,
-        shortTitle: toShortTitle(sec.title, `Insight ${idx + 1}`),
+        title: getLocalizedSectionTitle(sec.type, sec.title),
+        shortTitle: toShortTitle(sec.title, `${t('deepAnalysis.shortInsight', 'Insight')} ${idx + 1}`),
         icon: sec.icon,
         color: sec.color || '#38bdf8',
         bgTint: sec.bg || 'rgba(56, 189, 248, 0.04)',
@@ -144,7 +168,7 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
         color: '#f87171',
         bgTint: 'rgba(239, 68, 68, 0.04)',
         borderColor: 'rgba(239, 68, 68, 0.25)',
-        badge: 'DEVILS ADVOCATE',
+        badge: t('deepAnalysis.devilsAdvocateBadge', 'DEVILS ADVOCATE'),
         content: <p className="dossier-risk-body">{upsetRisk}</p>,
       });
     }
@@ -155,18 +179,18 @@ export const MatchDeepAnalysis: React.FC<MatchDeepAnalysisProps> = ({
         id: `card-${idx}`,
         type: 'analytics-card',
         title: card.title,
-        shortTitle: toShortTitle(card.title, `Card ${idx + 1}`),
+        shortTitle: toShortTitle(card.title, `${t('deepAnalysis.shortInsight', 'Insight')} ${idx + 1}`),
         icon: <Flame size={15} style={{ color: 'var(--accent-amber)' }} />,
         color: '#fbbf24',
         bgTint: 'rgba(251, 191, 36, 0.04)',
         borderColor: 'rgba(251, 191, 36, 0.2)',
-        badge: 'ADDITIONAL INTEL',
+        badge: t('deepAnalysis.additionalIntelBadge', 'ADDITIONAL INTEL'),
         content: <p className="dossier-card-body">{card.description}</p>,
       });
     });
 
     return items;
-  }, [sections, match.key_factors, upsetRisk, cards]);
+  }, [sections, match.key_factors, upsetRisk, cards, t]);
 
   // Keep active index within bounds if slide count changes
   useEffect(() => {

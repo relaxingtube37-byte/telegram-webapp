@@ -574,7 +574,7 @@ export function App() {
       const headers = buildAuthHeaders(token, isLoggedOut);
 
       const [predRes, statsRes, refRes] = await Promise.all([
-        fetch(`${API_BASE}/predictions?lang=${encodeURIComponent(language)}`, { headers }).then(r => r.json()).catch(() => ({})),
+        fetch(`${API_BASE}/predictions?limit=500&lang=${encodeURIComponent(language)}`, { headers }).then(r => r.json()).catch(() => ({})),
         silent ? Promise.resolve(null) : fetch(`${API_BASE}/stats`, { headers }).then(r => r.json()).catch(() => null),
         silent ? Promise.resolve(null) : fetch(`${API_BASE}/referrals`).then(r => r.json()).catch(() => []),
       ]);

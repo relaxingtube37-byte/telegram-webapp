@@ -438,17 +438,32 @@ export interface AgentDossierSection {
   body: string;
 }
 
+export function getLocalizedSectionTitle(
+  type: AgentDossierSection['type'],
+  rawTitle: string,
+  t: (key: string, def?: string) => string
+): string {
+  if (type === 'overview') return t('deepAnalysis.titleOverview', 'Executive Match Overview');
+  if (type === 'statistical') return t('deepAnalysis.titleDynamics', 'Statistical & Surface Dynamics');
+  if (type === 'physical') return t('deepAnalysis.titlePhysical', 'Physical Conditioning & Fatigue Analysis');
+  if (type === 'historical') return t('deepAnalysis.titleMental', 'Historical Matchup & Mental Fortitude');
+  if (type === 'verdict') return t('deepAnalysis.titleStrategy', 'Strategic Consensus Verdict');
+  if (type === 'tactical') return t('deepAnalysis.titleTactical', 'Tactical Match Dossier');
+  if (type === 'risk') return t('deepAnalysis.criticalUpsetRisk', 'Critical Upset Scenario');
+  return rawTitle;
+}
+
 export function parseAiDossierSections(text?: string): AgentDossierSection[] {
   if (!text || typeof text !== 'string') return [];
 
   // Normalize delimiters if newlines were stripped or joined with emoji headers
   const normalized = text
-    .replace(/\s*([📊📈]?\s*Statistical & Surface Dynamics:?)/gi, '\n\n$1')
-    .replace(/\s*([🏃‍♂️🏃‍♀️🏃]?\s*Physical Conditioning & Fatigue Analysis:?)/gi, '\n\n$1')
-    .replace(/\s*([📜🏛️]?\s*Historical Matchup & Mental Fortitude:?)/gi, '\n\n$1')
-    .replace(/\s*([🎯🏆]?\s*Strategic (?:Consensus Verdict|Projection):?)/gi, '\n\n$1')
-    .replace(/\s*([🧠💡]?\s*Tactical (?:Match Dossier|Dossier):?)/gi, '\n\n$1')
-    .replace(/\s*(⚠️\s*(?:Critical Upset Scenario|Critical upset scenario to monitor|Devils Advocate):?)/gi, '\n\n$1');
+    .replace(/\s*([📊📈]?\s*(?:Statistical & Surface Dynamics|دینامیک آماری و زمین مسابقه|دینامیک آماری|İstatistiksel ve Zemin Dinamikleri|Dinâmica Estatística e de Superfície|الديناميكيات الإحصائية وسطح الملعب):?)/gi, '\n\n$1')
+    .replace(/\s*([🏃‍♂️🏃‍♀️🏃]?\s*(?:Physical Conditioning & Fatigue Analysis|آمادگی جسمانی و مدیریت خستگی|آمادگی جسمانی|Fiziksel Kondisyon ve Yorgunluk|Condicionamento Físico e Fadiga|الجاهزية البدنية وإدارة الإجهاد):?)/gi, '\n\n$1')
+    .replace(/\s*([📜🏛️]?\s*(?:Historical Matchup & Mental Fortitude|تقابل رودررو و آمادگی ذهنی|تقابل رودررو|Geçmiş Eşleşmeler ve Zihinsel Güç|Confronto Direto e Força Mental|المواجهات المباشرة والصلابة الذهنية):?)/gi, '\n\n$1')
+    .replace(/\s*([🎯🏆]?\s*(?:Strategic (?:Consensus Verdict|Projection)|جمع‌بندی و نتیجه‌گیری نهایی|جمع‌بندی نهایی|Stratejik Karar ve Uzlaşı|Veredito Estratégico|النتيجة الاستراتيجية والإجماع):?)/gi, '\n\n$1')
+    .replace(/\s*([🧠💡]?\s*(?:Tactical (?:Match Dossier|Dossier)|پرونده تحلیل تاکتیکی|تحلیل تاکتیکی|Taktiksel Maç Dosyası|Dossiê Tático da Partida|الملف التكتيكي للمباراة):?)/gi, '\n\n$1')
+    .replace(/\s*(⚠️\s*(?:Critical Upset Scenario|Critical upset scenario to monitor|Devils Advocate|سناریوی شکست غیرمنتظره|Kritik Sürpriz Senaryosu|Cenário Crítico de Zebra|سيناريو المفاجأة الحرج):?)/gi, '\n\n$1');
 
   const rawBlocks = normalized
     .split(/\n\s*\n|\r\n\s*\r\n/)
@@ -467,7 +482,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
     let border = 'rgba(255, 255, 255, 0.07)';
     let body = block;
 
-    if (/^[📊📈]|\bStatistical & Surface Dynamics\b/i.test(block)) {
+    if (/^[📊📈]|\b(?:Statistical & Surface Dynamics|دینامیک آماری|İstatistiksel ve Zemin|Dinâmica Estatística|الديناميكيات الإحصائية)\b/i.test(block)) {
       type = 'statistical';
       icon = '📊';
       color = '#38bdf8';
@@ -476,7 +491,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📊📈]\s*/, '').trim() : 'Statistical & Surface Dynamics';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^[🏃]|\bPhysical Conditioning\b/i.test(block)) {
+    } else if (/^[🏃‍♂️🏃‍♀️🏃]|\b(?:Physical Conditioning|آمادگی جسمانی|Fiziksel Kondisyon|Condicionamento Físico|الجاهزية البدنية)\b/i.test(block)) {
       type = 'physical';
       icon = '🏃';
       color = '#34d399';
@@ -485,7 +500,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🏃‍♂️🏃‍♀️🏃]\s*/, '').trim() : 'Physical Conditioning & Fatigue Analysis';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^[📜]|\bHistorical Matchup\b/i.test(block)) {
+    } else if (/^[📜🏛️]|\b(?:Historical Matchup|تقابل رودررو|Geçmiş Eşleşmeler|Confronto Direto|المواجهات المباشرة)\b/i.test(block)) {
       type = 'historical';
       icon = '📜';
       color = '#a78bfa';
@@ -494,7 +509,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📜🏛️]\s*/, '').trim() : 'Historical Matchup & Mental Fortitude';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^[🎯]|\bStrategic (?:Projection|Consensus)\b/i.test(block)) {
+    } else if (/^[🎯🏆]|\b(?:Strategic (?:Projection|Consensus)|جمع‌بندی و نتیجه‌گیری|Stratejik Karar|Veredito Estratégico|النتيجة الاستراتيجية)\b/i.test(block)) {
       type = 'verdict';
       icon = '🎯';
       color = '#fbbf24';
@@ -503,7 +518,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🎯🏆]\s*/, '').trim() : 'Strategic Consensus Verdict';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^[🧠]|\bTactical Dossier\b/i.test(block)) {
+    } else if (/^[🧠💡]|\b(?:Tactical (?:Match Dossier|Dossier)|پرونده تحلیل تاکتیکی|Taktiksel Maç|Dossiê Tático|الملف التكتيكي)\b/i.test(block)) {
       type = 'tactical';
       icon = '🧠';
       color = '#818cf8';
@@ -512,7 +527,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🧠💡]\s*/, '').trim() : 'Tactical Match Dossier';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^⚠️|\bCritical (?:Upset|upset)\b/i.test(block)) {
+    } else if (/^⚠️|\b(?:Critical (?:Upset|upset)|شکست غیرمنتظره|Kritik Sürpriz|Cenário Crítico de Zebra|سيناريو المفاجأة)\b/i.test(block)) {
       type = 'risk';
       icon = '⚠️';
       color = '#f87171';

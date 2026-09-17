@@ -1,4 +1,4 @@
-import { getMatchGender, parseAiDossierSections, parseTennisScore } from '../utils/formatters';
+import { getMatchGender, parseAiDossierSections, getLocalizedSectionTitle, parseTennisScore } from '../utils/formatters';
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Lock, Key } from 'lucide-react';
 import type { Prediction } from '../types';
@@ -144,7 +144,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLo
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.76rem', fontWeight: 800, color: sec.color, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
                     <span style={{ fontSize: '0.95rem' }}>{sec.icon}</span>
-                    <span>{sec.title}</span>
+                    <span>{getLocalizedSectionTitle(sec.type, sec.title, t)}</span>
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#e2e8f0', lineHeight: 1.55 }}>
                     {sec.body}

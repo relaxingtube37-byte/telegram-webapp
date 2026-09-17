@@ -93,7 +93,7 @@ export const MatchPredictionPanel: React.FC<MatchPredictionPanelProps> = ({ matc
         </div>
         {match.confidence && (
           <span className={`ai-confidence-pill conf-${match.confidence.toLowerCase()}`}>
-            {match.confidence} {t('predictionPanel.confidence', 'CONFIDENCE')}
+            {t('predictionPanel.confidence', 'CONFIDENCE')}: {t(`predictionPanel.${match.confidence.toLowerCase()}`, match.confidence)}
           </span>
         )}
       </div>

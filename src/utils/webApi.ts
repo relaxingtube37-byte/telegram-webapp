@@ -65,7 +65,7 @@ export interface WebDeepAnalyticsResponse {
 export async function fetchWebMatches(
   webApiBase: string,
   sessionToken: string | null | undefined,
-  limit = 100,
+  limit = 500,
   lang?: string
 ): Promise<WebMatchesResponse> {
   const activeLang = lang || getActiveLanguage();
