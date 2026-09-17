@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
   onLogout,
   effectiveTrackingId,
 }) => {
-  const { t, language, setLanguage } = useTranslation();
+  const { t, language, setLanguage, isRtl } = useTranslation();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -184,7 +184,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                     gap: '0.5rem',
                     background: 'rgba(15, 30, 20, 0.85)',
                     border: `1px solid ${isVerified ? 'rgba(74, 222, 128, 0.45)' : 'rgba(212, 168, 67, 0.45)'}`,
-                    padding: '0.28rem 0.65rem 0.28rem 0.35rem',
+                    padding: isRtl ? '0.28rem 0.35rem 0.28rem 0.65rem' : '0.28rem 0.65rem 0.28rem 0.35rem',
                     borderRadius: 24,
                     cursor: 'pointer',
                     boxShadow: isVerified ? '0 0 12px rgba(74, 222, 128, 0.15)' : 'none',
@@ -222,7 +222,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                     <div style={{
                       position: 'absolute',
                       bottom: 0,
-                      right: 0,
+                      [isRtl ? 'left' : 'right']: 0,
                       width: 7,
                       height: 7,
                       borderRadius: '50%',
@@ -232,7 +232,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                   </div>
 
                   {/* Name and verified pill */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: isRtl ? 'flex-end' : 'flex-start', lineHeight: 1.15 }}>
                     <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#fff', maxWidth: 85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : t('header.member', 'Member'))}
                     </span>
@@ -272,16 +272,18 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 10px)',
-                  right: 0,
+                  ...(isRtl ? { left: 0, right: 'auto' } : { right: 0, left: 'auto' }),
                   zIndex: 100,
                   minWidth: 285,
-                  maxWidth: 320,
+                  maxWidth: 'min(320px, calc(100vw - 20px))',
                   padding: '1.1rem',
                   borderRadius: 14,
                   border: '1px solid rgba(212, 168, 67, 0.35)',
                   boxShadow: '0 16px 48px rgba(0, 0, 0, 0.85)',
                   background: 'rgba(9, 20, 14, 0.98)',
                   backdropFilter: 'blur(20px)',
+                  direction: isRtl ? 'rtl' : 'ltr',
+                  textAlign: isRtl ? 'right' : 'left',
                 }}
               >
                 {/* Profile Identity Card */}
@@ -315,7 +317,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
                       {telegramUser?.first_name || (telegramUser?.username ? `@${telegramUser.username}` : t('header.proMember', 'Pro Member'))}
                     </div>
                     {telegramUser?.email && (
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', direction: 'ltr', textAlign: isRtl ? 'right' : 'left' }}>
                         {telegramUser.email}
                       </div>
                     )}

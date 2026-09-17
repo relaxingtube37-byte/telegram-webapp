@@ -62,6 +62,33 @@ body.font-ar * {
   text-align: right;
 }
 
+[dir="rtl"] .header-right-actions {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .chevron-open-icon {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .btn-back-to-matches svg {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .dossier-nav-btn svg {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .dossier-card {
+  border-left-width: 1px !important;
+  border-right-width: 3px !important;
+}
+
+[dir="rtl"] .dossier-slide-card {
+  border-left-width: 1px !important;
+  border-right-width: 3px !important;
+}
+
 [dir="ltr"] {
   direction: ltr;
   text-align: left;
