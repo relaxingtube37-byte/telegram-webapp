@@ -85,7 +85,7 @@ export const ModernTelemetryHub: React.FC<ModernTelemetryHubProps> = ({
 
   // Render Compact Orbital Ring
   const renderRing = (pct: number, color: string, glowColor: string) => {
-    const size = 76;
+    const size = 80;
     const strokeWidth = 6;
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
@@ -93,38 +93,40 @@ export const ModernTelemetryHub: React.FC<ModernTelemetryHubProps> = ({
     const offset = circumference - (cleanPct / 100) * circumference;
 
     return (
-      <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke="rgba(255, 255, 255, 0.08)"
-            strokeWidth={strokeWidth}
-          />
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            style={{
-              transition: 'stroke-dashoffset 1s ease-out',
-              filter: `drop-shadow(0 0 5px ${glowColor})`,
-            }}
-          />
-        </svg>
-        <div style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-          <span style={{ fontSize: '0.92rem', fontWeight: 900, color: '#fff', lineHeight: 1 }}>{cleanPct}%</span>
-          <span style={{ fontSize: '0.55rem', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginTop: 2 }}>
-            {mt.energyTank}
-          </span>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.08)"
+              strokeWidth={strokeWidth}
+            />
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              fill="none"
+              stroke={color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              style={{
+                transition: 'stroke-dashoffset 1s ease-out',
+                filter: `drop-shadow(0 0 5px ${glowColor})`,
+              }}
+            />
+          </svg>
+          <div style={{ position: 'absolute', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '1.05rem', fontWeight: 900, color: '#fff', lineHeight: 1 }}>{cleanPct}%</span>
+          </div>
         </div>
+        <span style={{ fontSize: '0.6rem', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', textTransform: 'uppercase', marginTop: 4 }}>
+          {mt.energyTank}
+        </span>
       </div>
     );
   };
