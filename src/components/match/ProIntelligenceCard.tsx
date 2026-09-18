@@ -13,6 +13,8 @@ interface ProIntelligenceCardProps {
   p2Form?: { currentStreak: string | null; recentScores?: string[] } | null;
   isLocked?: boolean;
   onUnlockClick?: () => void;
+  gender?: string;
+  tour?: string;
 }
 
 // 10 exact axes defined in the research paper (in clockwise order starting at 12 o'clock)
@@ -240,6 +242,8 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   surface,
   homeName,
   awayName,
+  gender,
+  tour,
   h2hSummary,
   p1Form,
   p2Form,
@@ -254,7 +258,12 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
   const rawIntel: any = (intel as any)?.data || (intel as any)?.payload || (intel as any)?.proIntelligence || intel || {};
   const p1: IPlayerTelemetryCard = rawIntel.player_one || rawIntel.player1 || {} as any;
   const p2: IPlayerTelemetryCard = rawIntel.player_two || rawIntel.player2 || {} as any;
-  const tourName = rawIntel.tour || rawIntel.meta?.tour || 'ATP';
+  const rawTour = rawIntel.tour || rawIntel.meta?.tour || tour || '';
+  const isWta = (gender || '').toLowerCase() === 'women' ||
+    rawTour.toUpperCase().includes('WTA') ||
+    p1.tour === 'WTA' ||
+    p2.tour === 'WTA';
+  const tourName = isWta ? 'WTA' : 'ATP';
   const surfaceName = rawIntel.surface || rawIntel.meta?.surface || surface || 'Official';
 
   const p1FullName = getPlayerFullName(p1.full_name || p1.name, homeName);

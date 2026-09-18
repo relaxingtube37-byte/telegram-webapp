@@ -36,6 +36,36 @@ interface MatchAnalysisPageProps {
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
 type SubTab = 'all' | 'tactical' | 'stats' | 'editorial';
 
+function isAuthenticProIntel(intel: any): boolean {
+  if (!intel || typeof intel !== 'object') return false;
+  if (intel.version === 'baseline-fallback' || intel.isFallback) return false;
+  const p1 = intel.player_one || intel.player1;
+  const p2 = intel.player_two || intel.player2;
+  if (!p1?.radar_axes || !p2?.radar_axes) return false;
+  if (!Array.isArray(p1.radar_axes) || !Array.isArray(p2.radar_axes)) return false;
+  if (p1.radar_axes.length < 5 || p2.radar_axes.length < 5) return false;
+
+  // Reject fake baseline models where both hold rates are hardcoded to 80.5% (or 65.5%)
+  const p1Hold = p1.radar_axes[0]?.raw_value;
+  const p2Hold = p2.radar_axes[0]?.raw_value;
+  if ((p1Hold === 0.805 && p2Hold === 0.805) || (p1Hold === 0.655 && p2Hold === 0.655)) {
+    return false;
+  }
+
+  // Reject identical mirror copies across all axes
+  let identicalCount = 0;
+  for (let i = 0; i < Math.min(p1.radar_axes.length, p2.radar_axes.length); i++) {
+    if (p1.radar_axes[i]?.raw_value === p2.radar_axes[i]?.raw_value) {
+      identicalCount++;
+    }
+  }
+  if (identicalCount === p1.radar_axes.length) {
+    return false;
+  }
+
+  return true;
+}
+
 export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   prediction: seed,
   selectedTimezone,
@@ -112,7 +142,11 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
         ]);
 
         if (cancelled) return;
-        if (proIntelRes) setProIntel(proIntelRes);
+        if (proIntelRes && isAuthenticProIntel(proIntelRes)) {
+          setProIntel(proIntelRes);
+        } else {
+          setProIntel(null);
+        }
 
         if (matchesRes?.matches) {
           const found = findMatchInWebList(matchesRes.matches, seed);
@@ -230,6 +264,8 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
               surface={match.surface}
               homeName={match.home_name}
               awayName={match.away_name}
+              gender={match.gender}
+              tour={match.tour_category}
               h2hSummary={analytics?.h2h}
               p1Form={analytics?.p1Form ? { currentStreak: analytics.p1Form.currentStreak, recentScores: analytics.p1Form.recentScores } : null}
               p2Form={analytics?.p2Form ? { currentStreak: analytics.p2Form.currentStreak, recentScores: analytics.p2Form.recentScores } : null}
