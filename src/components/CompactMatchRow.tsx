@@ -50,7 +50,8 @@ export const CompactMatchRow: React.FC<CompactMatchRowProps> = ({
     prediction.round_name,
     `${prediction.home_name} vs ${prediction.away_name}`,
     prediction.home_name,
-    prediction.away_name
+    prediction.away_name,
+    prediction.gender
   );
   const isWomen = matchGender === 'women';
 

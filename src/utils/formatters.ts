@@ -209,8 +209,13 @@ export const getMatchGender = (
   roundName?: string,
   matchTitle?: string,
   homeName?: string,
-  awayName?: string
+  awayName?: string,
+  explicitGender?: 'men' | 'women' | string
 ): 'men' | 'women' => {
+  // 0. Explicit gender directly from backend metadata (fastest & 100% authentic)
+  if (explicitGender === 'women' || explicitGender === 'female' || explicitGender === 'F') return 'women';
+  if (explicitGender === 'men' || explicitGender === 'male' || explicitGender === 'M') return 'men';
+
   const normalize = (str?: string) =>
     (str || '')
       .toLowerCase()
@@ -237,7 +242,30 @@ export const getMatchGender = (
     tournCombined.includes('guadalajara') ||
     tournCombined.includes('sao paulo') ||
     tournCombined.includes('monastir') ||
-    /\bw(15|25|35|50|75|100)\b/.test(tournCombined)
+    tournCombined.includes('caldas da rainha') ||
+    tournCombined.includes('florianopolis') ||
+    tournCombined.includes('colina') ||
+    tournCombined.includes('montevideo') ||
+    tournCombined.includes('buenos aires') ||
+    tournCombined.includes('puerto vallarta') ||
+    tournCombined.includes('saint-malo') ||
+    tournCombined.includes('parma') ||
+    tournCombined.includes('makarska') ||
+    tournCombined.includes('valencia') ||
+    tournCombined.includes('gaiba') ||
+    tournCombined.includes('contrexeville') ||
+    tournCombined.includes('iasi') ||
+    tournCombined.includes('palermo') ||
+    tournCombined.includes('lausanne') ||
+    tournCombined.includes('warsaw') ||
+    tournCombined.includes('prague') ||
+    tournCombined.includes('kozerki') ||
+    tournCombined.includes('tampico') ||
+    tournCombined.includes('midland') ||
+    tournCombined.includes('angers') ||
+    tournCombined.includes('limoges') ||
+    /\bw(15|25|35|50|75|100)\b/.test(tournCombined) ||
+    /\bwta\s*125\b/.test(tournCombined)
   ) {
     return 'women';
   }
@@ -458,12 +486,12 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
 
   // Normalize delimiters if newlines were stripped or joined with emoji headers
   const normalized = text
-    .replace(/\s*([📊📈]?\s*(?:Statistical & Surface Dynamics|دینامیک آماری و زمین مسابقه|دینامیک آماری|İstatistiksel ve Zemin Dinamikleri|Dinâmica Estatística e de Superfície|الديناميكيات الإحصائية وسطح الملعب):?)/gi, '\n\n$1')
-    .replace(/\s*([🏃‍♂️🏃‍♀️🏃]?\s*(?:Physical Conditioning & Fatigue Analysis|آمادگی جسمانی و مدیریت خستگی|آمادگی جسمانی|Fiziksel Kondisyon ve Yorgunluk|Condicionamento Físico e Fadiga|الجاهزية البدنية وإدارة الإجهاد):?)/gi, '\n\n$1')
-    .replace(/\s*([📜🏛️]?\s*(?:Historical Matchup & Mental Fortitude|تقابل رودررو و آمادگی ذهنی|تقابل رودررو|Geçmiş Eşleşmeler ve Zihinsel Güç|Confronto Direto e Força Mental|المواجهات المباشرة والصلابة الذهنية):?)/gi, '\n\n$1')
-    .replace(/\s*([🎯🏆]?\s*(?:Strategic (?:Consensus Verdict|Projection)|جمع‌بندی و نتیجه‌گیری نهایی|جمع‌بندی نهایی|Stratejik Karar ve Uzlaşı|Veredito Estratégico|النتيجة الاستراتيجية والإجماع):?)/gi, '\n\n$1')
+    .replace(/\s*([📊📈]?\s*(?:Statistical & Surface Dynamics|دینامیک آماری و زمین مسابقه|دینامیک آماری و سطحی|دینامیک آماری|İstatistiksel ve Zemin Dinamikleri|Dinâmica Estatística e de Superfície|الديناميكيات الإحصائية وسطح الملعب):?)/gi, '\n\n$1')
+    .replace(/\s*([🏃‍♂️🏃‍♀️🏃]?\s*(?:Physical Conditioning & Fatigue Analysis|حالت فیزیکی و تجزیه و تحلیل خستگی|آمادگی جسمانی و مدیریت خستگی|آمادگی جسمانی|حالت فیزیکی|Fiziksel Kondisyon ve Yorgunluk|Condicionamento Físico e Fadiga|الجاهزية البدنية وإدارة الإجهاد):?)/gi, '\n\n$1')
+    .replace(/\s*([📜🏛️]?\s*(?:Historical Matchup & Mental Fortitude|مسابقه تاریخی و استحکام ذهنی|تقابل رودررو و آمادگی ذهنی|تقابل رودررو|مسابقه تاریخی|Geçmiş Eşleşmeler ve Zihinsel Güç|Confronto Direto e Força Mental|المواجهات المباشرة والصلابة الذهنية):?)/gi, '\n\n$1')
+    .replace(/\s*([🎯🏆]?\s*(?:Strategic (?:Consensus Verdict|Projection)|پیش بینی استراتژیک|پیش‌بینی استراتژیک|جمع‌بندی و نتیجه‌گیری نهایی|جمع‌بندی نهایی|Stratejik Karar ve Uzlaşı|Veredito Estratégico|النتيجة الاستراتيجية والإجماع):?)/gi, '\n\n$1')
     .replace(/\s*([🧠💡]?\s*(?:Tactical (?:Match Dossier|Dossier)|پرونده تحلیل تاکتیکی|تحلیل تاکتیکی|Taktiksel Maç Dosyası|Dossiê Tático da Partida|الملف التكتيكي للمباراة):?)/gi, '\n\n$1')
-    .replace(/\s*(⚠️\s*(?:Critical Upset Scenario|Critical upset scenario to monitor|Devils Advocate|سناریوی شکست غیرمنتظره|Kritik Sürpriz Senaryosu|Cenário Crítico de Zebra|سيناريو المفاجأة الحرج):?)/gi, '\n\n$1');
+    .replace(/\s*(⚠️\s*(?:Critical Upset Scenario|Critical upset scenario to monitor|Devils Advocate|سناریوی ناراحت کننده حیاتی برای نظارت|سناریوی ناراحت کننده|سناریوی شکست غیرمنتظره|Kritik Sürpriz Senaryosu|Cenário Crítico de Zebra|سيناريو المفاجأة الحرج):?)/gi, '\n\n$1');
 
   const rawBlocks = normalized
     .split(/\n\s*\n|\r\n\s*\r\n/)
@@ -491,7 +519,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📊📈]\s*/, '').trim() : 'Statistical & Surface Dynamics';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^[🏃‍♂️🏃‍♀️🏃]|\b(?:Physical Conditioning|آمادگی جسمانی|Fiziksel Kondisyon|Condicionamento Físico|الجاهزية البدنية)\b/i.test(block)) {
+    } else if (/^[🏃‍♂️🏃‍♀️🏃]|\b(?:Physical Conditioning|آمادگی جسمانی|حالت فیزیکی|Fiziksel Kondisyon|Condicionamento Físico|الجاهزية البدنية)\b/i.test(block)) {
       type = 'physical';
       icon = '🏃';
       color = '#34d399';
@@ -500,7 +528,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🏃‍♂️🏃‍♀️🏃]\s*/, '').trim() : 'Physical Conditioning & Fatigue Analysis';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^[📜🏛️]|\b(?:Historical Matchup|تقابل رودررو|Geçmiş Eşleşmeler|Confronto Direto|المواجهات المباشرة)\b/i.test(block)) {
+    } else if (/^[📜🏛️]|\b(?:Historical Matchup|تقابل رودررو|مسابقه تاریخی|Geçmiş Eşleşmeler|Confronto Direto|المواجهات المباشرة)\b/i.test(block)) {
       type = 'historical';
       icon = '📜';
       color = '#a78bfa';
@@ -509,7 +537,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[📜🏛️]\s*/, '').trim() : 'Historical Matchup & Mental Fortitude';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^[🎯🏆]|\b(?:Strategic (?:Projection|Consensus)|جمع‌بندی و نتیجه‌گیری|Stratejik Karar|Veredito Estratégico|النتيجة الاستراتيجية)\b/i.test(block)) {
+    } else if (/^[🎯🏆]|\b(?:Strategic (?:Projection|Consensus)|جمع‌بندی و نتیجه‌گیری|پیش بینی استراتژیک|پیش‌بینی استراتژیک|Stratejik Karar|Veredito Estratégico|النتيجة الاستراتيجية)\b/i.test(block)) {
       type = 'verdict';
       icon = '🎯';
       color = '#fbbf24';
@@ -527,7 +555,7 @@ export function parseAiDossierSections(text?: string): AgentDossierSection[] {
       const colonIdx = block.indexOf(':');
       title = colonIdx !== -1 ? block.slice(0, colonIdx).replace(/^[🧠💡]\s*/, '').trim() : 'Tactical Match Dossier';
       body = colonIdx !== -1 ? block.slice(colonIdx + 1).trim() : block;
-    } else if (/^⚠️|\b(?:Critical (?:Upset|upset)|شکست غیرمنتظره|Kritik Sürpriz|Cenário Crítico de Zebra|سيناريو المفاجأة)\b/i.test(block)) {
+    } else if (/^⚠️|\b(?:Critical (?:Upset|upset)|سناریوی ناراحت کننده|شکست غیرمنتظره|Kritik Sürpriz|Cenário Crítico de Zebra|سيناريو المفاجأة)\b/i.test(block)) {
       type = 'risk';
       icon = '⚠️';
       color = '#f87171';

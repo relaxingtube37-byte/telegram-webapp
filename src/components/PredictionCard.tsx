@@ -13,7 +13,7 @@ interface PredictionCardProps {
 export const PredictionCard: React.FC<PredictionCardProps> = ({ prediction, isLocked = false, onUnlockClick }) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`, prediction.home_name, prediction.away_name);
+  const matchGender = getMatchGender(prediction.tournament_name, prediction.round_name, `${prediction.home_name} vs ${prediction.away_name}`, prediction.home_name, prediction.away_name, prediction.gender);
   const isWomen = matchGender === 'women';
 
   const surfaceEmoji = prediction.surface?.toLowerCase().includes('clay') ? '🧱'

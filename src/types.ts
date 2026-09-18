@@ -25,6 +25,8 @@ export interface Prediction {
   round_name?: string;
   home_name: string;
   away_name: string;
+  gender?: 'men' | 'women';
+  tour_category?: string;
   home_id?: number;
   away_id?: number;
   home_image?: string;

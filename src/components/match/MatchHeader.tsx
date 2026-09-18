@@ -58,7 +58,8 @@ export const MatchHeader: React.FC<MatchHeaderProps> = ({
     match.round_name,
     `${match.home_name} vs ${match.away_name}`,
     match.home_name,
-    match.away_name
+    match.away_name,
+    match.gender
   );
   const isWomen = gender === 'women';
   const tour = isWomen ? 'WTA' : 'ATP';

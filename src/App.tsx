@@ -640,7 +640,7 @@ export function App() {
               const trailing = matchParam.match(/-(\d+)$/) || matchParam.match(/^(\d+)$/);
               if (trailing) {
                 try {
-                  const singleRes = await fetch(`${API_BASE}/matches/${trailing[1]}/betting`, { headers }).then(r => r.json());
+                  const singleRes = await fetch(`${API_BASE}/matches/${trailing[1]}/betting?lang=${encodeURIComponent(language)}`, { headers }).then(r => r.json());
                   if (singleRes && (singleRes.fixture_id || singleRes.id)) {
                     matchTarget = singleRes;
                   }
@@ -719,7 +719,7 @@ export function App() {
       if (isTrulyLive) live++;
       if (matchMatchesDateFilter(rawDateStr, 'today', selectedTimezone)) today++;
 
-      const g = getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name);
+      const g = getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name, p.gender);
       if (g === 'women') wta++;
       else atp++;
     });
@@ -753,7 +753,7 @@ export function App() {
 
       // 3. Gender Filter Match (All / Men / Women)
       if (genderFilter !== 'all') {
-        const g = getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name);
+        const g = getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name, p.gender);
         if (genderFilter === 'men' && g === 'women') return false;
         if (genderFilter === 'women' && g === 'men') return false;
       }
@@ -1027,9 +1027,9 @@ export function App() {
           ) : Object.keys(groupedByTournament).length > 0 ? (
             Object.entries(groupedByTournament).map(([tournKey, tournData]) => {
               const isCollapsed = !!collapsedTournaments[tournKey];
-              const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'women');
-              const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name) === 'men');
-              const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (getMatchGender(tournData.displayName) === 'women' ? 'WTA' : 'ATP');
+              const hasWomen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name, p.gender) === 'women');
+              const hasMen = tournData.items.some(p => getMatchGender(p.tournament_name, p.round_name, `${p.home_name} vs ${p.away_name}`, p.home_name, p.away_name, p.gender) === 'men');
+              const tournBadge = (hasWomen && !hasMen) ? 'WTA' : (!hasWomen && hasMen) ? 'ATP' : (hasWomen && hasMen) ? 'ATP/WTA' : (tournData.items[0]?.gender === 'women' || getMatchGender(tournData.displayName, undefined, undefined, undefined, undefined, tournData.items[0]?.gender) === 'women' ? 'WTA' : 'ATP');
               const isWta = tournBadge === 'WTA';
 
               return (

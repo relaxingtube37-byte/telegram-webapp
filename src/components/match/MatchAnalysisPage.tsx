@@ -75,15 +75,14 @@ export const MatchAnalysisPage: React.FC<MatchAnalysisPageProps> = ({
   const contentLocked = !member;
   const canSeeFullAi = member;
 
-  // Keep shallow seed updates in sync (e.g. score changes from live polling)
+  // Keep shallow seed updates  // Sync seed prediction updates (e.g. live score ticks, language projections)
   useEffect(() => {
     setMatch(prev => ({
       ...prev,
-      result_score: seed.result_score,
-      status: seed.status,
+      ...seed,
       content_locked: isFreeMode ? false : (!isClientVerified ? true : (prev.content_locked ?? false)),
     }));
-  }, [seed.id, seed.fixture_id, seed.result_score, seed.status, isClientVerified, isFreeMode]);
+  }, [seed, isClientVerified, isFreeMode]);
 
   useEffect(() => {
     let cancelled = false;

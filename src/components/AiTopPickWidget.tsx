@@ -72,7 +72,8 @@ export const AiTopPickWidget: React.FC<AiTopPickWidgetProps> = ({
     topPick.round_name,
     `${topPick.home_name} vs ${topPick.away_name}`,
     topPick.home_name,
-    topPick.away_name
+    topPick.away_name,
+    topPick.gender
   );
   const isWta = gender === 'women';
   const winProb = Math.round(topPick.win_probability || 68);
