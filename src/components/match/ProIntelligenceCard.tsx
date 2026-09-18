@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import type { ProIntelligencePayload, IPlayerTelemetryCard, IMetricNode } from '../../types';
 import { Sparkles, Shield, Zap, BatteryCharging, HeartHandshake, Activity, Award } from 'lucide-react';
 import { useTranslation } from '../../i18n';
+import { ModernTelemetryHub } from './ModernTelemetryHub';
 
 interface ProIntelligenceCardProps {
   intel: ProIntelligencePayload;
@@ -1018,109 +1019,120 @@ export const ProIntelligenceCard: React.FC<ProIntelligenceCardProps> = ({
         </div>
       </div>
 
-      {/* ── Footer Row: Dual Physical Battery & Mental Grit Cards ── */}
-      <div style={{
-        marginTop: '1.5rem',
-        paddingTop: '1.25rem',
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '1rem',
-      }}>
-        {/* Player 1 Card */}
+      {/* ── Modern Telemetry Hub (4 Cutting-Edge Modules) or Legacy Fallback ── */}
+      {intel.modern_telemetry ? (
+        <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <ModernTelemetryHub
+            data={intel.modern_telemetry}
+            homeName={p1FullName}
+            awayName={p2FullName}
+          />
+        </div>
+      ) : (
+        /* ── Legacy Fallback Footer Row: Dual Physical Battery & Mental Grit Cards ── */
         <div style={{
-          background: 'rgba(6, 182, 212, 0.04)',
-          border: '1px solid rgba(6, 182, 212, 0.22)',
-          borderRadius: '14px',
-          padding: '1rem 1.1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
+          marginTop: '1.5rem',
+          paddingTop: '1.25rem',
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '1rem',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#38bdf8' }}>{p1FullName}</span>
-            <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8', fontWeight: 800 }}>{t('proIntelligence.player1', 'PLAYER 1')}</span>
+          {/* Player 1 Card */}
+          <div style={{
+            background: 'rgba(6, 182, 212, 0.04)',
+            border: '1px solid rgba(6, 182, 212, 0.22)',
+            borderRadius: '14px',
+            padding: '1rem 1.1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#38bdf8' }}>{p1FullName}</span>
+              <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(6, 182, 212, 0.15)', color: '#38bdf8', fontWeight: 800 }}>{t('proIntelligence.player1', 'PLAYER 1')}</span>
+            </div>
+
+            {p1.readiness && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <BatteryCharging size={18} color="#22c55e" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                    <span style={{ color: '#22c55e' }}>{getReadinessLabel(p1.readiness.statusLabel)} ({p1.readiness.energyScore}%)</span>
+                  </div>
+                  <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${p1.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                    {t('proIntelligence.restWindow', 'Rest Window')}: {p1.readiness.restLabel}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {p1.mental && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <HeartHandshake size={18} color="#06b6d4" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                    <span style={{ color: '#38bdf8' }}>{getMentalVerdict(p1.mental.verdict)}</span>
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                    {t('proIntelligence.firstSetLeadWin', '1st Set Lead Win')}: {p1.mental.frontRunnerWinPct} · {t('proIntelligence.comebackRate', 'Comeback Rate')}: {p1.mental.comebackRatePct}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {p1.readiness && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <BatteryCharging size={18} color="#22c55e" />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#22c55e' }}>{getReadinessLabel(p1.readiness.statusLabel)} ({p1.readiness.energyScore}%)</span>
-                </div>
-                <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${p1.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
-                </div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  {t('proIntelligence.restWindow', 'Rest Window')}: {p1.readiness.restLabel}
+          {/* Player 2 Card */}
+          <div style={{
+            background: 'rgba(244, 63, 94, 0.04)',
+            border: '1px solid rgba(244, 63, 94, 0.22)',
+            borderRadius: '14px',
+            padding: '1rem 1.1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#fb7185' }}>{p2FullName}</span>
+              <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185', fontWeight: 800 }}>{t('proIntelligence.player2', 'PLAYER 2')}</span>
+            </div>
+
+            {p2.readiness && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <BatteryCharging size={18} color="#22c55e" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                    <span style={{ color: '#22c55e' }}>{getReadinessLabel(p2.readiness.statusLabel)} ({p2.readiness.energyScore}%)</span>
+                  </div>
+                  <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${p2.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                    {t('proIntelligence.restWindow', 'Rest Window')}: {p2.readiness.restLabel}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {p1.mental && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <HeartHandshake size={18} color="#06b6d4" />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#38bdf8' }}>{getMentalVerdict(p1.mental.verdict)}</span>
-                </div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  {t('proIntelligence.firstSetLeadWin', '1st Set Lead Win')}: {p1.mental.frontRunnerWinPct} · {t('proIntelligence.comebackRate', 'Comeback Rate')}: {p1.mental.comebackRatePct}
+            {p2.mental && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <HeartHandshake size={18} color="#f43f5e" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
+                    <span style={{ color: '#f472b6' }}>{getMentalVerdict(p2.mental.verdict)}</span>
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                    {t('proIntelligence.firstSetLeadWin', '1st Set Lead Win')}: {p2.mental.frontRunnerWinPct} · {t('proIntelligence.comebackRate', 'Comeback Rate')}: {p2.mental.comebackRatePct}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Player 2 Card */}
-        <div style={{
-          background: 'rgba(244, 63, 94, 0.04)',
-          border: '1px solid rgba(244, 63, 94, 0.22)',
-          borderRadius: '14px',
-          padding: '1rem 1.1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.84rem', fontWeight: 900, color: '#fb7185' }}>{p2FullName}</span>
-            <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 4, background: 'rgba(244, 63, 94, 0.15)', color: '#fb7185', fontWeight: 800 }}>{t('proIntelligence.player2', 'PLAYER 2')}</span>
+            )}
           </div>
-
-          {p2.readiness && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <BatteryCharging size={18} color="#22c55e" />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#22c55e' }}>{getReadinessLabel(p2.readiness.statusLabel)} ({p2.readiness.energyScore}%)</span>
-                </div>
-                <div style={{ height: 3, width: '100%', background: 'rgba(255,255,255,0.08)', borderRadius: 2, margin: '3px 0', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${p2.readiness.energyScore}%`, background: '#22c55e', borderRadius: 2 }} />
-                </div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  {t('proIntelligence.restWindow', 'Rest Window')}: {p2.readiness.restLabel}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {p2.mental && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <HeartHandshake size={18} color="#f43f5e" />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff' }}>
-                  <span style={{ color: '#f472b6' }}>{getMentalVerdict(p2.mental.verdict)}</span>
-                </div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  {t('proIntelligence.firstSetLeadWin', '1st Set Lead Win')}: {p2.mental.frontRunnerWinPct} · {t('proIntelligence.comebackRate', 'Comeback Rate')}: {p2.mental.comebackRatePct}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

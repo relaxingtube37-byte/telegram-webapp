@@ -166,6 +166,55 @@ export interface IPlayerTelemetryCard {
   skills?: any;
 }
 
+export interface IModernTelemetryHub {
+  biomechanics: {
+    p1_energy_tank_pct: number;
+    p2_energy_tank_pct: number;
+    p1_acwr: number;
+    p2_acwr: number;
+    p1_status: string;
+    p2_status: string;
+    p1_rest_label: string;
+    p2_rest_label: string;
+    p1_matches_7d: number;
+    p2_matches_7d: number;
+  };
+  mental_clutch: {
+    p1_clutch_score: number;
+    p2_clutch_score: number;
+    p1_clutch_rating10: number;
+    p2_clutch_rating10: number;
+    p1_verdict: string;
+    p2_verdict: string;
+    p1_comeback_pct: number;
+    p2_comeback_pct: number;
+    p1_front_runner_pct: number;
+    p2_front_runner_pct: number;
+    tension_delta: number;
+  };
+  court_dynamics: {
+    cpi: number;
+    cpi_label: string;
+    surface: string;
+    p1_surface_elo: number;
+    p2_surface_elo: number;
+    elo_delta: number;
+    favored_player_index: number;
+  };
+  synergy_clash: {
+    p1_tsi: number;
+    p2_tsi: number;
+    p1_dr: number;
+    p2_dr: number;
+    p1_hold: number;
+    p2_hold: number;
+    p1_break: number;
+    p2_break: number;
+    p1_tier: string;
+    p2_tier: string;
+  };
+}
+
 export interface IPlayerComparison {
   matchup_id: string;
   fixture_id?: number;
@@ -176,6 +225,7 @@ export interface IPlayerComparison {
   player_one: IPlayerTelemetryCard;
   player_two: IPlayerTelemetryCard;
   head_to_head_delta: Record<string, number>;
+  modern_telemetry?: IModernTelemetryHub;
 
   // Legacy compatibility aliases
   version?: string;
