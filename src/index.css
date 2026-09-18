@@ -538,10 +538,13 @@ body {
   width: 100%;
 }
 
-.search-bar-wrapper {
+.search-bar-wrapper,
+.search-input-wrapper {
   position: relative;
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .search-icon {
@@ -551,6 +554,16 @@ body {
   transform: translateY(-50%);
   pointer-events: none;
   color: var(--text-secondary);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+[dir="rtl"] .search-icon {
+  left: auto;
+  right: 0.65rem;
 }
 
 .search-input {
@@ -558,12 +571,16 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.52rem 1.5rem 0.52rem 1.9rem;
+  padding: 0.52rem 1.5rem 0.52rem 2rem;
   color: white;
   font-size: 0.78rem;
   outline: none;
   transition: all 0.2s ease;
   box-sizing: border-box;
+}
+
+[dir="rtl"] .search-input {
+  padding: 0.52rem 2rem 0.52rem 1.5rem;
 }
 
 .search-input::placeholder { color: var(--text-muted); }
@@ -583,6 +600,16 @@ body {
   color: var(--text-secondary);
   font-size: 0.78rem;
   cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+[dir="rtl"] .search-clear-btn {
+  right: auto;
+  left: 0.55rem;
 }
 
 .date-filter-group {

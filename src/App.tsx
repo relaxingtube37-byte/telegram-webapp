@@ -905,17 +905,56 @@ export function App() {
           {/* Search Input & Date Filters Row */}
           <div className="search-date-combined-row">
             {/* Search Input */}
-            <div className="search-input-wrapper">
-              <Search size={16} className="search-icon" />
+            <div
+              className="search-input-wrapper"
+              style={{
+                position: 'relative',
+                flex: 1,
+                minWidth: 0,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Search
+                size={16}
+                className="search-icon"
+                style={{
+                  position: 'absolute',
+                  left: isRtl ? 'auto' : '0.65rem',
+                  right: isRtl ? '0.65rem' : 'auto',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: 'var(--text-secondary, #94a3b8)',
+                  zIndex: 2,
+                }}
+              />
               <input
                 type="text"
                 placeholder={t('app.searchPlayer', 'Search player...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
+                style={{
+                  paddingLeft: isRtl ? '1.5rem' : '2.1rem',
+                  paddingRight: isRtl ? '2.1rem' : '1.5rem',
+                }}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="search-clear-btn">✕</button>
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="search-clear-btn"
+                  style={{
+                    position: 'absolute',
+                    left: isRtl ? '0.55rem' : 'auto',
+                    right: isRtl ? 'auto' : '0.55rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 2,
+                  }}
+                >
+                  ✕
+                </button>
               )}
             </div>
 
